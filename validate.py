@@ -71,7 +71,7 @@ class validator:
             for item in user_item.items(folder, 1000):
                 if item.type == 'Feature Service':
                     self.feature_service_items.append(item)
-                    self.itemid_and_folder[item.title] = folder
+                    self.itemid_and_folder[item.itemid] = folder
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
@@ -106,9 +106,9 @@ class validator:
         #: Create a dataframe to hold our report info
         itemids = [item.itemid for item in self.feature_service_items]
         columns = ['fix_title', 'old_title', 'new_title',
-                   'fix_tags', 'old_tags', 'new_tags',
                    'fix_groups', 'old_groups', 'new_group',
                    'fix_folder', 'old_folder', 'new_folder',
+                   'fix_tags', 'old_tags', 'new_tags',
                    'fix_downloads',
                    'fix_delete_protection']
         report = pd.DataFrame(index=itemids, columns=columns)
@@ -133,13 +133,39 @@ class validator:
 
             itemid = item.itemid
 
-            #: Title check
-            if title != item.title:
-                title_data = ['Y', item.title, title]
-            else:
-                title_data = ['N', item.title, '']  #: Include the old title for readability
-            title_cols = ['fix_title', 'old_title', 'new_title']
-            report.loc[itemid, title_cols] = title_data
+            
+            if title != 'Not SGID':
+                
+                #: Title check
+                if title != item.title:
+                    title_data = ['Y', item.title, title]
+                else:
+                    title_data = ['N', item.title, '']  #: Include the old title for readability
+                title_cols = ['fix_title', 'old_title', 'new_title']
+                report.loc[itemid, title_cols] = title_data
+
+                #: Groups check
+                try:
+                    current_groups = [group.title for group in item.shared_with['groups']]
+                except:
+                    current_groups = ['Error']
+                if current_groups == 'Error':
+                    groups_data = ['N', 'Can\'t get group', '']
+                elif group not in current_groups:
+                    groups_data = ['Y', '; '.join(current_groups), group]
+                else:
+                    groups_data = ['N', '', '']
+                groups_cols = ['fix_tags', 'old_groups', 'new_group']
+                report.loc[itemid, groups_cols] = groups_data
+            
+                #: Folder check
+                current_folder = self.itemid_and_folder[itemid]
+                if folder != current_folder:
+                    folder_data = ['Y', current_folder, folder]
+                else:
+                    folder_data = ['N', '', '']
+                folder_cols = ['fix_folder', 'old_folder', 'new_folder']
+                report.loc[itemid, folder_cols] = folder_data
 
             #: Tags check
             if sorted(tags) != sorted(item.tags):
@@ -149,28 +175,13 @@ class validator:
             tags_cols = ['fix_tags', 'old_tags', 'new_tags']
             report.loc[itemid, tags_cols] = tags_data
 
-            #: Groups check
-            current_groups = [group.title for group in item.shared_with['groups']]
-            if group not in current_groups:
-                groups_data = ['Y', '; '.join(current_groups), group]
-            else:
-                groups_data = ['N', '', '']
-            groups_cols = ['fix_tags', 'old_groups', 'new_group']
-            report.loc[itemid, groups_cols] = groups_data
-
-            #: Folder check
-            current_folder = self.itemid_and_folder[itemid]
-            if folder != current_folder:
-                folder_data = ['Y', current_folder, folder]
-            else:
-                folder_data = ['N', '', '']
-            folder_cols = ['fix_folder', 'old_folder', 'new_folder']
-            report.loc[itemid, folder_cols] = folder_data
-
             #: Downloads check
-            manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-            properties = json.loads(str(manager.properties))
-            if 'Extract' not in properties['capabilities']:
+            try:
+                manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
+                properties = json.loads(str(manager.properties))
+            except:
+                properties = None
+            if properties and 'Extract' not in properties['capabilities']:
                 protect_data = ['Y']
             else:
                 protect_data = ['N']
@@ -186,6 +197,8 @@ class validator:
             report.loc[itemid, protect_cols] = protect_data
 
         report.to_csv(report_path)
+
+        return(report)
 
 
 if __name__ == '__main__':
