@@ -201,6 +201,44 @@ class validator:
         return(report)
 
 
+    def fix_items(self, report):
+
+
+        report_dict = report.to_dict('index')
+
+        for itemid in report_dict:
+            item = self.feature_service_items[itemid]
+            
+            #: Tags and title combined .update()
+            update_dict = {}
+            if report_dict[itemid]['fix_title'] == 'Y':
+                new_title = report_dict[itemid]['new_title']
+                update_dict['title'] = new_title
+            if report_dict[itemid]['fix_tags'] == 'Y':
+                new_tags = report_dict[itemid]['new_tags']
+                update_dict['tags'] = new_tags.split('; ')
+            if update_dict:
+                item.update(update_dict)
+
+            #: Group
+            if report_dict[itemid]['fix_groups'] == 'Y':
+                new_group = report_dict[itemid]['new_group']
+                item.share(everyone=True, groups=[new_group])
+
+            #: Folder
+            if report_dict[itemid]['fix_folder'] == 'Y':
+                new_folder = report_dict[itemid]['new_folder']
+                item.move(new_folder)
+
+            #: Delete Protection
+            if report_dict[itemid]['fix_delete_protection'] == 'Y':
+                item.protect = True
+
+            #: Enable Downloads
+            if report_dict[itemid]['fix_downloads'] == 'Y':
+                manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
+                manager.update_definition({ 'capabilities': 'Query,Extract' })
+
 if __name__ == '__main__':
     agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
 
