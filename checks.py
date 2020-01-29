@@ -119,12 +119,17 @@ def get_category_and_name(item, metatable_dict):
 
     current_itemid = item.itemid
 
-    table_sgid_name, table_agol_name = metatable_dict[current_itemid]
-    table_category = table_sgid_name.split('.')[1].proper()
+    #: Only do check if it's in the metatable; otherwise, return ['Not SGID'x3]
+    if current_itemid in metatable_dict:
+        table_sgid_name, table_agol_name = metatable_dict[current_itemid]
+        table_category = table_sgid_name.split('.')[1].title()
 
-    group = f'Utah SGID {table_category}'
-    
-    #: List of correct data for AGOL: [name, group, folder]
-    new_data = [table_agol_name, group, table_category]
+        group = f'Utah SGID {table_category}'
+        
+        #: List of correct data for AGOL: [name, group, folder]
+        new_data = [table_agol_name, group, table_category]
+
+    else:
+        new_data = ['Not SGID', 'Not SGID', 'Not SGID']
 
     return new_data
