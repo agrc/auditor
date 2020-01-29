@@ -18,7 +18,10 @@ import arcpy
 import csv
 import datetime
 import getpass
-import logging
+import json
+# import logging
+
+import pandas as pd
 
 from docopt import docopt
 
@@ -34,8 +37,8 @@ class validator:
     #: the user's folders
     feature_service_items = []
 
-    #: A dictionary of folders and the item.titles in them
-    folders_and_item_titles = {}
+    #: A dictionary of items and their folder
+    itemid_and_folder = {}
 
     #: A dictionary of the metatable records, indexed by the metatable's itemid
     #: values: {item_id: [table_sgid_name, table_agol_name]}
@@ -65,13 +68,10 @@ class validator:
         #: Get info for every item in every folder
         print('Getting item objects...')
         for folder in folders:
-            folder_list = []
             for item in user_item.items(folder, 1000):
                 if item.type == 'Feature Service':
                     self.feature_service_items.append(item)
-                    folder_list.append(item.title)
-            # Add item titles to folder's dictionary entry
-            self.folders_and_item_titles[folder] = folder_list
+                    self.itemid_and_folder[item.title] = folder
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
@@ -82,7 +82,7 @@ class validator:
                 self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name]
 
 
-    def validate_items(self):
+    def check_items(self, report_path):
         '''
         For each hosted feature layer, check:
             > Tags for malformed spacing, standard AGRC/SGID tags
@@ -102,11 +102,23 @@ class validator:
         Also, check the following:
             > Duplicate tags
         '''
-        
+
+        #: Create a dataframe to hold our report info
+        itemids = [item.itemid for item in self.feature_service_items]
+        columns = ['fix_title', 'old_title', 'new_title',
+                   'fix_tags', 'old_tags', 'new_tags',
+                   'fix_groups', 'old_groups', 'new_group',
+                   'fix_folder', 'old_folder', 'new_folder',
+                   'fix_downloads',
+                   'fix_delete_protection']
+        report = pd.DataFrame(index=itemids, columns=columns)
+
         for item in self.feature_service_items:
+
+            print(f'Checking {item.title}...')
             
             #: run the checks, return the correct values
-            #: once we've got all the properties to be changed, run the appropriate updates
+            #: once we've got all the properties to be changed, build the report
 
             #: Get the list of the correct tags
             tags = checks.check_tags(item, self.tags_to_delete, self.uppercased_tags, self.articles)
@@ -114,10 +126,69 @@ class validator:
             #: Get the correct name, group, and folder strings
             title, group, folder = checks.get_category_and_name(item, self.metatable_dict)
         
-            #: Now update if needed (be greedy; update both if only one is
-            #: needed to save time calling .update() twice on occasion)
-            if sorted(tags) != sorted(item.tags) or title != item.title:
-                item.update({'tags':tags, 'title':title})
+            #: Now .update() tags and title if needed (be greedy; update both if
+            #: only one is needed to save time calling .update() twice
+            # if sorted(tags) != sorted(item.tags) or title != item.title:
+            #     item.update({'tags':tags, 'title':title})
 
-            
+            itemid = item.itemid
 
+            #: Title check
+            if title != item.title:
+                title_data = ['Y', item.title, title]
+            else:
+                title_data = ['N', item.title, '']  #: Include the old title for readability
+            title_cols = ['fix_title', 'old_title', 'new_title']
+            report.loc[itemid, title_cols] = title_data
+
+            #: Tags check
+            if sorted(tags) != sorted(item.tags):
+                tags_data = ['Y', '; '.join(item.tags), '; '.join(tags)]
+            else:
+                tags_data = ['N', '', '']
+            tags_cols = ['fix_tags', 'old_tags', 'new_tags']
+            report.loc[itemid, tags_cols] = tags_data
+
+            #: Groups check
+            current_groups = [group.title for group in item.shared_with['groups']]
+            if group not in current_groups:
+                groups_data = ['Y', '; '.join(current_groups), group]
+            else:
+                groups_data = ['N', '', '']
+            groups_cols = ['fix_tags', 'old_groups', 'new_group']
+            report.loc[itemid, groups_cols] = groups_data
+
+            #: Folder check
+            current_folder = self.itemid_and_folder[itemid]
+            if folder != current_folder:
+                folder_data = ['Y', current_folder, folder]
+            else:
+                folder_data = ['N', '', '']
+            folder_cols = ['fix_folder', 'old_folder', 'new_folder']
+            report.loc[itemid, folder_cols] = folder_data
+
+            #: Downloads check
+            manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
+            properties = json.loads(str(manager.properties))
+            if 'Extract' not in properties['capabilities']:
+                protect_data = ['Y']
+            else:
+                protect_data = ['N']
+            protect_cols = ['fix_downloads']
+            report.loc[itemid, protect_cols] = protect_data
+
+            #: Delete Protection check
+            if not item.protected:
+                protect_data = ['Y']
+            else:
+                protect_data = ['N']
+            protect_cols = ['fix_delete_protection']
+            report.loc[itemid, protect_cols] = protect_data
+
+        report.to_csv(report_path)
+
+
+if __name__ == '__main__':
+    agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
+
+    agrc.check_items(r'c:\temp\validator1.csv')
