@@ -82,7 +82,7 @@ class validator:
                 self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name]
 
 
-    def check_items(self, report_path):
+    def check_items(self, report_path=None):
         '''
         For each hosted feature layer, check:
             > Tags for malformed spacing, standard AGRC/SGID tags
@@ -114,20 +114,6 @@ class validator:
 
             print(f'Checking {item.title}...')
             
-            #: run the checks, return the correct values
-            #: once we've got all the properties to be changed, build the report
-
-            #: Get the list of the correct tags
-            # tags = checks.check_tags(item, self.tags_to_delete, self.uppercased_tags, self.articles)
-
-            #: Get the correct name, group, and folder strings
-            # title, group, folder = checks.get_category_and_name(item, self.metatable_dict)
-        
-            #: Now .update() tags and title if needed (be greedy; update both if
-            #: only one is needed to save time calling .update() twice
-            # if sorted(tags) != sorted(item.tags) or title != item.title:
-            #     item.update({'tags':tags, 'title':title})
-
             itemid = item.itemid
 
             #: Title check
@@ -160,7 +146,8 @@ class validator:
             protect_cols = ['fix_delete_protection']
             report.loc[itemid, protect_cols] = protect_data
 
-        report.to_csv(report_path)
+        if report_path:
+            report.to_csv(report_path)
 
         return(report)
 
