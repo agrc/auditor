@@ -155,7 +155,7 @@ class validator:
                     groups_data = ['Y', '; '.join(current_groups), group]
                 else:
                     groups_data = ['N', '', '']
-                groups_cols = ['fix_tags', 'old_groups', 'new_group']
+                groups_cols = ['fix_groups', 'old_groups', 'new_group']
                 report.loc[itemid, groups_cols] = groups_data
             
                 #: Folder check
@@ -251,8 +251,8 @@ class validator:
 
                 #: Delete Protection
                 if report_dict[itemid]['fix_delete_protection'] == 'Y':
-                    protect_result = item.protect = True
-                    if protect_result:
+                    protect_result = item.protect(True)
+                    if protect_result['success']:
                         results[itemid].append(f'Item protected')
                     else:
                         results[itemid].append(f'Failed to protect item')
