@@ -15,14 +15,11 @@ Examples:
 
 import arcgis
 import arcpy
-import csv
 import datetime
 import getpass
 import json
-# import logging
 
 import pandas as pd
-
 from docopt import docopt
 
 import checks
@@ -100,15 +97,8 @@ class validator:
             > Metadata against SGID (Waiting until 2.5's arcpy metadata tools?)
         '''
 
-        #: Create a dataframe to hold our report info
-        itemids = [item.itemid for item in self.feature_service_items]
-        columns = ['fix_title', 'old_title', 'new_title',
-                   'fix_groups', 'old_groups', 'new_group',
-                   'fix_folder', 'old_folder', 'new_folder',
-                   'fix_tags', 'old_tags', 'new_tags',
-                   'fix_downloads',
-                   'fix_delete_protection']
-        report = pd.DataFrame(index=itemids, columns=columns)
+        #: Dict of dicts, where outer keys are itemids and inner keys are column names
+        report_dict = {}
 
         for item in self.feature_service_items:
 
@@ -116,46 +106,45 @@ class validator:
             
             itemid = item.itemid
 
+            #: Intialize emtpy dictionary for this item
+            report_dict[itemid] = {}
+
             #: Title check
             title_data = checks.title_check(item, self.metatable_dict)
-            title_cols = ['fix_title', 'old_title', 'new_title']
-            report.loc[itemid, title_cols] = title_data
+            report_dict[itemid].update(title_data)
 
             #: Groups check
             groups_data = checks.groups_check(item, self.metatable_dict)
-            groups_cols = ['fix_groups', 'old_groups', 'new_group']
-            report.loc[itemid, groups_cols] = groups_data
+            report_dict[itemid].update(groups_data)
         
             #: Folder check
             folder_data = checks.folder_check(item, self.metatable_dict, self.itemid_and_folder)
-            folder_cols = ['fix_folder', 'old_folder', 'new_folder']
-            report.loc[itemid, folder_cols] = folder_data
+            report_dict[itemid].update(folder_data)
 
             #: Tags check
             tags_data = checks.tags_check(item, self.tags_to_delete, self.uppercased_tags, self.articles)
-            tags_cols = ['fix_tags', 'old_tags', 'new_tags']
-            report.loc[itemid, tags_cols] = tags_data
+            report_dict[itemid].update(tags_data)
 
             #: Downloads check
             download_data = checks.downloads_check(item)
-            download_cols = ['fix_downloads']
-            report.loc[itemid, download_cols] = download_data
+            report_dict[itemid].update(download_data)
 
             #: Delete Protection check
             protect_data = checks.delete_protection_check(item)
-            protect_cols = ['fix_delete_protection']
-            report.loc[itemid, protect_cols] = protect_data
+            report_dict[itemid].update(protect_data)
+
 
         if report_path:
-            report.to_csv(report_path)
+            report_df = pd.DataFrame(report_dict).T
+            report_df.to_csv(report_path)
 
-        return(report)
-
-
-    def fix_items(self, report):
+        return(report_dict)
 
 
-        report_dict = report.to_dict('index')
+    def fix_items(self, report_dict):
+
+
+        # report_dict = report.to_dict('index')
 
         results = {}
 
@@ -173,7 +162,7 @@ class validator:
                     update_dict['title'] = new_title
                 if report_dict[itemid]['fix_tags'] == 'Y':
                     new_tags = report_dict[itemid]['new_tags']
-                    update_dict['tags'] = new_tags.split('; ')
+                    update_dict['tags'] = new_tags
                 if update_dict:
                     update_result = item.update(update_dict)
                     if update_result:
@@ -229,4 +218,4 @@ if __name__ == '__main__':
     jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
 
     jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
-    # jake.fix_items(jake_report)
+    jake.fix_items(jake_report)
