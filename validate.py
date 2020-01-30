@@ -206,40 +206,76 @@ class validator:
 
         report_dict = report.to_dict('index')
 
-        for itemid in report_dict:
-            item = self.feature_service_items[itemid]
-            
-            #: Tags and title combined .update()
-            update_dict = {}
-            if report_dict[itemid]['fix_title'] == 'Y':
-                new_title = report_dict[itemid]['new_title']
-                update_dict['title'] = new_title
-            if report_dict[itemid]['fix_tags'] == 'Y':
-                new_tags = report_dict[itemid]['new_tags']
-                update_dict['tags'] = new_tags.split('; ')
-            if update_dict:
-                item.update(update_dict)
+        results = {}
 
-            #: Group
-            if report_dict[itemid]['fix_groups'] == 'Y':
-                new_group = report_dict[itemid]['new_group']
-                item.share(everyone=True, groups=[new_group])
+        try:
+            for itemid in report_dict:
 
-            #: Folder
-            if report_dict[itemid]['fix_folder'] == 'Y':
-                new_folder = report_dict[itemid]['new_folder']
-                item.move(new_folder)
+                item = self.gis.content.get(itemid)
 
-            #: Delete Protection
-            if report_dict[itemid]['fix_delete_protection'] == 'Y':
-                item.protect = True
+                results[itemid] = [item.title]
+                
+                #: Tags and title combined .update()
+                update_dict = {}
+                if report_dict[itemid]['fix_title'] == 'Y':
+                    new_title = report_dict[itemid]['new_title']
+                    update_dict['title'] = new_title
+                if report_dict[itemid]['fix_tags'] == 'Y':
+                    new_tags = report_dict[itemid]['new_tags']
+                    update_dict['tags'] = new_tags.split('; ')
+                if update_dict:
+                    update_result = item.update(update_dict)
+                    if update_result:
+                        results[itemid].append('Tags and/or title updated')
+                    else:
+                        results[itemid].append('Failed to update tags and/or title')
 
-            #: Enable Downloads
-            if report_dict[itemid]['fix_downloads'] == 'Y':
-                manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-                manager.update_definition({ 'capabilities': 'Query,Extract' })
+                #: Group
+                if report_dict[itemid]['fix_groups'] == 'Y':
+                    new_group = report_dict[itemid]['new_group']
+                    share_results = item.share(everyone=True, groups=[new_group])
+                    success = share_results['results'][0]['success']
+                    if success:
+                        results[itemid].append(f'Group updated to {new_group}')
+                    else:
+                        results[itemid].append(f'Failed to update group to {new_group}')
+
+                #: Folder
+                if report_dict[itemid]['fix_folder'] == 'Y':
+                    new_folder = report_dict[itemid]['new_folder']
+                    move_result = item.move(new_folder)
+                    if move_result['success']:
+                        results[itemid].append(f'Item moved to {new_folder}')
+                    else:
+                        results[itemid].append(f'Failed to move item to {new_folder}')
+
+                #: Delete Protection
+                if report_dict[itemid]['fix_delete_protection'] == 'Y':
+                    protect_result = item.protect = True
+                    if protect_result:
+                        results[itemid].append(f'Item protected')
+                    else:
+                        results[itemid].append(f'Failed to protect item')
+
+
+                #: Enable Downloads
+                if report_dict[itemid]['fix_downloads'] == 'Y':
+                    manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
+                    download_result = manager.update_definition({ 'capabilities': 'Query,Extract' })
+                    if download_result['success']:
+                        results[itemid].append(f'Downloads enabled')
+                    else:
+                        results[itemid].append(f'Failed to enable downloads')
+        finally:
+            print(results)
+
 
 if __name__ == '__main__':
-    agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
+    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
 
-    agrc.check_items(r'c:\temp\validator1.csv')
+    # agrc.check_items(r'c:\temp\validator1.csv')
+
+    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
+
+    jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
+    jake.fix_items(jake_report)
