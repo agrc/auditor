@@ -1,4 +1,5 @@
-
+import arcgis
+import json
 
 def tag_case(tag, uppercased, articles):
     '''
@@ -111,35 +112,14 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles):
             if 'SGID' not in new_tags:
                 new_tags.append('SGID')
 
-    #: Create tags data: [fix_tags, old_tags, new_tags]
+    #: Create tags data: fix_tags, old_tags, new_tags
     #: Tag lists are joined into a single string with '; ' for reporting
     if sorted(new_tags) != sorted(item.tags):
-        tags_data = ['Y', '; '.join(item.tags), '; '.join(new_tags)]
+        tags_data = {'fix_tags':'Y', 'old_tags':'; '.join(item.tags), 'new_tags':'; '.join(new_tags)}
     else:
-        tags_data = ['N', '', '']
+        tags_data = {'fix_tags':'N', 'old_tags':'', 'new_tags':''}
 
     return tags_data
-
-
-def get_category_and_name(item, metatable_dict):
-    #: Find item in meta table, check name
-
-    current_itemid = item.itemid
-
-    #: Only do check if it's in the metatable; otherwise, return ['Not SGID'x3]
-    if current_itemid in metatable_dict:
-        table_sgid_name, table_agol_name = metatable_dict[current_itemid]
-        table_category = table_sgid_name.split('.')[1].title()
-
-        group = f'Utah SGID {table_category}'
-        
-        #: List of correct data for AGOL: [name, group, folder]
-        new_data = [table_agol_name, group, table_category]
-
-    else:
-        new_data = ['Not SGID', 'Not SGID', 'Not SGID']
-
-    return new_data
 
 
 def title_check(item, metatable_dict):
@@ -150,12 +130,12 @@ def title_check(item, metatable_dict):
     else:
         table_agol_title = None
 
-    #: Create title data: [fix_title, old_title, new_title]
+    #: Create title data: fix_title, old_title, new_title
     #: Always include the old title for readability
     if table_agol_title and table_agol_title != item.title:
-        title_data = ['Y', item.title, table_agol_title]
+        title_data = {'fix_title':'Y', 'old_title':item.title, 'new_title':table_agol_title}
     else:
-        title_data = ['N', item.title, '']  
+        title_data = {'fix_title':'N', 'old_title':'', 'new_title':''}  
 
     return title_data
 
@@ -172,11 +152,11 @@ def folder_check(item, metatable_dict, itemid_and_folder):
     else:
         table_folder = None
 
-    #: Create folder data: [fix_folder, old_folder, new_folder]
+    #: Create folder data: fix_folder, old_folder, new_folder
     if table_folder and table_folder != current_folder:
-        folder_data = ['Y', current_folder, table_folder]
+        folder_data = {'fix_folder':'Y', 'old_folder':current_folder, 'new_folder':table_folder}
     else:
-        folder_data = ['N', '', ''] 
+        folder_data = {'fix_folder':'N', 'old_folder':'', 'new_folder':''} 
 
     return folder_data
 
@@ -197,13 +177,13 @@ def groups_check(item, metatable_dict):
     else:
         group = None
 
-    #: Create groups data: [fix_groups, old_groups, new_group]
+    #: Create groups data: fix_groups, old_groups, new_group
     if current_groups == 'Error':
         groups_data = ['N', 'Can\'t get group', '']
     elif group and group not in current_groups:
-        groups_data = ['Y', '; '.join(current_groups), group]
+        groups_data = {'fix_groups':'Y', 'old_groups':current_groups, 'new_group':group}
     else:
-        groups_data = ['N', '', '']
+        groups_data = {'fix_groups':'N', 'old_groups':'', 'new_group':''}
 
     return groups_data
 
@@ -217,11 +197,11 @@ def downloads_check(item):
     except:
         properties = None
     
-    #: Create protect data: [fix_downloads]
+    #: Create protect data: fix_downloads
     if properties and 'Extract' not in properties['capabilities']:
-        fix_downloads = ['Y']
+        fix_downloads = {'fix_downloads':'Y'}
     else:
-        fix_downloads = ['N']
+        fix_downloads = {'fix_downloads':'N'}
 
     return fix_downloads
 
@@ -230,8 +210,8 @@ def delete_protection_check(item):
     
     #: item.protected is Boolean
     if not item.protected:
-        protect_data = ['Y']
+        protect_data = {'fix_delete_protection':'Y'}
     else:
-        protect_data = ['N']
+        protect_data = {'fix_delete_protection':'N'}
 
     return protect_data
