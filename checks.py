@@ -35,7 +35,7 @@ def tag_case(tag, uppercased, articles):
     return ' '.join(new_words)
 
 
-def check_tags(item, tags_to_delete, uppercased_tags, articles):
+def tags_check(item, tags_to_delete, uppercased_tags, articles):
 
     #: Keep track of groups that fail
     failed_group_items = []
@@ -101,7 +101,7 @@ def check_tags(item, tags_to_delete, uppercased_tags, articles):
     for group in groups:
         if 'Utah SGID' in group:
             category = group.split('Utah SGID ')[-1]
-            #: If there's already a lowercase category tag, replace it
+            #: If there's already a lowercase tag for the category, replace it
             if category.lower() in new_tags:
                 new_tags.remove(category.lower())
                 new_tags.append(category)
@@ -111,7 +111,14 @@ def check_tags(item, tags_to_delete, uppercased_tags, articles):
             if 'SGID' not in new_tags:
                 new_tags.append('SGID')
 
-    return new_tags
+    #: Create tags data: [fix_tags, old_tags, new_tags]
+    #: Tag lists are joined into a single string with '; ' for reporting
+    if sorted(new_tags) != sorted(item.tags):
+        tags_data = ['Y', '; '.join(item.tags), '; '.join(new_tags)]
+    else:
+        tags_data = ['N', '', '']
+
+    return tags_data
 
 
 def get_category_and_name(item, metatable_dict):
@@ -133,3 +140,98 @@ def get_category_and_name(item, metatable_dict):
         new_data = ['Not SGID', 'Not SGID', 'Not SGID']
 
     return new_data
+
+
+def title_check(item, metatable_dict):
+
+    #: Get title from metatable if it's in the table
+    if item.itemid in metatable_dict:
+        table_agol_title = metatable_dict[item.itemid][1]
+    else:
+        table_agol_title = None
+
+    #: Create title data: [fix_title, old_title, new_title]
+    #: Always include the old title for readability
+    if table_agol_title and table_agol_title != item.title:
+        title_data = ['Y', item.title, table_agol_title]
+    else:
+        title_data = ['N', item.title, '']  
+
+    return title_data
+
+
+def folder_check(item, metatable_dict, itemid_and_folder):
+
+    #: Get current folder from dictionary of items' folders
+    current_folder = itemid_and_folder[item.itemid]
+
+    #: Get folder from SGID category if in metatable
+    if item.itemid in metatable_dict:
+        SGID_name = metatable_dict[item.itemid][0]
+        table_folder = SGID_name.split('.')[1].title()
+    else:
+        table_folder = None
+
+    #: Create folder data: [fix_folder, old_folder, new_folder]
+    if table_folder and table_folder != current_folder:
+        folder_data = ['Y', current_folder, table_folder]
+    else:
+        folder_data = ['N', '', ''] 
+
+    return folder_data
+
+
+def groups_check(item, metatable_dict):
+    
+    #: Get current group, wrapped in try/except for groups that error out
+    try:
+        current_groups = [group.title for group in item.shared_with['groups']]
+    except:
+        current_groups = ['Error']
+
+    #: Get group from SGID category if in metatable
+    if item.itemid in metatable_dict:
+        SGID_name = metatable_dict[item.itemid][0]
+        table_category = SGID_name.split('.')[1].title()
+        group = f'Utah SGID {table_category}'
+    else:
+        group = None
+
+    #: Create groups data: [fix_groups, old_groups, new_group]
+    if current_groups == 'Error':
+        groups_data = ['N', 'Can\'t get group', '']
+    elif group and group not in current_groups:
+        groups_data = ['Y', '; '.join(current_groups), group]
+    else:
+        groups_data = ['N', '', '']
+
+    return groups_data
+
+
+def downloads_check(item):
+    
+    #: Check if downloads enabled; wrap in try/except for robustness
+    try:
+        manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
+        properties = json.loads(str(manager.properties))
+    except:
+        properties = None
+    
+    #: Create protect data: [fix_downloads]
+    if properties and 'Extract' not in properties['capabilities']:
+        fix_downloads = ['Y']
+    else:
+        fix_downloads = ['N']
+
+    return fix_downloads
+
+
+def delete_protection_check(item):
+    
+    #: item.protected is Boolean
+    if not item.protected:
+        protect_data = ['Y']
+    else:
+        protect_data = ['N']
+
+    return protect_data
