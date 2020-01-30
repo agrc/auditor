@@ -98,9 +98,6 @@ class validator:
             > Title against metatable
                 item.update({'title':title})
             > Metadata against SGID (Waiting until 2.5's arcpy metadata tools?)
-
-        Also, check the following:
-            > Duplicate tags
         '''
 
         #: Create a dataframe to hold our report info
@@ -121,10 +118,10 @@ class validator:
             #: once we've got all the properties to be changed, build the report
 
             #: Get the list of the correct tags
-            tags = checks.check_tags(item, self.tags_to_delete, self.uppercased_tags, self.articles)
+            # tags = checks.check_tags(item, self.tags_to_delete, self.uppercased_tags, self.articles)
 
             #: Get the correct name, group, and folder strings
-            title, group, folder = checks.get_category_and_name(item, self.metatable_dict)
+            # title, group, folder = checks.get_category_and_name(item, self.metatable_dict)
         
             #: Now .update() tags and title if needed (be greedy; update both if
             #: only one is needed to save time calling .update() twice
@@ -133,66 +130,33 @@ class validator:
 
             itemid = item.itemid
 
-            
-            if title != 'Not SGID':
-                
-                #: Title check
-                if title != item.title:
-                    title_data = ['Y', item.title, title]
-                else:
-                    title_data = ['N', item.title, '']  #: Include the old title for readability
-                title_cols = ['fix_title', 'old_title', 'new_title']
-                report.loc[itemid, title_cols] = title_data
+            #: Title check
+            title_data = checks.title_check(item, self.metatable_dict)
+            title_cols = ['fix_title', 'old_title', 'new_title']
+            report.loc[itemid, title_cols] = title_data
 
-                #: Groups check
-                try:
-                    current_groups = [group.title for group in item.shared_with['groups']]
-                except:
-                    current_groups = ['Error']
-                if current_groups == 'Error':
-                    groups_data = ['N', 'Can\'t get group', '']
-                elif group not in current_groups:
-                    groups_data = ['Y', '; '.join(current_groups), group]
-                else:
-                    groups_data = ['N', '', '']
-                groups_cols = ['fix_groups', 'old_groups', 'new_group']
-                report.loc[itemid, groups_cols] = groups_data
-            
-                #: Folder check
-                current_folder = self.itemid_and_folder[itemid]
-                if folder != current_folder:
-                    folder_data = ['Y', current_folder, folder]
-                else:
-                    folder_data = ['N', '', '']
-                folder_cols = ['fix_folder', 'old_folder', 'new_folder']
-                report.loc[itemid, folder_cols] = folder_data
+            #: Groups check
+            groups_data = checks.groups_check(item, self.metatable_dict)
+            groups_cols = ['fix_groups', 'old_groups', 'new_group']
+            report.loc[itemid, groups_cols] = groups_data
+        
+            #: Folder check
+            folder_data = checks.folder_check(item, self.metatable_dict, self.itemid_and_folder)
+            folder_cols = ['fix_folder', 'old_folder', 'new_folder']
+            report.loc[itemid, folder_cols] = folder_data
 
             #: Tags check
-            if sorted(tags) != sorted(item.tags):
-                tags_data = ['Y', '; '.join(item.tags), '; '.join(tags)]
-            else:
-                tags_data = ['N', '', '']
+            tags_data = checks.tags_check(item, self.tags_to_delete, self.uppercased_tags, self.articles)
             tags_cols = ['fix_tags', 'old_tags', 'new_tags']
             report.loc[itemid, tags_cols] = tags_data
 
             #: Downloads check
-            try:
-                manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-                properties = json.loads(str(manager.properties))
-            except:
-                properties = None
-            if properties and 'Extract' not in properties['capabilities']:
-                protect_data = ['Y']
-            else:
-                protect_data = ['N']
-            protect_cols = ['fix_downloads']
-            report.loc[itemid, protect_cols] = protect_data
+            download_data = checks.downloads_check(item)
+            download_cols = ['fix_downloads']
+            report.loc[itemid, download_cols] = download_data
 
             #: Delete Protection check
-            if not item.protected:
-                protect_data = ['Y']
-            else:
-                protect_data = ['N']
+            protect_data = checks.delete_protection_check(item)
             protect_cols = ['fix_delete_protection']
             report.loc[itemid, protect_cols] = protect_data
 
@@ -273,9 +237,9 @@ class validator:
 if __name__ == '__main__':
     # agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
 
-    # agrc.check_items(r'c:\temp\validator1.csv')
+    # agrc.check_items(r'c:\temp\validator3.csv')
 
     jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
 
     jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
-    jake.fix_items(jake_report)
+    # jake.fix_items(jake_report)
