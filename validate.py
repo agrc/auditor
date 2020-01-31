@@ -220,11 +220,11 @@ class validator:
 
 
 if __name__ == '__main__':
-    agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
+    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
 
-    agrc.check_items(r'c:\temp\validator3.csv')
+    # agrc.check_items(r'c:\temp\validator3.csv')
 
-    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
+    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
 
-    # jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
-    # jake.fix_items(jake_report)
+    jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
+    jake.fix_items(jake_report)
