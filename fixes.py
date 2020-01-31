@@ -1,4 +1,5 @@
 import arcgis
+import json
 
 def tags_or_title_fix(item, title=None, tags=None):
     '''
@@ -81,14 +82,20 @@ def delete_protection_fix(item):
 
 def downloads_fix(item):
     '''
-    Create a FeatureLayerCollection from item and use it's manager object to allow downloads by adding 'Extract' to it's capabilities.
+    Create a FeatureLayerCollection from item and use it's manager object to
+    allow downloads by adding 'Extract' to it's capabilities.
 
     return: Download enabling results as a string
     '''
 
     #: Enable Downloads
     manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-    download_result = manager.update_definition({ 'capabilities': 'Query,Extract' })
+    properties = json.loads(str(manager.properties))
+
+    current_capabilites = properties['capabilities']
+    new_capabilites = current_capabilites + ',Extract'
+    download_result = manager.update_definition({ 'capabilities': new_capabilites})
+
     if download_result['success']:
         result = f'Downloads enabled'
     else:
