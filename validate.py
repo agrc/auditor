@@ -5,7 +5,7 @@ Usage:
     validate.py validate --org=<org> --user=<user> [--save_report=<report_path>]
 
 Arguments:
-    org           AGOL Portal to connect to [defualt: https://www.arcgis.com]
+    org           AGOL Portal to connect to [default: https://www.arcgis.com]
     user          AGOL User for authentication
     report_path   Folder to save report to, eg `c:\\temp`
 

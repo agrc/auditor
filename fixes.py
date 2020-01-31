@@ -92,9 +92,9 @@ def downloads_fix(item):
     manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
     properties = json.loads(str(manager.properties))
 
-    current_capabilites = properties['capabilities']
-    new_capabilites = current_capabilites + ',Extract'
-    download_result = manager.update_definition({ 'capabilities': new_capabilites})
+    current_capabilities = properties['capabilities']
+    new_capabilities = current_capabilities + ',Extract'
+    download_result = manager.update_definition({ 'capabilities': new_capabilities})
 
     if download_result['success']:
         result = f'Downloads enabled'
