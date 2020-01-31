@@ -37,6 +37,15 @@ def tag_case(tag, uppercased, articles):
 
 
 def tags_check(item, tags_to_delete, uppercased_tags, articles):
+    '''
+    Create a list of new, cleaned tags:
+        * Properly case tags using uppercased_tags and articles
+        * Delete any tags in tags_to_delete
+        * Add SGID category tag and SGID, AGRC if it's an SGID item
+
+    return: Dict of update info:
+            {'fix_tags':'', 'old_tags':'', 'new_tags':''}
+    '''
 
     #: Keep track of groups that fail
     failed_group_items = []
@@ -124,6 +133,12 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles):
 
 
 def title_check(item, metatable_dict):
+    '''
+    Check item's title against title in metatable.
+
+    return: Dict of update info:
+            {'fix_title':'', 'old_title':'', 'new_title':''}
+    '''
 
     #: Get title from metatable if it's in the table
     if item.itemid in metatable_dict:
@@ -142,6 +157,12 @@ def title_check(item, metatable_dict):
 
 
 def folder_check(item, metatable_dict, itemid_and_folder):
+    '''
+    Check item's folder against SGID category name from metatable.
+
+    return: Dict of update info:
+            {'fix_folder':'', 'old_folder':'', 'new_folder':''}
+    '''
 
     #: Get current folder from dictionary of items' folders
     current_folder = itemid_and_folder[item.itemid]
@@ -163,7 +184,13 @@ def folder_check(item, metatable_dict, itemid_and_folder):
 
 
 def groups_check(item, metatable_dict):
-    
+    '''
+    Check item's group against SGID category from metatable.
+
+    return: Dict of update info:
+            {'fix_groups':'', 'old_groups':'', 'new_group':''}
+    '''
+
     #: Get current group, wrapped in try/except for groups that error out
     try:
         current_groups = [group.title for group in item.shared_with['groups']]
@@ -190,7 +217,13 @@ def groups_check(item, metatable_dict):
 
 
 def downloads_check(item):
-    
+    '''
+    Make sure item's 'Allow others to export to different formats' box is checked
+
+    return: Dict of update info:
+            {'fix_downloads':''}
+    '''
+
     #: Check if downloads enabled; wrap in try/except for robustness
     try:
         manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
@@ -208,7 +241,13 @@ def downloads_check(item):
 
 
 def delete_protection_check(item):
-    
+    '''
+    Prevent item from being accidentally deleted.
+
+    return: Dict of update info:
+            {'fix_delete_protection':''}
+    '''
+
     #: item.protected is Boolean
     if not item.protected:
         protect_data = {'fix_delete_protection':'Y'}
