@@ -22,7 +22,7 @@ import json
 import pandas as pd
 from docopt import docopt
 
-import checks
+import checks, fixes
 
 
 class validator:
@@ -156,66 +156,75 @@ class validator:
                 results[itemid] = [item.title]
                 
                 #: Tags and title combined .update()
-                update_dict = {}
-                if report_dict[itemid]['fix_title'] == 'Y':
-                    new_title = report_dict[itemid]['new_title']
-                    update_dict['title'] = new_title
-                if report_dict[itemid]['fix_tags'] == 'Y':
-                    new_tags = report_dict[itemid]['new_tags']
-                    update_dict['tags'] = new_tags
-                if update_dict:
-                    update_result = item.update(update_dict)
-                    if update_result:
-                        results[itemid].append('Tags and/or title updated')
-                    else:
-                        results[itemid].append('Failed to update tags and/or title')
+                new_title = report_dict[itemid]['new_title']
+                new_tags = report_dict[itemid]['new_tags']
+                if new_title or new_tags:
+                    results[itemid].append(fixes.tags_or_title_fix(item, new_title, new_tags))
+
+                # update_dict = {}
+                # if report_dict[itemid]['fix_title'] == 'Y':
+                #     new_title = report_dict[itemid]['new_title']
+                #     update_dict['title'] = new_title
+                # if report_dict[itemid]['fix_tags'] == 'Y':
+                #     new_tags = report_dict[itemid]['new_tags']
+                #     update_dict['tags'] = new_tags
+                # if update_dict:
+                #     update_result = item.update(update_dict)
+                #     if update_result:
+                #         results[itemid].append('Tags and/or title updated')
+                #     else:
+                #         results[itemid].append('Failed to update tags and/or title')
 
                 #: Group
                 if report_dict[itemid]['fix_groups'] == 'Y':
-                    new_group = report_dict[itemid]['new_group']
-                    share_results = item.share(everyone=True, groups=[new_group])
-                    success = share_results['results'][0]['success']
-                    if success:
-                        results[itemid].append(f'Group updated to {new_group}')
-                    else:
-                        results[itemid].append(f'Failed to update group to {new_group}')
+                    results[itemid].append(fixes.group_fix(item, report_dict[itemid]['new_group']))
+                    # new_group = report_dict[itemid]['new_group']
+                    # share_results = item.share(everyone=True, groups=[new_group])
+                    # success = share_results['results'][0]['success']
+                    # if success:
+                    #     results[itemid].append(f'Group updated to {new_group}')
+                    # else:
+                    #     results[itemid].append(f'Failed to update group to {new_group}')
 
                 #: Folder
                 if report_dict[itemid]['fix_folder'] == 'Y':
-                    new_folder = report_dict[itemid]['new_folder']
-                    move_result = item.move(new_folder)
-                    if move_result['success']:
-                        results[itemid].append(f'Item moved to {new_folder}')
-                    else:
-                        results[itemid].append(f'Failed to move item to {new_folder}')
+                    results[itemid].append(fixes.folder_fix(item, report_dict[itemid]['new_folder']))
+                    # new_folder = report_dict[itemid]['new_folder']
+                    # move_result = item.move(new_folder)
+                    # if move_result['success']:
+                    #     results[itemid].append(f'Item moved to {new_folder}')
+                    # else:
+                    #     results[itemid].append(f'Failed to move item to {new_folder}')
 
                 #: Delete Protection
                 if report_dict[itemid]['fix_delete_protection'] == 'Y':
-                    protect_result = item.protect(True)
-                    if protect_result['success']:
-                        results[itemid].append(f'Item protected')
-                    else:
-                        results[itemid].append(f'Failed to protect item')
+                    results[itemid].append(fixes.delete_protection_fix(item))
+                    # protect_result = item.protect(True)
+                    # if protect_result['success']:
+                    #     results[itemid].append(f'Item protected')
+                    # else:
+                    #     results[itemid].append(f'Failed to protect item')
 
 
                 #: Enable Downloads
                 if report_dict[itemid]['fix_downloads'] == 'Y':
-                    manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-                    download_result = manager.update_definition({ 'capabilities': 'Query,Extract' })
-                    if download_result['success']:
-                        results[itemid].append(f'Downloads enabled')
-                    else:
-                        results[itemid].append(f'Failed to enable downloads')
+                    results[itemid].append(fixes.downloads_fix(item))
+                    # manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
+                    # download_result = manager.update_definition({ 'capabilities': 'Query,Extract' })
+                    # if download_result['success']:
+                    #     results[itemid].append(f'Downloads enabled')
+                    # else:
+                    #     results[itemid].append(f'Failed to enable downloads')
         finally:
             print(results)
 
 
 if __name__ == '__main__':
-    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
+    agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
 
-    # agrc.check_items(r'c:\temp\validator3.csv')
+    agrc.check_items(r'c:\temp\validator3.csv')
 
-    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
+    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
 
-    jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
-    jake.fix_items(jake_report)
+    # jake_report = jake.check_items(r'c:\temp\validator2_jake.csv')
+    # jake.fix_items(jake_report)
