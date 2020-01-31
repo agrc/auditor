@@ -108,14 +108,15 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles):
                 new_tags.append(category)
             elif category not in new_tags:
                 new_tags.append(category)
-            #: Make sure it's got SGID in it's tags
+            #: Make sure it's got SGID, AGRC in it's tags
             if 'SGID' not in new_tags:
                 new_tags.append('SGID')
+            if 'AGRC' not in new_tags:
+                new_tags.append('AGRC')
 
     #: Create tags data: fix_tags, old_tags, new_tags
-    #: Tag lists are joined into a single string with '; ' for reporting
     if sorted(new_tags) != sorted(item.tags):
-        tags_data = {'fix_tags':'Y', 'old_tags':'; '.join(item.tags), 'new_tags':'; '.join(new_tags)}
+        tags_data = {'fix_tags':'Y', 'old_tags':item.tags, 'new_tags':new_tags}
     else:
         tags_data = {'fix_tags':'N', 'old_tags':'', 'new_tags':''}
 
