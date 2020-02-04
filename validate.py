@@ -115,7 +115,7 @@ class validator:
             title_data = checks.title_check(item, self.metatable_dict)
             self.report_dict[itemid].update(title_data)
             #: Get the new title
-            new_title = self.report_dict[itemid]['new_title']
+            new_title = self.report_dict[itemid]['title_new']
 
             #: Groups check
             groups_data = checks.groups_check(item, self.metatable_dict)
@@ -152,29 +152,29 @@ class validator:
                 item = self.gis.content.get(itemid)
                 
                 #: Tags and title combined .update()
-                new_title = self.report_dict[itemid]['new_title']
-                new_tags = self.report_dict[itemid]['new_tags']
+                new_title = self.report_dict[itemid]['title_new']
+                new_tags = self.report_dict[itemid]['tags_new']
                 if new_title or new_tags:
                     tag_title_result = fixes.tags_or_title_fix(item, new_title, new_tags)
-                    self.report_dict[itemid].update({'tag_title_result': tag_title_result})
+                    self.report_dict[itemid].update({'tags_title_result': tag_title_result})
 
                 #: Group
-                if self.report_dict[itemid]['fix_groups'] == 'Y':
-                    group_results = fixes.group_fix(item, self.report_dict[itemid]['new_group'])
-                    self.report_dict[itemid].update({'group_result': group_results})
+                if self.report_dict[itemid]['groups_fix'] == 'Y':
+                    groups_results = fixes.group_fix(item, self.report_dict[itemid]['group_new'])
+                    self.report_dict[itemid].update({'groups_result': groups_results})
 
                 #: Folder
-                if self.report_dict[itemid]['fix_folder'] == 'Y':
-                    folder_result = fixes.folder_fix(item, self.report_dict[itemid]['new_folder'])
+                if self.report_dict[itemid]['folder_fix'] == 'Y':
+                    folder_result = fixes.folder_fix(item, self.report_dict[itemid]['folder_old'])
                     self.report_dict[itemid].update({'folder_result': folder_result})
 
                 #: Delete Protection
-                if self.report_dict[itemid]['fix_delete_protection'] == 'Y':
+                if self.report_dict[itemid]['delete_protection_fix'] == 'Y':
                     delete_protection_result = fixes.delete_protection_fix(item)
                     self.report_dict[itemid].update({'delete_protection_result': delete_protection_result})
 
                 #: Enable Downloads
-                if self.report_dict[itemid]['fix_downloads'] == 'Y':
+                if self.report_dict[itemid]['downloads_fix'] == 'Y':
                     downloads_result = fixes.downloads_fix(item)
                     self.report_dict[itemid].update({'downloads_result': downloads_result})
 
