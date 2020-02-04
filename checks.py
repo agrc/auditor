@@ -91,7 +91,6 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
         #: properly cased and added to new_tags (the else clause).
 
         #: Fix/keep 'Utah' if it's not in the title
-        print(title.split())
         if lowercase_tag == 'utah':
             #: Have to nest this to avoid 'utah' hitting else and being added
             if 'Utah' not in title.split():
