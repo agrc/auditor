@@ -112,6 +112,7 @@ class validator:
             #: Title check
             title_data = checks.title_check(item, self.metatable_dict)
             report_dict[itemid].update(title_data)
+            new_title = report_dict[itemid]['new_title']
 
             #: Groups check
             groups_data = checks.groups_check(item, self.metatable_dict)
@@ -122,7 +123,7 @@ class validator:
             report_dict[itemid].update(folder_data)
 
             #: Tags check
-            tags_data = checks.tags_check(item, self.tags_to_delete, self.uppercased_tags, self.articles)
+            tags_data = checks.tags_check(item, self.tags_to_delete, self.uppercased_tags, self.articles, new_title)
             report_dict[itemid].update(tags_data)
 
             #: Downloads check
@@ -133,7 +134,7 @@ class validator:
             protect_data = checks.delete_protection_check(item)
             report_dict[itemid].update(protect_data)
 
-
+        #: Convert dict to pandas df for easy writing
         if report_path:
             report_df = pd.DataFrame(report_dict).T
             report_df.to_csv(report_path)
@@ -143,8 +144,6 @@ class validator:
 
     def fix_items(self, report_dict):
 
-
-        # report_dict = report.to_dict('index')
 
         results = {}
 
@@ -161,60 +160,22 @@ class validator:
                 if new_title or new_tags:
                     results[itemid].append(fixes.tags_or_title_fix(item, new_title, new_tags))
 
-                # update_dict = {}
-                # if report_dict[itemid]['fix_title'] == 'Y':
-                #     new_title = report_dict[itemid]['new_title']
-                #     update_dict['title'] = new_title
-                # if report_dict[itemid]['fix_tags'] == 'Y':
-                #     new_tags = report_dict[itemid]['new_tags']
-                #     update_dict['tags'] = new_tags
-                # if update_dict:
-                #     update_result = item.update(update_dict)
-                #     if update_result:
-                #         results[itemid].append('Tags and/or title updated')
-                #     else:
-                #         results[itemid].append('Failed to update tags and/or title')
-
                 #: Group
                 if report_dict[itemid]['fix_groups'] == 'Y':
                     results[itemid].append(fixes.group_fix(item, report_dict[itemid]['new_group']))
-                    # new_group = report_dict[itemid]['new_group']
-                    # share_results = item.share(everyone=True, groups=[new_group])
-                    # success = share_results['results'][0]['success']
-                    # if success:
-                    #     results[itemid].append(f'Group updated to {new_group}')
-                    # else:
-                    #     results[itemid].append(f'Failed to update group to {new_group}')
 
                 #: Folder
                 if report_dict[itemid]['fix_folder'] == 'Y':
                     results[itemid].append(fixes.folder_fix(item, report_dict[itemid]['new_folder']))
-                    # new_folder = report_dict[itemid]['new_folder']
-                    # move_result = item.move(new_folder)
-                    # if move_result['success']:
-                    #     results[itemid].append(f'Item moved to {new_folder}')
-                    # else:
-                    #     results[itemid].append(f'Failed to move item to {new_folder}')
 
                 #: Delete Protection
                 if report_dict[itemid]['fix_delete_protection'] == 'Y':
                     results[itemid].append(fixes.delete_protection_fix(item))
-                    # protect_result = item.protect(True)
-                    # if protect_result['success']:
-                    #     results[itemid].append(f'Item protected')
-                    # else:
-                    #     results[itemid].append(f'Failed to protect item')
-
 
                 #: Enable Downloads
                 if report_dict[itemid]['fix_downloads'] == 'Y':
                     results[itemid].append(fixes.downloads_fix(item))
-                    # manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-                    # download_result = manager.update_definition({ 'capabilities': 'Query,Extract' })
-                    # if download_result['success']:
-                    #     results[itemid].append(f'Downloads enabled')
-                    # else:
-                    #     results[itemid].append(f'Failed to enable downloads')
+
         finally:
             print(results)
 

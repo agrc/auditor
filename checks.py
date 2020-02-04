@@ -36,7 +36,7 @@ def tag_case(tag, uppercased, articles):
     return ' '.join(new_words)
 
 
-def tags_check(item, tags_to_delete, uppercased_tags, articles):
+def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
     '''
     Create a list of new, cleaned tags:
         * Properly case tags using uppercased_tags and articles
@@ -46,6 +46,12 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles):
     return: Dict of update info:
             {'fix_tags':'', 'old_tags':'', 'new_tags':''}
     '''
+
+    #: If we have a new title, use this for evaluation. Otherwise, use item
+    if new_title:
+        title = new_title
+    else:
+        title = item.title
 
     #: Keep track of groups that fail
     failed_group_items = []
@@ -69,11 +75,11 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles):
 
         #: single-word tag in title
         single_word_tag_in_title = False
-        if orig_tag in item.title.split():
+        if orig_tag in title.split():
             single_word_tag_in_title = True
         #: multi-word tag in title
         multi_word_tag_in_title = False
-        if ' ' in orig_tag and orig_tag in item.title:
+        if ' ' in orig_tag and orig_tag in title:
             multi_word_tag_in_title = True
 
         #: operate on lower case to fix any weird mis-cased tags
@@ -85,7 +91,7 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles):
         #: properly cased and added to new_tags (the else clause).
 
         #: Fix/keep 'Utah' if it's not in the title
-        if lowercase_tag == 'utah' and orig_tag not in item.title.split():
+        if lowercase_tag == 'utah' and orig_tag not in title.split():
             new_tags.append('Utah')
         #: Don't add to new_tags if it should be deleted
         elif lowercase_tag in tags_to_delete:
