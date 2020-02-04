@@ -37,7 +37,7 @@ class validator:
     #: Tags that should be deleted
     tags_to_delete = ['.sd', 'service definition']
 
-    def __init__(self, portal, user, metatable):
+    def __init__(self, portal, user, metatable, verbose=False):
         
         #: A list of log entries, format TBD
         self.report_dict = {}
@@ -53,19 +53,23 @@ class validator:
         #: values: {item_id: [table_sgid_name, table_agol_name]}
         self.metatable_dict = {}
 
+        self.verbose = verbose
+
         self.username = user
         self.gis = arcgis.gis.GIS(portal, user, getpass.getpass(f'{user}\'s password for {portal}:'))
 
         user_item = self.gis.users.me
 
         #: Build list of folders. 'None' gives us the root folder.
-        print(f'Getting {user}\'s folders...')
+        if self.verbose:
+            print(f'Getting {user}\'s folders...')
         folders = [None]
         for folder in user_item.folders:
             folders.append(folder['title'])
 
         #: Get info for every item in every folder
-        print('Getting item objects...')
+        if self.verbose:
+            print('Getting item objects...')
         for folder in folders:
             for item in user_item.items(folder, 1000):
                 if item.type == 'Feature Service':
@@ -74,7 +78,8 @@ class validator:
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
-        print('Getting metatable info')
+        if self.verbose:
+            print('Getting metatable info')
         with arcpy.da.SearchCursor(metatable, ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']) as table_cursor:
             for row in table_cursor:
                 table_sgid_name, table_agol_itemid, table_agol_name = row
@@ -99,12 +104,11 @@ class validator:
             > Metadata against SGID (Waiting until 2.5's arcpy metadata tools?)
         '''
 
-        #: Dict of dicts, where outer keys are itemids and inner keys are column names
-        # report_dict = {}
 
         for item in self.feature_service_items:
-
-            print(f'Checking {item.title}...')
+            
+            if self.verbose:
+                print(f'Checking {item.title}...')
             
             itemid = item.itemid
 
@@ -151,40 +155,51 @@ class validator:
 
                 item = self.gis.content.get(itemid)
                 
+                if self.verbose:
+                    print(f'Evaluating report for fixes on {item.title}...')
+                
                 #: Tags and title combined .update()
                 new_title = self.report_dict[itemid]['title_new']
                 new_tags = self.report_dict[itemid]['tags_new']
                 if new_title or new_tags:
                     tag_title_result = fixes.tags_or_title_fix(item, new_title, new_tags)
                     self.report_dict[itemid].update({'tags_title_result': tag_title_result})
+                    if self.verbose:
+                        print(f'\t{tag_title_result}')
 
                 #: Group
                 if self.report_dict[itemid]['groups_fix'] == 'Y':
                     groups_results = fixes.group_fix(item, self.report_dict[itemid]['group_new'])
                     self.report_dict[itemid].update({'groups_result': groups_results})
+                    if self.verbose:
+                        print(f'\t{groups_results}')
 
                 #: Folder
                 if self.report_dict[itemid]['folder_fix'] == 'Y':
                     folder_result = fixes.folder_fix(item, self.report_dict[itemid]['folder_old'])
                     self.report_dict[itemid].update({'folder_result': folder_result})
+                    if self.verbose:
+                        print(f'\t{folder_result}')
 
                 #: Delete Protection
                 if self.report_dict[itemid]['delete_protection_fix'] == 'Y':
                     delete_protection_result = fixes.delete_protection_fix(item)
                     self.report_dict[itemid].update({'delete_protection_result': delete_protection_result})
+                    if self.verbose:
+                        print(f'\t{delete_protection_result}')
 
                 #: Enable Downloads
                 if self.report_dict[itemid]['downloads_fix'] == 'Y':
                     downloads_result = fixes.downloads_fix(item)
                     self.report_dict[itemid].update({'downloads_result': downloads_result})
+                    if self.verbose:
+                        print(f'\t{downloads_result}')
 
         finally:
             #: Convert dict to pandas df for easy writing
             if report_path:
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
-                print(report_df)
-
 
 
 if __name__ == '__main__':
@@ -192,7 +207,7 @@ if __name__ == '__main__':
 
     # agrc.check_items(r'c:\temp\validator3.csv')
 
-    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table')
+    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', True)
 
     jake.check_items(r'c:\temp\validator2_jake.csv')
     jake.fix_items(r'c:\temp\validator2_jake_fixes.csv')
