@@ -26,6 +26,11 @@ import checks, fixes
 
 
 class validator:
+    '''
+    An object representing an AGOL/Portal organization and information about
+    its items. Contains methods for validating and fixing various elements of
+    each item's settings (name, tags, group, etc).
+    '''
 
 
     #: Tags or words that should be uppercased, saved as lower to check against
@@ -38,6 +43,12 @@ class validator:
     tags_to_delete = ['.sd', 'service definition']
 
     def __init__(self, portal, user, metatable, verbose=False):
+        '''
+        Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
+        create a list of all the Feature Service objects in the user's folders
+        and a dictionary of each item's folder based on itemid. Read 'metatable'
+        into a dictionary based on the itemid.
+        '''
         
         #: A list of log entries, format TBD
         self.report_dict = {}
@@ -148,7 +159,11 @@ class validator:
 
 
     def fix_items(self, report_path=None):
-
+        '''
+        Perform any needed fixes by looping through report dictionary and
+        checking the various _fix entries. Append results string to report
+        dictionary and write to report_path (if specified).
+        '''
 
         try:
             for itemid in self.report_dict:
