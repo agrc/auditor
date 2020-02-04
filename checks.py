@@ -44,7 +44,7 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
         * Add SGID category tag and SGID, AGRC if it's an SGID item
 
     return: Dict of update info:
-            {'fix_tags':'', 'old_tags':'', 'new_tags':''}
+            {'tags_fix':'', 'tags_old':'', 'tags_new':''}
     '''
 
     #: If we have a new title, use this for evaluation. Otherwise, use item
@@ -129,11 +129,11 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
             if 'AGRC' not in new_tags:
                 new_tags.append('AGRC')
 
-    #: Create tags data: fix_tags, old_tags, new_tags
+    #: Create tags data: tags_fix, tags_old, tags_new
     if sorted(new_tags) != sorted(item.tags):
-        tags_data = {'fix_tags':'Y', 'old_tags':item.tags, 'new_tags':new_tags}
+        tags_data = {'tags_fix':'Y', 'tags_old':item.tags, 'tags_new':new_tags}
     else:
-        tags_data = {'fix_tags':'N', 'old_tags':'', 'new_tags':''}
+        tags_data = {'tags_fix':'N', 'tags_old':'', 'tags_new':''}
 
     return tags_data
 
@@ -143,7 +143,7 @@ def title_check(item, metatable_dict):
     Check item's title against title in metatable.
 
     return: Dict of update info:
-            {'fix_title':'', 'old_title':'', 'new_title':''}
+            {'title_fix':'', 'title_old':'', 'title_new':''}
     '''
 
     #: Get title from metatable if it's in the table
@@ -152,12 +152,12 @@ def title_check(item, metatable_dict):
     else:
         table_agol_title = None
 
-    #: Create title data: fix_title, old_title, new_title
+    #: Create title data: title_fix, title_old, title_new
     #: Always include the old title for readability
     if table_agol_title and table_agol_title != item.title:
-        title_data = {'fix_title':'Y', 'old_title':item.title, 'new_title':table_agol_title}
+        title_data = {'title_fix':'Y', 'title_old':item.title, 'title_new':table_agol_title}
     else:
-        title_data = {'fix_title':'N', 'old_title':'', 'new_title':''}  
+        title_data = {'title_fix':'N', 'title_old':'', 'title_new':''}  
 
     return title_data
 
@@ -167,7 +167,7 @@ def folder_check(item, metatable_dict, itemid_and_folder):
     Check item's folder against SGID category name from metatable.
 
     return: Dict of update info:
-            {'fix_folder':'', 'old_folder':'', 'new_folder':''}
+            {'folder_fix':'', 'folder_old':'', 'folder_new':''}
     '''
 
     #: Get current folder from dictionary of items' folders
@@ -180,11 +180,11 @@ def folder_check(item, metatable_dict, itemid_and_folder):
     else:
         table_folder = None
 
-    #: Create folder data: fix_folder, old_folder, new_folder
+    #: Create folder data: folder_fix, folder_old, folder_new
     if table_folder and table_folder != current_folder:
-        folder_data = {'fix_folder':'Y', 'old_folder':current_folder, 'new_folder':table_folder}
+        folder_data = {'folder_fix':'Y', 'folder_old':current_folder, 'folder_new':table_folder}
     else:
-        folder_data = {'fix_folder':'N', 'old_folder':'', 'new_folder':''} 
+        folder_data = {'folder_fix':'N', 'folder_old':'', 'folder_new':''} 
 
     return folder_data
 
@@ -194,7 +194,7 @@ def groups_check(item, metatable_dict):
     Check item's group against SGID category from metatable.
 
     return: Dict of update info:
-            {'fix_groups':'', 'old_groups':'', 'new_group':''}
+            {'groups_fix':'', 'groups_old':'', 'group_new':''}
     '''
 
     #: Get current group, wrapped in try/except for groups that error out
@@ -211,13 +211,13 @@ def groups_check(item, metatable_dict):
     else:
         group = None
 
-    #: Create groups data: fix_groups, old_groups, new_group
+    #: Create groups data: groups_fix, groups_old, group_new
     if current_groups == 'Error':
         groups_data = ['N', 'Can\'t get group', '']
     elif group and group not in current_groups:
-        groups_data = {'fix_groups':'Y', 'old_groups':current_groups, 'new_group':group}
+        groups_data = {'groups_fix':'Y', 'groups_old':current_groups, 'group_new':group}
     else:
-        groups_data = {'fix_groups':'N', 'old_groups':'', 'new_group':''}
+        groups_data = {'groups_fix':'N', 'groups_old':'', 'group_new':''}
 
     return groups_data
 
@@ -227,7 +227,7 @@ def downloads_check(item):
     Make sure item's 'Allow others to export to different formats' box is checked
 
     return: Dict of update info:
-            {'fix_downloads':''}
+            {'downloads_fix':''}
     '''
 
     #: Check if downloads enabled; wrap in try/except for robustness
@@ -237,11 +237,11 @@ def downloads_check(item):
     except:
         properties = None
     
-    #: Create protect data: fix_downloads
+    #: Create protect data: downloads_fix
     if properties and 'Extract' not in properties['capabilities']:
-        fix_downloads = {'fix_downloads':'Y'}
+        fix_downloads = {'downloads_fix':'Y'}
     else:
-        fix_downloads = {'fix_downloads':'N'}
+        fix_downloads = {'downloads_fix':'N'}
 
     return fix_downloads
 
@@ -251,13 +251,13 @@ def delete_protection_check(item):
     Prevent item from being accidentally deleted.
 
     return: Dict of update info:
-            {'fix_delete_protection':''}
+            {'delete_protection_fix':''}
     '''
 
     #: item.protected is Boolean
     if not item.protected:
-        protect_data = {'fix_delete_protection':'Y'}
+        protect_data = {'delete_protection_fix':'Y'}
     else:
-        protect_data = {'fix_delete_protection':'N'}
+        protect_data = {'delete_protection_fix':'N'}
 
     return protect_data
