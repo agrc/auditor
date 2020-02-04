@@ -176,7 +176,7 @@ class validator:
 
                 #: Folder
                 if self.report_dict[itemid]['folder_fix'] == 'Y':
-                    folder_result = fixes.folder_fix(item, self.report_dict[itemid]['folder_old'])
+                    folder_result = fixes.folder_fix(item, self.report_dict[itemid]['folder_new'])
                     self.report_dict[itemid].update({'folder_result': folder_result})
                     if self.verbose:
                         print(f'\t{folder_result}')
