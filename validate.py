@@ -32,7 +32,6 @@ class validator:
     each item's settings (name, tags, group, etc).
     '''
 
-
     #: Tags or words that should be uppercased, saved as lower to check against
     uppercased_tags = ['2g', '3g', '4g', 'agrc', 'aog', 'at&t', 'blm', 'brat', 'caf', 'cdl', 'daq', 'dfcm', 'dfirm', 'dwq', 'e911', 'ems', 'fae', 'fcc', 'fema', 'gcdb', 'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'nox', 'npsbn', 'ntia', 'nwi', 'plss', 'pm10', 'psap', 'sbdc', 'sbi', 'sgid', 'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugs', 'uhp', 'uic', 'us', 'usdw', 'usfs', 'usfws', 'usps', 'ustc', 'ut', 'uta', 'vcp', 'vista', 'voc']
 
@@ -42,7 +41,7 @@ class validator:
     #: Tags that should be deleted
     tags_to_delete = ['.sd', 'service definition']
 
-    def __init__(self, portal, user, metatable, verbose=False):
+    def __init__(self, portal, user, metatables, verbose=False):
         '''
         Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
         create a list of all the Feature Service objects in the user's folders
@@ -90,11 +89,20 @@ class validator:
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
         if self.verbose:
-            print('Getting metatable info')
-        with arcpy.da.SearchCursor(metatable, ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']) as table_cursor:
-            for row in table_cursor:
-                table_sgid_name, table_agol_itemid, table_agol_name = row
-                self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name]
+            print('Getting metatable info...')
+        duplicate_keys = []
+        for metatable in metatables:
+            with arcpy.da.SearchCursor(metatable, ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']) as table_cursor:
+                for row in table_cursor:
+                    table_sgid_name, table_agol_itemid, table_agol_name = row
+                    if table_agol_itemid:  #: Don't evaluate null itemids
+                        if table_agol_itemid not in self.metatable_dict:
+                            self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name]
+                        else:
+                            duplicate_keys.append(table_agol_itemid)
+        
+        if duplicate_keys:
+            raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {duplicate_keys}')
 
 
     def check_items(self, report_path=None):
@@ -114,7 +122,6 @@ class validator:
                 item.update({'title':title})
             > Metadata against SGID (Waiting until 2.5's arcpy metadata tools?)
         '''
-
 
         for item in self.feature_service_items:
             
@@ -218,11 +225,12 @@ class validator:
 
 
 if __name__ == '__main__':
-    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems')
+    metatables = [r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems', r'C:\gis\Projects\Data\Data.gdb\shelved_metatable']
+    agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatables, True)
 
-    # agrc.check_items(r'c:\temp\validator3.csv')
+    agrc.check_items(r'c:\temp\validator4_twotables.csv')
 
-    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', True)
+    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', True)
 
-    jake.check_items(r'c:\temp\validator2_jake.csv')
-    jake.fix_items(r'c:\temp\validator2_jake_fixes.csv')
+    # jake.check_items(r'c:\temp\validator2_jake.csv')
+    # jake.fix_items(r'c:\temp\validator2_jake_fixes.csv')
