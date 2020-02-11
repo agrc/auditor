@@ -168,7 +168,7 @@ def title_check(item, metatable_dict):
     if table_agol_title and table_agol_title != item.title:
         title_data = {'title_fix':'Y', 'title_old':item.title, 'title_new':table_agol_title}
     else:
-        title_data = {'title_fix':'N', 'title_old':'', 'title_new':''}  
+        title_data = {'title_fix':'N', 'title_old':item.title, 'title_new':''}  
 
     return title_data
 
@@ -186,8 +186,11 @@ def folder_check(item, metatable_dict, itemid_and_folder):
 
     #: Get folder from SGID category if in metatable
     if item.itemid in metatable_dict:
-        SGID_name = metatable_dict[item.itemid][0]
-        table_folder = SGID_name.split('.')[1].title()
+        SGID_name, _, category = metatable_dict[item.itemid]
+        if category == 'shelved':
+            table_folder = 'AGRC_Shelved'
+        else:
+            table_folder = SGID_name.split('.')[1].title()
     else:
         table_folder = None
 
