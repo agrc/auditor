@@ -36,7 +36,20 @@ def tag_case(tag, uppercased, articles):
     return ' '.join(new_words)
 
 
-def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
+def get_group_from_table(metatable_dict_entry):
+
+    SGID_name, _, item_category = metatable_dict_entry
+
+    if item_category == 'shelved':
+        group = 'AGRC Shelf'
+    else:
+        table_category = SGID_name.split('.')[1].title()
+        group = f'Utah SGID {table_category}'     
+
+    return group
+
+
+def tags_check(item, tags_to_delete, uppercased_tags, articles, metatable_dict):
     '''
     Create a list of new, cleaned tags:
         * Properly case tags using uppercased_tags and articles
@@ -47,14 +60,12 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
             {'tags_fix':'', 'tags_old':'', 'tags_new':''}
     '''
 
-    #: If we have a new title, use this for evaluation. Otherwise, use item
-    if new_title:
-        title = new_title
-    else:
-        title = item.title
-
-    #: Keep track of groups that fail
-    failed_group_items = []
+    #: Use existing title unless we have one from metatable
+    title = item.title
+    if item.itemid in metatable_dict:
+        item_title = metatable_dict[item.itemid][1]
+        if item_title:
+            title = item_title
     
     #: Strip off any leading/trailing whitespace
     orig_tags = [t.strip() for t in item.tags]
@@ -85,7 +96,7 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
         #: operate on lower case to fix any weird mis-cased tags
         lowercase_tag = orig_tag.lower()
 
-        #: Run checks on the tags. A check that modifies the tag should
+        #: Run checks on existing tags. A check that modifies the tag should
         #: append it to new_tags. A check that removes unwanted tags
         #: should just pass. If a tag passes all the checks, it gets
         #: properly cased and added to new_tags (the else clause).
@@ -108,28 +119,26 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, new_title=None):
                 new_tags.append(cased_tag)
     
     #: Add the category tag
-    groups = []
-    #: Wrap in try/except because some groups fail for some odd reason
-    try:
-        for g in item.shared_with['groups']:
-            groups.append(g.title)
-    except:
-        failed_group_items.append(item.title)
+    if item.itemid in metatable_dict:
+        group = get_group_from_table(metatable_dict[item.itemid])
+        if group == 'AGRC Shelf':
+            group_tag = 'Shelved'
+        else:
+            group_tag = group.split('Utah SGID ')[-1]
 
-    for group in groups:
-        if 'Utah SGID' in group:
-            category = group.split('Utah SGID ')[-1]
-            #: If there's already a lowercase tag for the category, replace it
-            if category.lower() in new_tags:
-                new_tags.remove(category.lower())
-                new_tags.append(category)
-            elif category not in new_tags:
-                new_tags.append(category)
-            #: Make sure it's got SGID, AGRC in it's tags
-            if 'SGID' not in new_tags:
-                new_tags.append('SGID')
-            if 'AGRC' not in new_tags:
-                new_tags.append('AGRC')
+        #: If there's already a lowercase tag for the category, replace it
+        if group_tag.lower() in new_tags:
+            new_tags.remove(group_tag.lower())
+            new_tags.append(group_tag)
+        #: Otherwise add if its not in list already
+        elif group_tag not in new_tags:
+            new_tags.append(group_tag)
+        
+        #: Make sure it's got SGID, AGRC in it's tags
+        if 'SGID' not in new_tags:
+            new_tags.append('SGID')
+        if 'AGRC' not in new_tags:
+            new_tags.append('AGRC')
 
     #: Create tags data: tags_fix, tags_old, tags_new
     if sorted(new_tags) != sorted(item.tags):
@@ -207,9 +216,7 @@ def groups_check(item, metatable_dict):
 
     #: Get group from SGID category if in metatable
     if item.itemid in metatable_dict:
-        SGID_name = metatable_dict[item.itemid][0]
-        table_category = SGID_name.split('.')[1].title()
-        group = f'Utah SGID {table_category}'
+        group = get_group_from_table(metatable_dict[item.itemid])
     else:
         group = None
 
