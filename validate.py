@@ -41,12 +41,12 @@ class validator:
     #: Tags that should be deleted
     tags_to_delete = ['.sd', 'service definition']
 
-    def __init__(self, portal, user, metatables, verbose=False):
+    def __init__(self, portal, user, metatable, agol_table, verbose=False):
         '''
         Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
         create a list of all the Feature Service objects in the user's folders
         and a dictionary of each item's folder based on itemid. Read 'metatable'
-        into a dictionary based on the itemid.
+        and agol_table into a dictionary based on the itemid.
         '''
         
         #: A list of log entries, format TBD
@@ -60,7 +60,7 @@ class validator:
         self.itemid_and_folder = {}
 
         #: A dictionary of the metatable records, indexed by the metatable's itemid
-        #: values: {item_id: [table_sgid_name, table_agol_name]}
+        #: values: {item_id: [table_sgid_name, table_agol_name, table_category]}
         self.metatable_dict = {}
 
         self.verbose = verbose
@@ -91,15 +91,26 @@ class validator:
         if self.verbose:
             print('Getting metatable info...')
         duplicate_keys = []
-        for metatable in metatables:
-            with arcpy.da.SearchCursor(metatable, ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']) as table_cursor:
-                for row in table_cursor:
-                    table_sgid_name, table_agol_itemid, table_agol_name = row
-                    if table_agol_itemid:  #: Don't evaluate null itemids
-                        if table_agol_itemid not in self.metatable_dict:
-                            self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name]
-                        else:
-                            duplicate_keys.append(table_agol_itemid)
+
+        meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']
+        with arcpy.da.SearchCursor(metatable, meta_fields) as table_cursor:
+            for row in table_cursor:
+                table_sgid_name, table_agol_itemid, table_agol_name = row
+                if table_agol_itemid:  #: Don't evaluate null itemids
+                    if table_agol_itemid not in self.metatable_dict:
+                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, 'SGID']
+                    else:
+                        duplicate_keys.append(table_agol_itemid)
+
+        agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
+        with arcpy.da.SearchCursor(agol_table, agol_fields) as agol_cursor:
+            for row in agol_cursor:
+                table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
+                if table_agol_itemid:  #: Don't evaluate null itemids
+                    if table_agol_itemid not in self.metatable_dict:
+                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, table_category]
+                    else:
+                        duplicate_keys.append(table_agol_itemid)
         
         if duplicate_keys:
             raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {duplicate_keys}')
@@ -225,12 +236,13 @@ class validator:
 
 
 if __name__ == '__main__':
-    metatables = [r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems', r'C:\gis\Projects\Data\Data.gdb\shelved_metatable']
-    agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatables, True)
+    metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
+    agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
+    agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
 
     agrc.check_items(r'c:\temp\validator4_twotables.csv')
 
-    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', True)
+    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', verbose=True)
 
     # jake.check_items(r'c:\temp\validator2_jake.csv')
     # jake.fix_items(r'c:\temp\validator2_jake_fixes.csv')
