@@ -147,8 +147,6 @@ class validator:
             #: Title check
             title_data = checks.title_check(item, self.metatable_dict)
             self.report_dict[itemid].update(title_data)
-            #: Get the new title
-            new_title = self.report_dict[itemid]['title_new']
 
             #: Groups check
             groups_data = checks.groups_check(item, self.metatable_dict)
@@ -159,7 +157,7 @@ class validator:
             self.report_dict[itemid].update(folder_data)
 
             #: Tags check, including new title
-            tags_data = checks.tags_check(item, self.tags_to_delete, self.uppercased_tags, self.articles, new_title)
+            tags_data = checks.tags_check(item, self.tags_to_delete, self.uppercased_tags, self.articles, self.metatable_dict)
             self.report_dict[itemid].update(tags_data)
 
             #: Downloads check
@@ -240,7 +238,7 @@ if __name__ == '__main__':
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
     agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
 
-    agrc.check_items(r'c:\temp\validator4_twotables.csv')
+    agrc.check_items(r'c:\temp\validator5_agoltable.csv')
 
     # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', verbose=True)
 
