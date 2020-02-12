@@ -37,6 +37,10 @@ def tag_case(tag, uppercased, articles):
 
 
 def get_group_from_table(metatable_dict_entry):
+    '''
+    Return the appropriate group title based on either the SGID table name or
+    the shelved category.
+    '''
 
     SGID_name, _, item_category = metatable_dict_entry
 
@@ -118,7 +122,7 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, metatable_dict):
             if cased_tag not in new_tags:
                 new_tags.append(cased_tag)
     
-    #: Add the category tag
+    #: Check the category tag
     if item.itemid in metatable_dict:
         group = get_group_from_table(metatable_dict[item.itemid])
         if group == 'AGRC Shelf':
@@ -133,7 +137,12 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, metatable_dict):
         #: Otherwise add if its not in list already
         elif group_tag not in new_tags:
             new_tags.append(group_tag)
-        
+
+        #: Static items should be tagged 'Static'
+        if metatable_dict[item.itemid][2] == 'static':
+            if 'Static' not in new_tags:
+                new_tags.append('Static')
+
         #: Make sure it's got SGID, AGRC in it's tags
         if 'SGID' not in new_tags:
             new_tags.append('SGID')
