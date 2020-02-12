@@ -142,6 +142,8 @@ def tags_check(item, tags_to_delete, uppercased_tags, articles, metatable_dict):
         if metatable_dict[item.itemid][2] == 'static':
             if 'Static' not in new_tags:
                 new_tags.append('Static')
+            if 'Shelved' in new_tags:
+                new_tags.remove('Shelved')
 
         #: Make sure it's got SGID, AGRC in it's tags
         if 'SGID' not in new_tags:

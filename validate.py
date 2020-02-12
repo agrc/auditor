@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # agrc.check_items(r'c:\temp\validator5_agoltable.csv')
 
     test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
-    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', test_metatable, agol_table, verbose=True)
+    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
 
     jake.check_items(r'c:\temp\validator6_jake.csv')
     jake.fix_items(r'c:\temp\validator6_jake_fixes.csv')
