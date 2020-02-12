@@ -236,11 +236,12 @@ class validator:
 if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
-    agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
+    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
 
-    agrc.check_items(r'c:\temp\validator5_agoltable.csv')
+    # agrc.check_items(r'c:\temp\validator5_agoltable.csv')
 
-    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', r'C:\gis\Projects\Data\data.gdb\validate_test_table', verbose=True)
+    test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
+    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', test_metatable, agol_table, verbose=True)
 
-    # jake.check_items(r'c:\temp\validator2_jake.csv')
-    # jake.fix_items(r'c:\temp\validator2_jake_fixes.csv')
+    jake.check_items(r'c:\temp\validator6_jake.csv')
+    jake.fix_items(r'c:\temp\validator6_jake_fixes.csv')
