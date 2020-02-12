@@ -20,4 +20,4 @@ from validate import validator
 
 def main():
 
-    args = docopt(__doc__, version = '0.8.0')
+    args = docopt(__doc__, version = '0.9.0')
