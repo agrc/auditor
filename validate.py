@@ -153,6 +153,7 @@ class validator:
             checker.groups_check()
             checker.downloads_check()
             checker.delete_protection_check()
+            checker.metadata_check()
 
             #: Add results to the report
             self.report_dict[itemid].update(checker.results_dict)
@@ -178,6 +179,13 @@ class validator:
                 if self.verbose:
                     print(f'Evaluating report for fixes on {item.title}...')
                 
+                #: Do metadata first because it will overwrite any tags
+                if self.report_dict[itemid]['metadata_fix'] == 'Y':
+                    metadata_results = fixes.metadata_fix(item, self.report_dict[itemid]['metadata_new'])
+                    self.report_dict[itemid].update({'metadata_result': metadata_results})
+                    if self.verbose:
+                        print(f'\t{metadata_results}')
+
                 #: Tags and title combined .update()
                 new_title = self.report_dict[itemid]['title_new']
                 new_tags = self.report_dict[itemid]['tags_new']
@@ -189,7 +197,8 @@ class validator:
 
                 #: Group
                 if self.report_dict[itemid]['groups_fix'] == 'Y':
-                    groups_results = fixes.group_fix(item, self.report_dict[itemid]['group_new'])
+                    gid = self.gis.groups.search(f'title:{self.report_dict[itemid]["group_new"]}')[0].id
+                    groups_results = fixes.group_fix(item, gid)
                     self.report_dict[itemid].update({'groups_result': groups_results})
                     if self.verbose:
                         print(f'\t{groups_results}')
@@ -225,12 +234,12 @@ class validator:
 if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
-    agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
 
-    agrc.check_items(r'c:\temp\validator8_agoltable.csv')
+    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
+    # agrc.check_items(r'c:\temp\validator8_agoltable.csv')
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
-    # jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
 
-    # jake.check_items(r'c:\temp\validator7_jake.csv')
-    # jake.fix_items(r'c:\temp\validator6_jake_fixes.csv')
+    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
+    jake.check_items(r'c:\temp\validator8_jake.csv')
+    jake.fix_items(r'c:\temp\validator8_jake_fixes.csv')

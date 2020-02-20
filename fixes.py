@@ -1,4 +1,5 @@
 import arcgis
+import arcpy
 import json
 
 def tags_or_title_fix(item, title=None, tags=None):
@@ -28,7 +29,7 @@ def tags_or_title_fix(item, title=None, tags=None):
     return result
 
 
-def group_fix(item, group):
+def group_fix(item, gid):
     '''
     Use item.share() to share to group
 
@@ -36,12 +37,12 @@ def group_fix(item, group):
     '''
 
     #: Group
-    share_results = item.share(everyone=True, groups=[group])
+    share_results = item.share(everyone=True, groups=[gid])
     success = share_results['results'][0]['success']
     if success:
-        result = f'Group updated to {group}'
+        result = f'Group updated to group id {gid}'
     else:
-        result = f'Failed to update group to {group}'
+        result = f'Failed to update group to group id {gid}'
 
     return result
 
@@ -54,11 +55,15 @@ def folder_fix(item, folder):
     '''
 
     #: Folder
-    move_result = item.move(folder)
-    if move_result['success']:
-        result = f'Item moved to {folder}'
-    else:
-        result = f'Failed to move item to {folder}'
+    try:
+        move_result = item.move(folder)
+        if move_result['success']:
+            result = f'Item moved to {folder}'
+        else:
+            result = f'Failed to move item to {folder}'
+    except TypeError as e:
+        if 'subscriptable' in str(e):
+            result = f'Failed to move item to {folder}'
 
     return result
 
@@ -100,5 +105,25 @@ def downloads_fix(item):
         result = f'Downloads enabled'
     else:
         result = f'Failed to enable downloads'
+
+    return result
+
+
+def metadata_fix(item, fc_path):
+
+
+    arcpy_metadata = arcpy.metadata.Metadata(fc_path)
+    try:
+        item.metadata = arcpy_metadata.xml
+        
+        if item.metadata == arcpy_metadata.xml:
+            result = f'Metadata updated from {fc_path}'
+        else:
+            result = f'Failed to update metadata from {fc_path}'
+            
+    except ValueError:
+        result = f'Metadata too long to upload from {fc_path} (>32,767 characters)'
+
+
 
     return result

@@ -88,9 +88,18 @@ class item_checker:
         if self.item.itemid in self.metatable_dict:
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
+            
+            feature_class_name = self.metatable_dict[self.item.itemid][0]
+            self.feature_class_path = join(credentials.DB, feature_class_name)
+            if arcpy.Exists(self.feature_class_path):
+                self.arcpy_metadata = arcpy.metadata.Metadata(self.feature_class_path)
+            else:
+                self.arcpy_metadata = None
         else:
             self.new_title = None
             self.new_group = None
+            self.arcpy_metadata = None
+            self.feature_class_path = None
 
         #: Get folder from SGID category if it's in the table
         if self.new_group == 'AGRC Shelf':
@@ -120,6 +129,10 @@ class item_checker:
 
         #: Strip off any leading/trailing whitespace
         orig_tags = [t.strip() for t in self.item.tags]
+
+        #: Add any tags in the metadata to list of tags to evaluate
+        if self.arcpy_metadata and self.arcpy_metadata.tags:
+            orig_tags.extend([t.strip() for t in self.arcpy_metadata.tags.split(', ')])
 
         #: Evaluate existing tags
         for orig_tag in orig_tags:
@@ -312,16 +325,10 @@ class item_checker:
 
 
     def metadata_check(self):
-        
-        if self.item.itemid in self.metatable_dict:
-            feature_class_name = self.metatable_dict[self.item.itemid][0]
-            feature_class_path = join(credentials.DB, feature_class_name)
-            arcpy_metadata = arcpy.metadata.Metadata(feature_class_path)
-        else:
-            arcpy_metadata = None
 
-        if arcpy_metadata.xml and arcpy_metadata.xml != self.item.metadata:
-            metdata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': arcpy_metadata}
+
+        if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
+            metdata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': self.feature_class_path}
         else:
             metdata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': ''}
 
