@@ -1,5 +1,10 @@
 import arcgis
+import arcpy
 import json
+
+from os.path import join
+
+import credentials
 
 def tag_case(tag, uppercased, articles):
     '''
@@ -77,6 +82,7 @@ class item_checker:
         self.new_tags = []
         self.downloads = False
         self.protect = False
+
 
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
@@ -303,3 +309,20 @@ class item_checker:
             protect_data = {'delete_protection_fix':'N'}
 
         self.results_dict.update(protect_data)
+
+
+    def metadata_check(self):
+        
+        if self.item.itemid in self.metatable_dict:
+            feature_class_name = self.metatable_dict[self.item.itemid][0]
+            feature_class_path = join(credentials.DB, feature_class_name)
+            arcpy_metadata = arcpy.metadata.Metadata(feature_class_path)
+        else:
+            arcpy_metadata = None
+
+        if arcpy_metadata.xml and arcpy_metadata.xml != self.item.metadata:
+            metdata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': arcpy_metadata}
+        else:
+            metdata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': ''}
+
+        self.results_dict.update(metdata_data)
