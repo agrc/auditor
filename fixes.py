@@ -37,12 +37,21 @@ def group_fix(item, gid):
     '''
 
     #: Group
-    share_results = item.share(everyone=True, groups=[gid])
-    success = share_results['results'][0]['success']
-    if success:
-        result = f'Group updated to group id {gid}'
-    else:
-        result = f'Failed to update group to group id {gid}'
+    #: We should never hit the except if we are getting the gid from an 
+    #: org.groups.search() call.
+    try:
+        share_results = item.share(everyone=True, groups=[gid])
+        result_dict = share_results['results'][0]
+        if gid not in result_dict['notSharedWith']:
+            result = f'Group updated to group id {gid}'
+        else:
+            result = f'Failed to update group to group id {gid}'
+
+    except Exception as e:
+        if 'Cannot find group with id' in str(e):
+            result = f'Cannot find group with id: {gid}'
+        else:
+            result = str(e)
 
     return result
 

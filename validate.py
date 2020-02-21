@@ -197,8 +197,13 @@ class validator:
 
                 #: Group
                 if self.report_dict[itemid]['groups_fix'] == 'Y':
-                    gid = self.gis.groups.search(f'title:{self.report_dict[itemid]["group_new"]}')[0].id
-                    groups_results = fixes.group_fix(item, gid)
+                    try:
+                        group_title = self.report_dict[itemid]["group_new"]
+                        gid = self.gis.groups.search(f'title:{group_title}')[0].id
+                        groups_results = fixes.group_fix(item, gid)
+                    except IndexError:
+                        groups_results = f'Cannot find group {group_title} in {self.gis.properties.name}'
+
                     self.report_dict[itemid].update({'groups_result': groups_results})
                     if self.verbose:
                         print(f'\t{groups_results}')
