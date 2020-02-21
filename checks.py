@@ -67,7 +67,8 @@ class ItemChecker:
     validate the item's existing data.
 
     This class is specific to a single item. General org-level data should be
-    stored in the validate class.
+    stored in the Validate class and passed to methods if needed (like lists of 
+    tags to uppercase, etc).
 
     The results_dict dictionary holds the results of every check that is
     completed. If a check isn't performed, it's results aren't added to the

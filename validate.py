@@ -32,11 +32,11 @@ class Validator:
     each item's settings (name, tags, group, etc).
 
     This class contains data and methods specific to all items in the org.
-    Specifics to each item should go in the item_checker or item_fixer classes.
+    Specifics to each item should go in the ItemChecker or ItemFixer classes.
     '''
 
     #: Tags or words that should be uppercased, saved as lower to check against
-    uppercased_tags = ['2g', '3g', '4g', 'agrc', 'aog', 'at&t', 'blm', 'brat', 'caf', 'cdl', 'daq', 'dfcm', 'dfirm', 'dwq', 'e911', 'ems', 'fae', 'fcc', 'fema', 'gcdb', 'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'nox', 'npsbn', 'ntia', 'nwi', 'plss', 'pm10', 'psap', 'sbdc', 'sbi', 'sgid', 'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugs', 'uhp', 'uic', 'us', 'usdw', 'usfs', 'usfws', 'usps', 'ustc', 'ut', 'uta', 'vcp', 'vista', 'voc']
+    uppercased_tags = ['2g', '3g', '4g', 'agol', 'agrc', 'aog', 'at&t', 'blm', 'brat', 'caf', 'cdl', 'daq', 'dfcm', 'dfirm', 'dwq', 'e911', 'ems', 'fae', 'fcc', 'fema', 'gcdb', 'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'nox', 'npsbn', 'ntia', 'nwi', 'plss', 'pm10', 'psap', 'sbdc', 'sbi', 'sgid', 'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugs', 'uhp', 'uic', 'us', 'usdw', 'usfs', 'usfws', 'usps', 'ustc', 'ut', 'uta', 'vcp', 'vista', 'voc']
 
     #: Articles that should be left lowercase.
     articles = ['a', 'the', 'of', 'is', 'in']
@@ -65,6 +65,9 @@ class Validator:
         #: A dictionary of the metatable records, indexed by the metatable's itemid
         #: values: {item_id: [table_sgid_name, table_agol_name, table_category]}
         self.metatable_dict = {}
+
+        #: A dictionary of groups and their ID:
+        self.groups_dict = {}
 
         self.verbose = verbose
 
@@ -117,6 +120,12 @@ class Validator:
         
         if duplicate_keys:
             raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {duplicate_keys}')
+
+        #: Get the groups
+        if self.verbose:
+            print('Getting groups...')
+        groups = self.gis.groups.search('title:*')
+        self.groups_dict = {g.title: g.id for g in groups}
 
 
     def check_items(self, report_path=None):
@@ -178,59 +187,27 @@ class Validator:
             for itemid in self.report_dict:
 
                 item = self.gis.content.get(itemid)
+                item_report = self.report_dict[itemid]
                 
                 if self.verbose:
                     print(f'Evaluating report for fixes on {item.title}...')
                 
-                #: Do metadata first because it will overwrite any tags
-                if self.report_dict[itemid]['metadata_fix'] == 'Y':
-                    metadata_results = fixes.metadata_fix(item, self.report_dict[itemid]['metadata_new'])
-                    self.report_dict[itemid].update({'metadata_result': metadata_results})
-                    if self.verbose:
-                        print(f'\t{metadata_results}')
+                fixer = fixes.ItemFixer(item, item_report)
 
-                #: Tags and title combined .update()
-                new_title = self.report_dict[itemid]['title_new']
-                new_tags = self.report_dict[itemid]['tags_new']
-                if new_title or new_tags:
-                    tag_title_result = fixes.tags_or_title_fix(item, new_title, new_tags)
-                    self.report_dict[itemid].update({'tags_title_result': tag_title_result})
-                    if self.verbose:
-                        print(f'\t{tag_title_result}')
+                fixer.metadata_fix()
+                fixer.tags_or_title_fix()
+                fixer.group_fix(self.groups_dict)
+                fixer.folder_fix()
+                fixer.delete_protection_fix()
+                fixer.downloads_fix()
 
-                #: Group
-                if self.report_dict[itemid]['groups_fix'] == 'Y':
-                    try:
-                        group_title = self.report_dict[itemid]["group_new"]
-                        gid = self.gis.groups.search(f'title:{group_title}')[0].id
-                        groups_results = fixes.group_fix(item, gid)
-                    except IndexError:
-                        groups_results = f'Cannot find group {group_title} in {self.gis.properties.name}'
+                update_status_keys = ['metadata_result', 'tags_title_result', 'groups_result', 'folder_result', 'delete_protection_result', 'downloads_result']
 
-                    self.report_dict[itemid].update({'groups_result': groups_results})
-                    if self.verbose:
-                        print(f'\t{groups_results}')
+                if self.verbose:
+                    for status in update_status_keys:
+                        if 'No update needed for' not in item_report[status]:
+                            print(f'\t{item_report[status]}')
 
-                #: Folder
-                if self.report_dict[itemid]['folder_fix'] == 'Y':
-                    folder_result = fixes.folder_fix(item, self.report_dict[itemid]['folder_new'])
-                    self.report_dict[itemid].update({'folder_result': folder_result})
-                    if self.verbose:
-                        print(f'\t{folder_result}')
-
-                #: Delete Protection
-                if self.report_dict[itemid]['delete_protection_fix'] == 'Y':
-                    delete_protection_result = fixes.delete_protection_fix(item)
-                    self.report_dict[itemid].update({'delete_protection_result': delete_protection_result})
-                    if self.verbose:
-                        print(f'\t{delete_protection_result}')
-
-                #: Enable Downloads
-                if self.report_dict[itemid]['downloads_fix'] == 'Y':
-                    downloads_result = fixes.downloads_fix(item)
-                    self.report_dict[itemid].update({'downloads_result': downloads_result})
-                    if self.verbose:
-                        print(f'\t{downloads_result}')
 
         finally:
             #: Convert dict to pandas df for easy writing
