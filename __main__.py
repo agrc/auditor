@@ -15,7 +15,7 @@ Examples:
 
 from docopt import docopt
 
-from validate import validator
+from validate import Validator
 
 
 def main():
