@@ -58,13 +58,16 @@ def get_group_from_table(metatable_dict_entry):
     return group
 
 
-class item_checker:
+class ItemChecker:
     '''
     Class to validate an AGOL item. Uses a metatable entry if possible for some
     information. Tags (partially), download options, and delete protection
     don't rely on the metatable. __init__ gets any information it can from the
     metatable, and these instance variables are used within the methods to
     validate the item's existing data.
+
+    This class is specific to a single item. General org-level data should be
+    stored in the validate class.
 
     The results_dict dictionary holds the results of every check that is
     completed. If a check isn't performed, it's results aren't added to the

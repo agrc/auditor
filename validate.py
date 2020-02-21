@@ -25,11 +25,14 @@ from docopt import docopt
 import checks, fixes
 
 
-class validator:
+class Validator:
     '''
     An object representing an AGOL/Portal organization and information about
     its items. Contains methods for validating and fixing various elements of
     each item's settings (name, tags, group, etc).
+
+    This class contains data and methods specific to all items in the org.
+    Specifics to each item should go in the item_checker or item_fixer classes.
     '''
 
     #: Tags or words that should be uppercased, saved as lower to check against
@@ -144,7 +147,7 @@ class validator:
             #: Initialize empty dictionary for this item
             self.report_dict[itemid] = {}
 
-            checker = checks.item_checker(item, self.metatable_dict)
+            checker = checks.ItemChecker(item, self.metatable_dict)
 
             #: Run the checks on this item
             checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
@@ -245,6 +248,6 @@ if __name__ == '__main__':
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 
-    jake = validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
+    jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
     jake.check_items(r'c:\temp\validator8_jake.csv')
     jake.fix_items(r'c:\temp\validator8_jake_fixes.csv')
