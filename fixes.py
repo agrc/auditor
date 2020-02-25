@@ -202,10 +202,10 @@ class ItemFixer:
 
         if self.item_report['description_note_fix'] == 'Y':
             if self.item_report['description_note_source'] == 'shelved':
-                new_description = f'{shelved_note}<p></p> <p>{self.item.description}</p>'
+                new_description = f'{shelved_note}<div><br />{self.item.description}'
                 
             elif self.item_report['description_note_source'] == 'static':
-                new_description = f'{static_note}<p></p> <p>{self.item.description}</p>'
+                new_description = f'{static_note}<div><br />{self.item.description}'
 
             #: Shouldn't ever hit this, but for completeness' sake.
             else:
