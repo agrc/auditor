@@ -44,6 +44,11 @@ class Validator:
     #: Tags that should be deleted
     tags_to_delete = ['.sd', 'service definition']
 
+    #: Notes for static and shelved descriptions
+    static_note = "<i><b>NOTE</b>: This dataset holds 'static' data that we don't expect to change. We have removed it from the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on opendata.gis.utah.gov.</i>"
+
+    shelved_note = "<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and 'shelved' in ArcGIS Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>"
+
     def __init__(self, portal, user, metatable, agol_table, verbose=False):
         '''
         Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
@@ -166,6 +171,7 @@ class Validator:
             checker.downloads_check()
             checker.delete_protection_check()
             checker.metadata_check()
+            checker.description_note_check(self.static_note, self.shelved_note)
 
             #: Add results to the report
             self.report_dict[itemid].update(checker.results_dict)
@@ -194,14 +200,15 @@ class Validator:
                 
                 fixer = fixes.ItemFixer(item, item_report)
 
-                fixer.metadata_fix()
+                fixer.metadata_fix(self.static_note, self.shelved_note)
                 fixer.tags_or_title_fix()
                 fixer.group_fix(self.groups_dict)
                 fixer.folder_fix()
                 fixer.delete_protection_fix()
                 fixer.downloads_fix()
+                fixer.description_note_fix(self.static_note, self.shelved_note)
 
-                update_status_keys = ['metadata_result', 'tags_title_result', 'groups_result', 'folder_result', 'delete_protection_result', 'downloads_result']
+                update_status_keys = ['metadata_result', 'tags_title_result', 'groups_result', 'folder_result', 'delete_protection_result', 'downloads_result', 'description_note_result']
 
                 if self.verbose:
                     for status in update_status_keys:
@@ -220,8 +227,8 @@ if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
 
-    # agrc = validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
-    # agrc.check_items(r'c:\temp\validator8_agoltable.csv')
+    # agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
+    # agrc.check_items(r'c:\temp\validator9_agoltable.csv')
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 

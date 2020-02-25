@@ -62,9 +62,9 @@ class ItemChecker:
     '''
     Class to validate an AGOL item. Uses a metatable entry if possible for some
     information. Tags (partially), download options, and delete protection
-    don't rely on the metatable. __init__ gets any information it can from the
-    metatable, and these instance variables are used within the methods to
-    validate the item's existing data.
+    don't rely on the metatable. __init__() gets what the values should be from
+    the metatable and stores them as instance variables. The x_check() methods
+    then use the instance variable to check against the item's existing data.
 
     This class is specific to a single item. General org-level data should be
     stored in the Validate class and passed to methods if needed (like lists of 
@@ -86,6 +86,7 @@ class ItemChecker:
         self.new_tags = []
         self.downloads = False
         self.protect = False
+        self.static_shelved = None
 
 
         #: Get title, group from metatable if it's in the table
@@ -112,6 +113,13 @@ class ItemChecker:
             self.new_folder = self.new_group.split('Utah SGID ')[-1]
         else:
             self.new_folder = None
+
+        #: Set static/shelved flag
+        if self.new_group == 'AGRC Shelf':
+            self.static_shelved = 'shelved'
+        elif self.item.itemid in self.metatable_dict and self.metatable_dict[self.item.itemid][2] == 'static':
+            self.static_shelved = 'static'
+
 
 
     def tags_check(self, tags_to_delete, uppercased_tags, articles):
@@ -184,7 +192,7 @@ class ItemChecker:
                     self.new_tags.append(cased_tag)
         
         #: Check the category tag
-        if self.new_group == 'AGRC Shelf':
+        if self.static_shelved == 'shelved':
             group_tag = 'Shelved'
         elif self.new_group:  #: If it exists, extract the group
             group_tag = self.new_group.split('Utah SGID ')[-1]
@@ -201,7 +209,7 @@ class ItemChecker:
                 self.new_tags.append(group_tag)
 
             #: Static items should be tagged 'Static'
-            if self.metatable_dict[self.item.itemid][2] == 'static':
+            if self.static_shelved == 'static':
                 if 'Static' not in self.new_tags:
                     self.new_tags.append('Static')
                 if 'Shelved' in self.new_tags:
@@ -332,8 +340,28 @@ class ItemChecker:
 
 
         if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
-            metdata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': self.feature_class_path}
-        else:
-            metdata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': ''}
+            metadata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': self.feature_class_path}
 
-        self.results_dict.update(metdata_data)
+            # Set flag for description note for shelved/static data
+            if self.new_group == 'AGRC Shelf':
+                metadata_data['metadata_note'] = 'shelved'
+            elif self.metatable_dict[self.item.itemid][2] == 'static':
+                metadata_data['metadata_note'] = 'static'
+            else:
+                metadata_data['metadata_note'] = ''
+
+        else:
+            metadata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': '', 'metadata_note': ''}
+
+        self.results_dict.update(metadata_data)
+
+    def description_note_check(self, static_note, shelved_note):
+
+        if self.static_shelved == 'static' and not self.item.description.startswith(static_note):
+            description_data = {'description_note_fix': 'Y', 'description_note_source': 'static'}
+        elif self.static_shelved == 'shelved' and not self.item.description.startswith(shelved_note):
+            description_data = {'description_note_fix': 'Y', 'description_note_source': 'shelved'}
+        else:
+            description_data = {'description_note_fix': 'N', 'description_note_source': ''}
+
+        self.results_dict.update(description_data)
