@@ -167,7 +167,7 @@ class ItemFixer:
         self.item_report['downloads_result'] = result
 
 
-    def metadata_fix(self):
+    def metadata_fix(self, static_note, shelved_note):
         '''
         Overwrite the existing AGOL metadata with the metadata from a source
         feature class using agol_item.metadata = fc_metadata.xml where
@@ -183,7 +183,7 @@ class ItemFixer:
             arcpy_metadata = arcpy.metadata.Metadata(fc_path)
             try:
                 self.item.metadata = arcpy_metadata.xml
-                
+
                 if self.item.metadata == arcpy_metadata.xml:
                     result = f'Metadata updated from "{fc_path}"'
                 else:
@@ -196,3 +196,29 @@ class ItemFixer:
             result = 'No update needed for metadata'
 
         self.item_report['metadata_result'] = result
+
+
+    def description_note_fix(self, static_note, shelved_note):
+
+        if self.item_report['description_note_fix'] == 'Y':
+            if self.item_report['description_note_source'] == 'shelved':
+                new_description = f'{shelved_note}<p></p> <p>{self.item.description}</p>'
+                
+            elif self.item_report['description_note_source'] == 'static':
+                new_description = f'{static_note}<p></p> <p>{self.item.description}</p>'
+
+            #: Shouldn't ever hit this, but for completeness' sake.
+            else:
+                new_description = self.item.description
+
+            update_result = self.item.update(item_properties={'description': new_description})
+
+            if update_result:
+                result = f"{self.item_report['description_note_source']} note added to description"
+            else:
+                result = f"Failed to add {self.item_report['description_note_source']} note to description" 
+
+        else:
+            result = 'No update needed for description'
+
+        self.item_report['description_note_result'] = result
