@@ -104,25 +104,16 @@ class Validator:
         duplicate_keys = []
 
         meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']
-        with arcpy.da.SearchCursor(metatable, meta_fields) as table_cursor:
-            for row in table_cursor:
-                table_sgid_name, table_agol_itemid, table_agol_name = row
-                if table_agol_itemid:  #: Don't evaluate null itemids
-                    if table_agol_itemid not in self.metatable_dict:
-                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, 'SGID']
-                    else:
-                        duplicate_keys.append(table_agol_itemid)
+        meta_dupes = self.read_metatable(metatable, meta_fields)
 
         agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
-        with arcpy.da.SearchCursor(agol_table, agol_fields) as agol_cursor:
-            for row in agol_cursor:
-                table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
-                if table_agol_itemid:  #: Don't evaluate null itemids
-                    if table_agol_itemid not in self.metatable_dict:
-                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, table_category]
-                    else:
-                        duplicate_keys.append(table_agol_itemid)
-        
+        agol_dupes = self.read_metatable(agol_table, agol_fields)
+
+        if meta_dupes:
+            duplicate_keys.append(meta_dupes)
+        if agol_dupes:
+            duplicate_keys.append(agol_dupes)
+
         if duplicate_keys:
             raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {duplicate_keys}')
 
@@ -131,6 +122,34 @@ class Validator:
             print('Getting groups...')
         groups = self.gis.groups.search('title:*')
         self.groups_dict = {g.title: g.id for g in groups}
+
+
+    def read_metatable(self, table, fields):
+        '''
+        Read metatable 'table' into self.metatable_dict.
+
+        Returns: list of any duplicate AGOL item ids found 
+        '''
+
+        duplicate_keys = []
+
+        with arcpy.da.SearchCursor(table, fields) as meta_cursor:
+            for row in meta_cursor:
+
+                if len(fields) == 3:  #: AGOLItems table only has three fields
+                    table_sgid_name, table_agol_itemid, table_agol_name = row
+                    table_category = 'SGID'
+
+                else:  #: Shelved table hosted in AGOL has four fields
+                    table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
+
+                if table_agol_itemid:  #: Don't evaluate null itemids
+                    if table_agol_itemid not in self.metatable_dict:
+                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, table_category]
+                    else:
+                        duplicate_keys.append(table_agol_itemid)
+
+        return duplicate_keys
 
 
     def check_items(self, report_path=None):
@@ -227,11 +246,11 @@ if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
 
-    # agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
-    # agrc.check_items(r'c:\temp\validator9_agoltable.csv')
+    agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
+    agrc.check_items(r'c:\temp\validator10_tables.csv')
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 
-    jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
-    jake.check_items(r'c:\temp\validator8_jake.csv')
-    jake.fix_items(r'c:\temp\validator8_jake_fixes.csv')
+    # jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
+    # jake.check_items(r'c:\temp\validator8_jake.csv')
+    # jake.fix_items(r'c:\temp\validator8_jake_fixes.csv')
