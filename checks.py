@@ -4,7 +4,6 @@ import json
 
 from os.path import join
 
-import credentials
 
 def tag_case(tag, uppercased, articles):
     '''
@@ -75,7 +74,7 @@ class ItemChecker:
     dictionary via results_dict.update().
     '''
 
-    def __init__(self, item, metatable_dict):
+    def __init__(self, item, metatable_dict, sde_path):
 
 
         self.results_dict = {}
@@ -95,7 +94,7 @@ class ItemChecker:
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
             
             feature_class_name = self.metatable_dict[self.item.itemid][0]
-            self.feature_class_path = join(credentials.DB, feature_class_name)
+            self.feature_class_path = join(sde_path, feature_class_name)
             if arcpy.Exists(self.feature_class_path):
                 self.arcpy_metadata = arcpy.metadata.Metadata(self.feature_class_path)
             else:
