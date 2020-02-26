@@ -18,11 +18,12 @@ import arcpy
 import datetime
 import getpass
 import json
+import pygsheets
 
 import pandas as pd
 from docopt import docopt
 
-import checks, fixes
+import checks, fixes, credentials
 
 
 class Validator:
@@ -180,7 +181,7 @@ class Validator:
             #: Initialize empty dictionary for this item
             self.report_dict[itemid] = {}
 
-            checker = checks.ItemChecker(item, self.metatable_dict)
+            checker = checks.ItemChecker(item, self.metatable_dict, credentials.DB)
 
             #: Run the checks on this item
             checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
@@ -246,11 +247,11 @@ if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
 
-    agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
-    agrc.check_items(r'c:\temp\validator10_tables.csv')
+    # agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
+    # agrc.check_items(r'c:\temp\validator10_tables.csv')
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 
-    # jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
-    # jake.check_items(r'c:\temp\validator8_jake.csv')
+    jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
+    jake.check_items(r'c:\temp\validator8_jake.csv')
     # jake.fix_items(r'c:\temp\validator8_jake_fixes.csv')
