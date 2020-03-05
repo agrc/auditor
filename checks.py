@@ -336,7 +336,15 @@ class ItemChecker:
 
 
     def metadata_check(self):
+        '''
+        Check item's .metadata property against the .xml property of it's source
+        feature class. 
 
+        Update results_dict with results:
+                {'metadata_fix': '', 'metadata_old': '', 'metadata_new': ''}
+            Where metadata_old is the string from item.metdata and metadata_new
+            is path to feature class.
+        '''
 
         if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
             metadata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': self.feature_class_path}
@@ -356,6 +364,14 @@ class ItemChecker:
 
 
     def description_note_check(self, static_note, shelved_note):
+        '''
+        Check to see if the AGOL description begins with static_note or 
+        shelved_note.
+
+        Update results_dict with results:
+                {'description_note_fix': '', 
+                 'description_note_source': 'static' or 'shelved'}
+        '''
 
         if self.static_shelved == 'static' and not self.item.description.startswith(static_note):
             description_data = {'description_note_fix': 'Y', 'description_note_source': 'static'}
@@ -368,6 +384,13 @@ class ItemChecker:
 
     
     def thumbnail_check(self, thumbnail_dir):
+        '''
+        Create the path to the appropriate thumbnail if the item is in an SGID
+        group or is shelved.
+
+        Update results_dict with results:
+                {'thumbnail_fix': '', 'thumbnail_path': ''}
+        '''
 
         if self.new_group:
             group = self.new_group.split()[-1]  #: Either 'Shelf' or category name
@@ -381,7 +404,7 @@ class ItemChecker:
                 else:
                     thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
             else:
-                thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
+                thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': 'Shelved'}
 
         else:
             thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}

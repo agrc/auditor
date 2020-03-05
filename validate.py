@@ -248,11 +248,11 @@ if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
 
-    # agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
-    # agrc.check_items(r'c:\temp\validator10_tables.csv')
+    agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
+    agrc.check_items(r'c:\temp\validator11_thumbnails.csv')
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 
-    jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
-    jake.check_items(r'c:\temp\validator11_jake.csv')
-    jake.fix_items(r'c:\temp\validator11_jake_fixes.csv')
+    # jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
+    # jake.check_items(r'c:\temp\validator11_jake.csv')
+    # jake.fix_items(r'c:\temp\validator11_jake_fixes.csv')

@@ -175,8 +175,9 @@ class ItemFixer:
         arcpy.metadata library.
 
         Updates item_report with results for this fix:
-        {metdata_result: result}        
+        {metdata_result: result}
         '''
+
         if self.item_report['metadata_fix'] == 'Y':
             fc_path = self.item_report['metadata_new']
 
@@ -199,6 +200,14 @@ class ItemFixer:
 
 
     def description_note_fix(self, static_note, shelved_note):
+        '''
+        Add static_note or shelved_note to beginning of the description field
+        with a blank space before the rest of the description. static_note and
+        shelved_note should be strings of properly-formatted HTML.
+        
+        Updates item_report with results for this fix:
+        {description_note_result: result}
+        '''
 
         if self.item_report['description_note_fix'] == 'Y':
             if self.item_report['description_note_source'] == 'shelved':
@@ -226,7 +235,8 @@ class ItemFixer:
 
     def thumbnail_fix(self):
         '''
-        Overwrite the thumbnail if the item is in one of the icon groups
+        Overwrite the thumbnail if the item is in one of the icon groups. The 
+        item_report dictionary should have the path to the new thumbnail.
         '''
 
         if self.item_report['thumbnail_fix'] == 'Y':
