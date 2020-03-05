@@ -2,7 +2,7 @@ import arcgis
 import arcpy
 import json
 
-from os.path import join
+from os.path import join, exists
 
 
 def tag_case(tag, uppercased, articles):
@@ -354,6 +354,7 @@ class ItemChecker:
 
         self.results_dict.update(metadata_data)
 
+
     def description_note_check(self, static_note, shelved_note):
 
         if self.static_shelved == 'static' and not self.item.description.startswith(static_note):
@@ -364,3 +365,26 @@ class ItemChecker:
             description_data = {'description_note_fix': 'N', 'description_note_source': ''}
 
         self.results_dict.update(description_data)
+
+    
+    def thumbnail_check(self, thumbnail_dir):
+
+        if self.new_group:
+            group = self.new_group.split()[-1]  #: Either 'Shelf' or category name
+
+            if group != 'Shelf':
+                thumbnail_file_name = f'{group}.png'
+                thumbnail_path = join(thumbnail_dir, thumbnail_file_name)
+                
+                if exists(thumbnail_path):
+                    thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': thumbnail_path}
+                else:
+                    thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
+            else:
+                thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
+
+        else:
+            thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
+
+        self.results_dict.update(thumbnail_data)
+

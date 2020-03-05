@@ -18,7 +18,6 @@ import arcpy
 import datetime
 import getpass
 import json
-import pygsheets
 
 import pandas as pd
 from docopt import docopt
@@ -192,6 +191,7 @@ class Validator:
             checker.delete_protection_check()
             checker.metadata_check()
             checker.description_note_check(self.static_note, self.shelved_note)
+            checker.thumbnail_check(credentials.THUMBNAIL_DIR)
 
             #: Add results to the report
             self.report_dict[itemid].update(checker.results_dict)
@@ -227,8 +227,9 @@ class Validator:
                 fixer.delete_protection_fix()
                 fixer.downloads_fix()
                 fixer.description_note_fix(self.static_note, self.shelved_note)
+                fixer.thumbnail_fix()
 
-                update_status_keys = ['metadata_result', 'tags_title_result', 'groups_result', 'folder_result', 'delete_protection_result', 'downloads_result', 'description_note_result']
+                update_status_keys = ['metadata_result', 'tags_title_result', 'groups_result', 'folder_result', 'delete_protection_result', 'downloads_result', 'description_note_result', 'thumbnail_result']
 
                 if self.verbose:
                     for status in update_status_keys:
@@ -253,5 +254,5 @@ if __name__ == '__main__':
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 
     jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
-    jake.check_items(r'c:\temp\validator8_jake.csv')
-    # jake.fix_items(r'c:\temp\validator8_jake_fixes.csv')
+    jake.check_items(r'c:\temp\validator11_jake.csv')
+    jake.fix_items(r'c:\temp\validator11_jake_fixes.csv')

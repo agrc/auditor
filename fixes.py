@@ -222,3 +222,22 @@ class ItemFixer:
             result = 'No update needed for description'
 
         self.item_report['description_note_result'] = result
+
+
+    def thumbnail_fix(self):
+        '''
+        Overwrite the thumbnail if the item is in one of the icon groups
+        '''
+
+        if self.item_report['thumbnail_fix'] == 'Y':
+            update_result = self.item.update(thumbnail=self.item_report['thumbnail_path'])
+
+            if update_result:
+                result = f"Thumbnail updated from {self.item_report['thumbnail_path']}"
+            else:
+                result = f"Failed to update thumbnail from {self.item_report['thumbnail_path']}"
+
+        else:
+            result = 'No update needed for thumbnail'
+
+        self.item_report['thumbnail_result'] = result
