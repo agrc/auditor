@@ -153,19 +153,6 @@ class Validator:
         return duplicate_keys
 
 
-    def stewardship_updated(self, gsheet_auth, gsheet_key):
-        
-        client = pygsheets.authorize(service_file=gsheet_auth)
-
-        sheet = client.open_by_key(gsheet_key)
-        worksheet = sheet[0]  #: Update log sheet is first tab
-
-        #: Get list of [update date, featureclass name] from Google Sheet
-        last_updates_df = worksheet.get_as_df()
-        last_updates_df['DateTime'] = pd.to_datetime(last_updates_df['DateTime'], errors='coerce')
-        updates_list = last_updates_df[['DateTime', 'FeatureClass']].values.tolist()
-
-
     def check_items(self, report_path=None):
         '''
         For each hosted feature layer, check:
