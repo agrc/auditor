@@ -2,49 +2,56 @@
 agol-validator
 
 Usage:
-    agol-validator --org=<org> --user=<user> [--save_report=<report_dir> --dry --verbose]
+    agol-validator ORG USER [--save_report=<dir> --dry --verbose]
+
+Arguments:
+    ORG     AGOL Portal to connect to
+    USER    AGOL User for authentication
+            (You will be prompted for USER's password)
 
 Options:
-    --org <org>                 AGOL Portal to connect to [default: https://www.arcgis.com]
-    --user <user>               AGOL User for authentication
-    --report_dir <report_dir>   Folder to save report to, eg `c:\\temp`
-    --dry                       Only run the checks, don't do any fixes [default: False]
-    --verbose                   Print status updates to the console [default: False]
-
+    -h, --help
+    -r, --save_report <dir>     Directory to save report to, e.g. `c:\\temp`
+    -d, --dry                   Only run the checks, don't do any fixes [default: False]
+    -v, --verbose               Print status updates to the console [default: False]
 
 Examples:
-    agol-validator --org=https://www.arcgis.com --user=me --save_report=c:\\temp
+    agol-validator https://www.arcgis.com my_agol_user --save_report=c:\\temp
 '''
 
-from docopt import docopt
+from docopt import docopt, DocoptExit
 
 from validate import Validator
 
 
 def main():
 
-    args = docopt(__doc__, version = '1.0')
-
-    org = args['org']
-    username = args['user']
-
-    report_dir = args['report_dir']
-    
-    if args['dry']:
-        dry = True
+    try:
+        args = docopt(__doc__, version = '1.0')
+    except DocoptExit:
+        print('\n*** Invalid input ***\n')
+        print(__doc__)
     else:
-        dry = False
-    
-    if args['verbose']:
-        verbose = True
-    else:
-        verbose = False
 
+        org = args['ORG']
+        username = args['USER']
 
-    org_validator = Validator(org, username, verbose)
-    org_validator.check_items(report_dir)
-    if not dry:
-        org_validator.fix_items(report_dir)
+        report_dir = args['--save_report']
+        
+        if args['--dry']:
+            dry = True
+        else:
+            dry = False
+        
+        if args['--verbose']:
+            verbose = True
+        else:
+            verbose = False
+
+        org_validator = Validator(org, username, verbose)
+        org_validator.check_items(report_dir)
+        if not dry:
+            org_validator.fix_items(report_dir)
 
 
 if __name__ == '__main__':
