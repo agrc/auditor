@@ -242,7 +242,7 @@ class ItemChecker:
         if self.new_title and self.new_title != self.item.title:
             title_data = {'title_fix':'Y', 'title_old':self.item.title, 'title_new':self.new_title}
         else:
-            title_data = {'title_fix':'N', 'title_old':self.item.title, 'title_new':''}  
+            title_data = {'title_fix':'N', 'title_old':self.item.title, 'title_new':''}
 
         self.results_dict.update(title_data)
 

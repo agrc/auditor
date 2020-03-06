@@ -21,6 +21,7 @@ import json
 
 import pandas as pd
 from docopt import docopt
+from os.path import join
 
 import checks, fixes, credentials
 
@@ -49,7 +50,7 @@ class Validator:
 
     shelved_note = "<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and 'shelved' in ArcGIS Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>"
 
-    def __init__(self, portal, user, metatable, agol_table, verbose=False):
+    def __init__(self, portal, user, verbose=False):
         '''
         Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
         create a list of all the Feature Service objects in the user's folders
@@ -57,6 +58,10 @@ class Validator:
         and agol_table into a dictionary based on the itemid.
         '''
         
+        #: Metatables
+        self.metatable = credentials.METATABLE
+        self.agol_table = credentials.AGOL_TABLE
+
         #: A list of log entries, format TBD
         self.report_dict = {}
 
@@ -104,10 +109,10 @@ class Validator:
         duplicate_keys = []
 
         meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']
-        meta_dupes = self.read_metatable(metatable, meta_fields)
+        meta_dupes = self.read_metatable(self.metatable, meta_fields)
 
         agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
-        agol_dupes = self.read_metatable(agol_table, agol_fields)
+        agol_dupes = self.read_metatable(self.agol_table, agol_fields)
 
         if meta_dupes:
             duplicate_keys.append(meta_dupes)
@@ -152,7 +157,7 @@ class Validator:
         return duplicate_keys
 
 
-    def check_items(self, report_path=None):
+    def check_items(self, report_dir=None):
         '''
         For each hosted feature layer, check:
             > Tags for malformed spacing, standard AGRC/SGID tags
@@ -197,12 +202,13 @@ class Validator:
             self.report_dict[itemid].update(checker.results_dict)
 
         #: Convert dict to pandas df for easy writing
-        if report_path:
+        if report_dir:
+            report_path = join(report_dir, f'checks_{datetime.date.today()}.csv')
             report_df = pd.DataFrame(self.report_dict).T
             report_df.to_csv(report_path)
 
 
-    def fix_items(self, report_path=None):
+    def fix_items(self, report_dir=None):
         '''
         Perform any needed fixes by looping through report dictionary and
         checking the various _fix entries. Append results string to report
@@ -229,7 +235,12 @@ class Validator:
                 fixer.description_note_fix(self.static_note, self.shelved_note)
                 fixer.thumbnail_fix()
 
-                update_status_keys = ['metadata_result', 'tags_title_result', 'groups_result', 'folder_result', 'delete_protection_result', 'downloads_result', 'description_note_result', 'thumbnail_result']
+                update_status_keys = ['metadata_result', 'tags_title_result',
+                                      'groups_result', 'folder_result',
+                                      'delete_protection_result',
+                                      'downloads_result',
+                                      'description_note_result',
+                                      'thumbnail_result']
 
                 if self.verbose:
                     for status in update_status_keys:
@@ -239,7 +250,8 @@ class Validator:
 
         finally:
             #: Convert dict to pandas df for easy writing
-            if report_path:
+            if report_dir:
+                report_path = join(report_dir, f'fixes_{datetime.date.today()}.csv')
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
 
@@ -248,11 +260,11 @@ if __name__ == '__main__':
     metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
     agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
 
-    agrc = Validator('https://www.arcgis.com', 'UtahAGRC', metatable, agol_table, verbose=True)
-    agrc.check_items(r'c:\temp\validator11_thumbnails.csv')
+    agrc = Validator('https://www.arcgis.com', 'UtahAGRC', verbose=True)
+    agrc.check_items(r'c:\temp')
 
     # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
 
     # jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
-    # jake.check_items(r'c:\temp\validator11_jake.csv')
-    # jake.fix_items(r'c:\temp\validator11_jake_fixes.csv')
+    # jake.check_items(r'c:\temp')
+    # jake.fix_items(r'c:\temp')
