@@ -4,25 +4,20 @@ You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www
 
 ## Item Checks
 
-`agol-validator` validates all the AGOL Feature Service items in a user's folders based on information in a metatable:
+`agol-validator` validates the following information about all the AGOL Feature Service items in a user's folders based on information in a metatable:
 
 * Title
 * Group
 * Folder
+* Metadata
+* Description note for shelved/static items
+* Path to appropriate thumbnail image
 
 It also applies some checks irrespective of a table:
 
 * Tags: proper-cases tags, doesn't repeat words found in the title
 * Sets the flag for delete protection
 * Sets the flag to 'Allow others to export to different formats', which opens up GDB downloads in Open Data.
-
-#### Metatable format
-
-The metatable is read using `arcpy` and should at a minimum have the three following fields:
-
-1. `TABLENAME`: The fully-qualified source table name. The schema will be used to determine the group and folder (ie, `SGID10.BOUNDARIES.Counties`'s category is `Utah SGID Boundaries` and its folder is `Boundaries`)
-1. `AGOL_ITEM_ID`: The published AGOL item id for the table.
-1. `AGOL_PUBLISHED_NAME`: The table's desired AGOL Feature Service name.
 
 #### What Items Does it Check?
 
@@ -38,3 +33,27 @@ Because a user's folder only holds items that they own, it effectively checks al
    - `activate validator`
 1. Install the needed conda packages (`docopt`):
    - `conda install --file requirements.txt`
+1. Clone the repository
+   - `cd <my git directory>`
+   - `git clone https://github.com/agrc/agol-validator.github`
+1. Create a `credentials.py` file in the repo's directory with the following variables:
+   - `DB =  #:Path to SDE connection file`
+   - `THUMBNAIL_DIR =  #: Path to directory containing thumbnails`
+   - `METATABLE =  #: Full path (including SDE) to SGID metatable`
+   - `AGOL_TABLE =  #: Feature Server REST endpoint for AGOL metatable`
+
+#### Metatable format
+
+The SGID metatable is read using `arcpy` and should at a minimum have the three following fields:
+
+1. `TABLENAME`: The fully-qualified source table name. The schema will be used to determine the group and folder (ie, `SGID10.BOUNDARIES.Counties`'s category is `Utah SGID Boundaries` and its folder is `Boundaries`)
+1. `AGOL_ITEM_ID`: The published AGOL item id for the table.
+1. `AGOL_PUBLISHED_NAME`: The table's desired AGOL Feature Service name.
+
+The AGOL metatable is hosted on AGOL and is also read with `arcpy`. It needs the following fields in addition to the SGID metatable's fields:
+
+1. `Category`: Whether the layer is `shelved` or `static`.
+
+#### Thumbnail Directory
+
+The thumbnail directory specified in `credentials.py` should hold thumbnails named `group_name.png`, where `group_name` is the SGID group (in lowercase)
