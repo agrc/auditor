@@ -188,7 +188,7 @@ class ItemFixer:
                 if self.item.metadata == arcpy_metadata.xml:
                     result = f'Metadata updated from "{fc_path}"'
                 else:
-                    result = f'Failed to update metadata from "{fc_path}"'
+                    result = f'Tried to update metadata from "{fc_path}; verify manually"'
                     
             except ValueError:
                 result = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
