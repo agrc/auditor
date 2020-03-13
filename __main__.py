@@ -2,12 +2,7 @@
 agol-validator
 
 Usage:
-    agol-validator ORG USER [--save_report=<dir> --dry --verbose]
-
-Arguments:
-    ORG     AGOL Portal to connect to
-    USER    AGOL User for authentication
-            (You will be prompted for USER's password)
+    agol-validator [--save_report=<dir> --dry --verbose]
 
 Options:
     -h, --help
@@ -26,15 +21,13 @@ from validate import Validator
 
 def main():
 
+    #: try/except/else to print help if bad input received
     try:
         args = docopt(__doc__, version = '1.0')
     except DocoptExit:
         print('\n*** Invalid input ***\n')
         print(__doc__)
     else:
-
-        org = args['ORG']
-        username = args['USER']
 
         report_dir = args['--save_report']
         
@@ -48,7 +41,7 @@ def main():
         else:
             verbose = False
 
-        org_validator = Validator(org, username, verbose)
+        org_validator = Validator(verbose)
         org_validator.check_items(report_dir)
         if not dry:
             org_validator.fix_items(report_dir)

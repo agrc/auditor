@@ -36,11 +36,7 @@ Because a user's folder only holds items that they own, it effectively checks al
 1. Clone the repository
    - `cd <my git directory>`
    - `git clone https://github.com/agrc/agol-validator.github`
-1. Create a `credentials.py` file in the repo's directory with the following variables:
-   - `DB =  #:Path to SDE connection file`
-   - `THUMBNAIL_DIR =  #: Path to directory containing thumbnails`
-   - `METATABLE =  #: Full path (including SDE) to SGID metatable`
-   - `AGOL_TABLE =  #: Feature Server REST endpoint for AGOL metatable`
+1. Create a `credentials.py` file in the repo's directory using the `credentials_template`. DO NOT check `credentials.py` into version control. The repo's `.gitignore` has been set to ignore `credentials.py`; verify this on your local repo.
 
 #### Metatable format
 
