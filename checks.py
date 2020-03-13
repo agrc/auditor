@@ -347,7 +347,7 @@ class ItemChecker:
         '''
 
         if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
-            metadata_data = {'metadata_fix': 'Y', 'metadata_old': self.item.metadata, 'metadata_new': self.feature_class_path}
+            metadata_data = {'metadata_fix': 'Y', 'metadata_old': 'item.metadata from AGOL not shown due to length', 'metadata_new': self.feature_class_path}
 
             # Set flag for description note for shelved/static data
             if self.new_group == 'AGRC Shelf':
