@@ -86,10 +86,12 @@ class ItemChecker:
         self.downloads = False
         self.protect = False
         self.static_shelved = None
+        self.in_SGID = False
 
 
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
+            self.in_SGID = True
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
             
@@ -116,9 +118,8 @@ class ItemChecker:
         #: Set static/shelved flag
         if self.new_group == 'AGRC Shelf':
             self.static_shelved = 'shelved'
-        elif self.item.itemid in self.metatable_dict and self.metatable_dict[self.item.itemid][2] == 'static':
+        elif self.in_SGID and self.metatable_dict[self.item.itemid][2] == 'static':
             self.static_shelved = 'static'
-
 
 
     def tags_check(self, tags_to_delete, uppercased_tags, articles):
@@ -308,12 +309,12 @@ class ItemChecker:
             properties = None
         
         #: Create protect data: downloads_fix
-        if properties and 'Extract' not in properties['capabilities']:
+        if self.in_SGID and properties and 'Extract' not in properties['capabilities']:
             self.downloads = True
             fix_downloads = {'downloads_fix':'Y'}
         else:
             fix_downloads = {'downloads_fix':'N'}
-
+    
         self.results_dict.update(fix_downloads)
 
 
@@ -326,12 +327,12 @@ class ItemChecker:
         '''
 
         #: item.protected is Boolean
-        if not self.item.protected:
+        if self.in_SGID and not self.item.protected:
             self.protect = True
             protect_data = {'delete_protection_fix':'Y'}
         else:
             protect_data = {'delete_protection_fix':'N'}
-
+       
         self.results_dict.update(protect_data)
 
 
