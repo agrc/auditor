@@ -11,7 +11,7 @@ Options:
     -v, --verbose               Print status updates to the console [default: False]
 
 Examples:
-    agol-validator https://www.arcgis.com my_agol_user --save_report=c:\\temp
+    agol-validator --save_report=c:\\temp -v
 '''
 
 from docopt import docopt, DocoptExit
