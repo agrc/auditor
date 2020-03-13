@@ -1,22 +1,12 @@
 '''
 validate.py
 
-Usage:
-    validate.py validate --org=<org> --user=<user> [--save_report=<report_path>]
-
-Arguments:
-    org           AGOL Portal to connect to [default: https://www.arcgis.com]
-    user          AGOL User for authentication
-    report_path   Folder to save report to, eg `c:\\temp`
-
-Examples:
-    validate.py validate --org=https://www.arcgis.com --user=me --save_report=c:\\temp
+See __main__.py for usage
 '''
 
 import arcgis
 import arcpy
 import datetime
-import getpass
 import json
 
 import pandas as pd
@@ -50,7 +40,7 @@ class Validator:
 
     shelved_note = "<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and 'shelved' in ArcGIS Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>"
 
-    def __init__(self, portal, user, verbose=False):
+    def __init__(self, verbose=False):
         '''
         Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
         create a list of all the Feature Service objects in the user's folders
@@ -81,14 +71,14 @@ class Validator:
 
         self.verbose = verbose
 
-        self.username = user
-        self.gis = arcgis.gis.GIS(portal, user, getpass.getpass(f'{user}\'s password for {portal}:'))
+        self.username = credentials.USERNAME
+        self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
         user_item = self.gis.users.me
 
         #: Build list of folders. 'None' gives us the root folder.
         if self.verbose:
-            print(f'Getting {user}\'s folders...')
+            print(f'Getting {self.username}\'s folders...')
         folders = [None]
         for folder in user_item.folders:
             folders.append(folder['title'])
@@ -254,17 +244,3 @@ class Validator:
                 report_path = join(report_dir, f'fixes_{datetime.date.today()}.csv')
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
-
-
-if __name__ == '__main__':
-    metatable = r'C:\gis\Projects\Data\internal.agrc.utah.gov.sde\SGID.META.AGOLItems'
-    agol_table = r'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/metatable_test/FeatureServer/0'
-
-    agrc = Validator('https://www.arcgis.com', 'UtahAGRC', verbose=True)
-    agrc.check_items(r'c:\temp')
-
-    # test_metatable = r'C:\gis\Projects\Data\data.gdb\validate_test_table'
-
-    # jake = Validator('https://www.arcgis.com', 'Jake.Adams@UtahAGRC', metatable, agol_table, verbose=True)
-    # jake.check_items(r'c:\temp')
-    # jake.fix_items(r'c:\temp')
