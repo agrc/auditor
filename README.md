@@ -2,6 +2,19 @@
 
 You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www.youtube.com/watch?v=Cbk980jV7Ao))
 
+
+Usage:
+  - `agol-validator [--save_report=<dir> --dry --verbose]`
+
+Options:
+  - `-h, --help`
+  - `-r, --save_report <dir>     Directory to save report to, e.g. c:\\temp`
+  - `-d, --dry                   Only run the checks, don't do any fixes [default: False]`
+  - `-v, --verbose               Print status updates to the console [default: False]`
+
+Example:
+  - `agol-validator --save_report=c:\\temp -v`
+
 ## Item Checks
 
 `agol-validator` validates the following information about all the AGOL Feature Service items in a user's folders based on information in a metatable:
