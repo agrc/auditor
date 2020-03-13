@@ -130,4 +130,5 @@ dmypy.json
 
 .vscode/
 
+# This is our secrets file. Never add to version control!
 credentials.py
