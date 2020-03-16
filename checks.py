@@ -1,8 +1,9 @@
-import arcgis
-import arcpy
 import json
 
 from os.path import join, exists
+
+import arcgis
+import arcpy
 
 
 def tag_case(tag, uppercased, articles):
@@ -17,7 +18,7 @@ def tag_case(tag, uppercased, articles):
     will be lowercased.
 
     tag:        The single or multi-word tag to check
-    uppercased: Lower-cased list of words that should be uppercased (must be 
+    uppercased: Lower-cased list of words that should be uppercased (must be
                 lower-cased to facilitate checking)
     articles:   Lower-cased list of words that should always be lower-cased:
                 'in', 'of', etc
@@ -26,11 +27,11 @@ def tag_case(tag, uppercased, articles):
     new_words = []
     for word in tag.split():
         cleaned_word = word.replace('.', '')
-        
+
         #: Upper case specified words:
         if cleaned_word.lower() in uppercased:
             new_words.append(cleaned_word.upper())
-        #: Lower case articles/conjunctions 
+        #: Lower case articles/conjunctions
         elif cleaned_word.lower() in articles:
             new_words.append(cleaned_word.lower())
         #: Title case everything else
@@ -52,7 +53,7 @@ def get_group_from_table(metatable_dict_entry):
         group = 'AGRC Shelf'
     else:
         table_category = SGID_name.split('.')[1].title()
-        group = f'Utah SGID {table_category}'     
+        group = f'Utah SGID {table_category}'
 
     return group
 
@@ -66,7 +67,7 @@ class ItemChecker:
     then use the instance variable to check against the item's existing data.
 
     This class is specific to a single item. General org-level data should be
-    stored in the Validate class and passed to methods if needed (like lists of 
+    stored in the Validate class and passed to methods if needed (like lists of
     tags to uppercase, etc).
 
     The results_dict dictionary holds the results of every check that is
@@ -81,7 +82,7 @@ class ItemChecker:
 
         self.item = item
         self.metatable_dict = metatable_dict
-        
+
         self.new_tags = []
         self.downloads = False
         self.protect = False
@@ -94,7 +95,7 @@ class ItemChecker:
             self.in_SGID = True
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
-            
+
             feature_class_name = self.metatable_dict[self.item.itemid][0]
             self.feature_class_path = join(sde_path, feature_class_name)
             if arcpy.Exists(self.feature_class_path):
@@ -187,10 +188,10 @@ class ItemChecker:
                 pass
             #: Otherwise, add the tag (properly-cased)
             else:
-                cased_tag = tag_case(orig_tag, uppercased_tags,  articles)
+                cased_tag = tag_case(orig_tag, uppercased_tags, articles)
                 if cased_tag not in self.new_tags:
                     self.new_tags.append(cased_tag)
-        
+
         #: Check the category tag
         if self.static_shelved == 'shelved':
             group_tag = 'Shelved'
@@ -263,7 +264,7 @@ class ItemChecker:
         if self.new_folder and self.new_folder != current_folder:
             folder_data = {'folder_fix':'Y', 'folder_old':current_folder, 'folder_new':self.new_folder}
         else:
-            folder_data = {'folder_fix':'N', 'folder_old':'', 'folder_new':''} 
+            folder_data = {'folder_fix':'N', 'folder_old':'', 'folder_new':''}
 
         self.results_dict.update(folder_data)
 
@@ -307,14 +308,14 @@ class ItemChecker:
             properties = json.loads(str(manager.properties))
         except:
             properties = None
-        
+
         #: Create protect data: downloads_fix
         if self.in_SGID and properties and 'Extract' not in properties['capabilities']:
             self.downloads = True
             fix_downloads = {'downloads_fix':'Y'}
         else:
             fix_downloads = {'downloads_fix':'N'}
-    
+
         self.results_dict.update(fix_downloads)
 
 
@@ -332,14 +333,14 @@ class ItemChecker:
             protect_data = {'delete_protection_fix':'Y'}
         else:
             protect_data = {'delete_protection_fix':'N'}
-       
+
         self.results_dict.update(protect_data)
 
 
     def metadata_check(self):
         '''
         Check item's .metadata property against the .xml property of it's source
-        feature class. 
+        feature class.
 
         Update results_dict with results:
                 {'metadata_fix': '', 'metadata_old': '', 'metadata_new': ''}
@@ -366,11 +367,11 @@ class ItemChecker:
 
     def description_note_check(self, static_note, shelved_note):
         '''
-        Check to see if the AGOL description begins with static_note or 
+        Check to see if the AGOL description begins with static_note or
         shelved_note.
 
         Update results_dict with results:
-                {'description_note_fix': '', 
+                {'description_note_fix': '',
                  'description_note_source': 'static' or 'shelved'}
         '''
 
@@ -383,7 +384,7 @@ class ItemChecker:
 
         self.results_dict.update(description_data)
 
-    
+
     def thumbnail_check(self, thumbnail_dir):
         '''
         Create the path to the appropriate thumbnail if the item is in an SGID
@@ -399,7 +400,7 @@ class ItemChecker:
             if group != 'Shelf':
                 thumbnail_file_name = f'{group}.png'
                 thumbnail_path = join(thumbnail_dir, thumbnail_file_name)
-                
+
                 if exists(thumbnail_path):
                     thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': thumbnail_path}
                 else:
@@ -411,4 +412,3 @@ class ItemChecker:
             thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
 
         self.results_dict.update(thumbnail_data)
-
