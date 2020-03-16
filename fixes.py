@@ -100,20 +100,20 @@ class ItemFixer:
         {folder_result: result}
         '''
 
+        #: Default result to report; update as needed
+        result = 'No update needed for folder'
+
         if self.item_report['folder_fix'] == 'Y':
             folder = self.item_report['folder_new']
-
             move_result = self.item.move(folder)
-            if move_result:
+
+            if not move_result:
+                #: .move() returns false/empty if folder not found
+                result = f'"{folder}" folder not found'
+            else:
+                result = f'Failed to move item to "{folder}" folder'
                 if move_result['success']:
                     result = f'Item moved to "{folder}" folder'
-                else:
-                    result = f'Failed to move item to "{folder}" folder'
-            else:
-                result = f'"{folder}" folder not found'
-
-        else:
-            result = 'No update needed for folder'
 
         self.item_report['folder_result'] = result
 
