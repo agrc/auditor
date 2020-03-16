@@ -20,22 +20,22 @@ from validate import Validator
 
 
 def main():
+    '''
+    Main entry point for agol-validtor; instantiates Validator object, calls
+    its check_items() method, and then calls its fix_item() if --dry flag is
+    not set.
+    '''
 
     #: try/except/else to print help if bad input received
     try:
-        args = docopt(__doc__, version = '1.0')
+        args = docopt(__doc__, version='1.0')
     except DocoptExit:
         print('\n*** Invalid input ***\n')
         print(__doc__)
     else:
 
         report_dir = args['--save_report']
-        
-        if args['--dry']:
-            dry = True
-        else:
-            dry = False
-        
+
         if args['--verbose']:
             verbose = True
         else:
@@ -43,7 +43,8 @@ def main():
 
         org_validator = Validator(verbose)
         org_validator.check_items(report_dir)
-        if not dry:
+
+        if not args['--dry']:
             org_validator.fix_items(report_dir)
 
 

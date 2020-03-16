@@ -1,12 +1,14 @@
+import json
+
 import arcgis
 import arcpy
-import json
+
 
 class ItemFixer:
     '''
     Class to fix an AGOL item that has previously been checked using
     ItemChecker. Uses the item report dictionary created by ItemChecker for the
-    item to determine what needs to be fixed and what values to use. 
+    item to determine what needs to be fixed and what values to use.
 
     This class is specific to a single item. General org-level data should be
     stored in the Validate class and passed to methods if needed (like
@@ -50,7 +52,7 @@ class ItemFixer:
                 result = f'Updated {", ".join(messages)}'
             else:
                 result = f'Failed to update {", ".join(messages)}'
-        
+
         else:
             result = 'No update needed for title or tags'
 
@@ -148,13 +150,13 @@ class ItemFixer:
         '''
 
         if self.item_report['downloads_fix'] == 'Y':
-                
+
             manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
             properties = json.loads(str(manager.properties))
 
             current_capabilities = properties['capabilities']
             new_capabilities = current_capabilities + ',Extract'
-            download_result = manager.update_definition({ 'capabilities': new_capabilities})
+            download_result = manager.update_definition({'capabilities': new_capabilities})
 
             if download_result['success']:
                 result = f'Downloads enabled'
@@ -167,7 +169,7 @@ class ItemFixer:
         self.item_report['downloads_result'] = result
 
 
-    def metadata_fix(self, static_note, shelved_note):
+    def metadata_fix(self):
         '''
         Overwrite the existing AGOL metadata with the metadata from a source
         feature class using agol_item.metadata = fc_metadata.xml where
@@ -189,10 +191,10 @@ class ItemFixer:
                     result = f'Metadata updated from "{fc_path}"'
                 else:
                     result = f'Tried to update metadata from "{fc_path}; verify manually"'
-                    
+
             except ValueError:
                 result = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
-        
+
         else:
             result = 'No update needed for metadata'
 
@@ -204,7 +206,7 @@ class ItemFixer:
         Add static_note or shelved_note to beginning of the description field
         with a blank space before the rest of the description. static_note and
         shelved_note should be strings of properly-formatted HTML.
-        
+
         Updates item_report with results for this fix:
         {description_note_result: result}
         '''
@@ -212,7 +214,7 @@ class ItemFixer:
         if self.item_report['description_note_fix'] == 'Y':
             if self.item_report['description_note_source'] == 'shelved':
                 new_description = f'{shelved_note}<div><br />{self.item.description}'
-                
+
             elif self.item_report['description_note_source'] == 'static':
                 new_description = f'{static_note}<div><br />{self.item.description}'
 
@@ -225,7 +227,7 @@ class ItemFixer:
             if update_result:
                 result = f"{self.item_report['description_note_source']} note added to description"
             else:
-                result = f"Failed to add {self.item_report['description_note_source']} note to description" 
+                result = f"Failed to add {self.item_report['description_note_source']} note to description"
 
         else:
             result = 'No update needed for description'
@@ -235,7 +237,7 @@ class ItemFixer:
 
     def thumbnail_fix(self):
         '''
-        Overwrite the thumbnail if the item is in one of the icon groups. The 
+        Overwrite the thumbnail if the item is in one of the icon groups. The
         item_report dictionary should have the path to the new thumbnail.
         '''
 
