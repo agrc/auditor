@@ -36,12 +36,7 @@ def main():
 
         report_dir = args['--save_report']
 
-        if args['--verbose']:
-            verbose = True
-        else:
-            verbose = False
-
-        org_validator = Validator(verbose)
+        org_validator = Validator(args['--verbose'])
         org_validator.check_items(report_dir)
 
         if not args['--dry']:
