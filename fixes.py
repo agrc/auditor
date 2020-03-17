@@ -36,27 +36,28 @@ class ItemFixer:
         title = self.item_report['title_new']
         tags = self.item_report['tags_new']
 
-        if title or tags:
+        #: Was no update needed?
+        if not title or tags:
+            self.item_report['tags_title_result'] = 'No update needed for title or tags'
+            return
 
-            #: Tags and title combined .update()
-            update_dict = {}
-            messages = []
-            if title:
-                update_dict['title'] = title
-                messages.append(f'title to "{title}"')
-            if tags:
-                update_dict['tags'] = tags
-                messages.append(f'tags to {tags}')
-            update_result = self.item.update(update_dict)
-            if update_result:
-                result = f'Updated {", ".join(messages)}'
-            else:
-                result = f'Failed to update {", ".join(messages)}'
+        #: Tags and title combined .update()
+        update_dict = {}
+        messages = []
+        if title:
+            update_dict['title'] = title
+            messages.append(f'title to "{title}"')
+        if tags:
+            update_dict['tags'] = tags
+            messages.append(f'tags to {tags}')
+        update_result = self.item.update(update_dict)
 
-        else:
-            result = 'No update needed for title or tags'
+        #:item.update() returns False if it fails
+        if not update_result:
+            self.item_report['tags_title_result'] = f'Failed to update {", ".join(messages)}'
+            return
 
-        self.item_report['tags_title_result'] = result
+        self.item_report['tags_title_result'] = f'Updated {", ".join(messages)}'
 
 
     def group_fix(self, groups_dict):
@@ -69,27 +70,29 @@ class ItemFixer:
         {groups_result: result}
         '''
 
-        if self.item_report['groups_fix'] == 'Y':
+        #: Was no update needed?
+        if self.item_report['groups_fix'].casefold() != 'y':
+            self.item_report['groups_result'] = 'No update needed for grpi[s'
+            return
 
-            group_name = self.item_report['group_new']
+        #: Share to everyone and groups
+        group_name = self.item_report['group_new']
+        try:
+            gid = groups_dict[group_name]
+            share_results = self.item.share(everyone=True, groups=[gid])
+            result_dict = share_results['results'][0]
 
-            try:
-                gid = groups_dict[group_name]
+            #: Report if we couldn't share it with group
+            if gid in result_dict['notSharedWith']:
+                self.item_report['groups_result'] = f'Failed to share with everyone and "{group_name}" group'
+                return
 
-                share_results = self.item.share(everyone=True, groups=[gid])
-                result_dict = share_results['results'][0]
-                if gid not in result_dict['notSharedWith']:
-                    result = f'Shared with everyone and "{group_name}" group'
-                else:
-                    result = f'Failed to share with everyone and "{group_name}" group'
+        #: Groups should always be found, but in case they're not, report
+        except KeyError:
+            self.item_report['groups_result'] = f'Cannot find group "{group_name}" in organization'
+            return
 
-            except KeyError:
-                result = f'Cannot find group "{group_name}" in organization'
-
-        else:
-            result = 'No update needed for groups'
-
-        self.item_report['groups_result'] = result
+        self.item_report['groups_result'] = f'Shared with everyone and "{group_name}" group'
 
 
     def folder_fix(self):
@@ -109,7 +112,7 @@ class ItemFixer:
         folder = self.item_report['folder_new']
         move_result = self.item.move(folder)
 
-        #: .move(folder) returns false/empty if folder not found
+        #: .move(folder) returns None if folder not found
         if not move_result:
             self.item_report['folder_result'] = f'"{folder}" folder not found'
             return
@@ -131,18 +134,17 @@ class ItemFixer:
         {tags_title_result: result}
         '''
 
-        if self.item_report['delete_protection_fix'] == 'Y':
+        if self.item_report['delete_protection_fix'].casefold() != 'y':
+            self.item_report['delete_protection_result'] = 'No update needed for delete protection'
+            return
 
-            protect_result = self.item.protect(True)
-            if protect_result['success']:
-                result = f'Item protected'
-            else:
-                result = f'Failed to protect item'
+        protect_result = self.item.protect(True)
 
-        else:
-            result = 'No update needed for delete protection'
+        if not protect_result['success']:
+            self.item_report['delete_protection_result'] = f'Failed to protect item'
+            return
 
-        self.item_report['delete_protection_result'] = result
+        self.item_report['delete_protection_result'] = f'Item protected'
 
 
     def downloads_fix(self):
@@ -154,24 +156,22 @@ class ItemFixer:
         {downloads_result: result}
         '''
 
-        if self.item_report['downloads_fix'] == 'Y':
+        if self.item_report['downloads_fix'].casefold() != 'y':
+            self.item_report['downloads_result'] = 'No update needed for downloads'
+            return
 
-            manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
-            properties = json.loads(str(manager.properties))
+        manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
+        properties = json.loads(str(manager.properties))
 
-            current_capabilities = properties['capabilities']
-            new_capabilities = current_capabilities + ',Extract'
-            download_result = manager.update_definition({'capabilities': new_capabilities})
+        current_capabilities = properties['capabilities']
+        new_capabilities = current_capabilities + ',Extract'
+        download_result = manager.update_definition({'capabilities': new_capabilities})
 
-            if download_result['success']:
-                result = f'Downloads enabled'
-            else:
-                result = f'Failed to enable downloads'
+        if not download_result['success']:
+            self.item_report['downloads_result'] = f'Failed to enable downloads'
+            return
 
-        else:
-            result = 'No update needed for downloads'
-
-        self.item_report['downloads_result'] = result
+        self.item_report['downloads_result'] = f'Downloads enabled'
 
 
     def metadata_fix(self):
@@ -185,25 +185,25 @@ class ItemFixer:
         {metdata_result: result}
         '''
 
-        if self.item_report['metadata_fix'] == 'Y':
-            fc_path = self.item_report['metadata_new']
+        if self.item_report['metadata_fix'].casefold() != 'y':
+            self.item_report['metadata_result'] = 'No update needed for metadata'
+            return
 
-            arcpy_metadata = arcpy.metadata.Metadata(fc_path)
-            try:
-                self.item.metadata = arcpy_metadata.xml
+        fc_path = self.item_report['metadata_new']
 
-                if self.item.metadata == arcpy_metadata.xml:
-                    result = f'Metadata updated from "{fc_path}"'
-                else:
-                    result = f'Tried to update metadata from "{fc_path}; verify manually"'
+        arcpy_metadata = arcpy.metadata.Metadata(fc_path)
+        try:
+            self.item.metadata = arcpy_metadata.xml
 
-            except ValueError:
-                result = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
+            if self.item.metadata != arcpy_metadata.xml:
+                self.item_report['metadata_result'] = f'Tried to update metadata from "{fc_path}; verify manually"'
+                return
 
-        else:
-            result = 'No update needed for metadata'
+        except ValueError:
+            self.item_report['metadata_result'] = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
+            return
 
-        self.item_report['metadata_result'] = result
+        self.item_report['metadata_result'] = f'Metadata updated from "{fc_path}"'
 
 
     def description_note_fix(self, static_note, shelved_note):
@@ -216,28 +216,24 @@ class ItemFixer:
         {description_note_result: result}
         '''
 
-        if self.item_report['description_note_fix'] == 'Y':
-            if self.item_report['description_note_source'] == 'shelved':
-                new_description = f'{shelved_note}<div><br />{self.item.description}'
+        if self.item_report['description_note_fix'].casefold() != 'y':
+            self.item_report['description_note_result'] = 'No update needed for description'
+            return
 
-            elif self.item_report['description_note_source'] == 'static':
-                new_description = f'{static_note}<div><br />{self.item.description}'
+        source = self.item_report['description_note_source']
+        new_description = self.item.description
+        if source == 'shelved':
+            new_description = f'{shelved_note}<div><br />{self.item.description}'
+        elif source == 'static':
+            new_description = f'{static_note}<div><br />{self.item.description}'
 
-            #: Shouldn't ever hit this, but for completeness' sake.
-            else:
-                new_description = self.item.description
+        update_result = self.item.update(item_properties={'description': new_description})
 
-            update_result = self.item.update(item_properties={'description': new_description})
+        if not update_result:
+            self.item_report['description_note_result'] = f'Failed to add {source} note to description'
+            return
 
-            if update_result:
-                result = f"{self.item_report['description_note_source']} note added to description"
-            else:
-                result = f"Failed to add {self.item_report['description_note_source']} note to description"
-
-        else:
-            result = 'No update needed for description'
-
-        self.item_report['description_note_result'] = result
+        self.item_report['description_note_result'] = f'{source} note added to description'
 
 
     def thumbnail_fix(self):
@@ -246,15 +242,15 @@ class ItemFixer:
         item_report dictionary should have the path to the new thumbnail.
         '''
 
-        if self.item_report['thumbnail_fix'] == 'Y':
-            update_result = self.item.update(thumbnail=self.item_report['thumbnail_path'])
+        if self.item_report['thumbnail_fix'].casefold() != 'y':
+            self.item_report['thumbnail_result'] = 'No update needed for thumbnail'
+            return
 
-            if update_result:
-                result = f"Thumbnail updated from {self.item_report['thumbnail_path']}"
-            else:
-                result = f"Failed to update thumbnail from {self.item_report['thumbnail_path']}"
+        thumbnail_path = self.item_report['thumbnail_path']
+        update_result = self.item.update(thumbnail=thumbnail_path)
 
-        else:
-            result = 'No update needed for thumbnail'
+        if not update_result:
+            self.item_report['thumbnail_result'] = f'Failed to update thumbnail from {thumbnail_path}'
+            return
 
-        self.item_report['thumbnail_result'] = result
+        self.item_report['thumbnail_result'] = f'Thumbnail updated from {thumbnail_path}'
