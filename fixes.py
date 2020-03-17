@@ -100,22 +100,27 @@ class ItemFixer:
         {folder_result: result}
         '''
 
-        #: Default result to report; update as needed
-        result = 'No update needed for folder'
+        #: Was no update needed?
+        if self.item_report['folder_fix'].casefold() != 'y':
+            self.item_report['folder_result'] = 'No update needed for folder'
+            return
 
-        if self.item_report['folder_fix'] == 'Y':
-            folder = self.item_report['folder_new']
-            move_result = self.item.move(folder)
+        #: Try the move
+        folder = self.item_report['folder_new']
+        move_result = self.item.move(folder)
 
-            if not move_result:
-                #: .move() returns false/empty if folder not found
-                result = f'"{folder}" folder not found'
-            else:
-                result = f'Failed to move item to "{folder}" folder'
-                if move_result['success']:
-                    result = f'Item moved to "{folder}" folder'
+        #: .move(folder) returns false/empty if folder not found
+        if not move_result:
+            self.item_report['folder_result'] = f'"{folder}" folder not found'
+            return
 
-        self.item_report['folder_result'] = result
+        #: Catching any other abnormal result
+        if not move_result['success']:
+            self.item_report['folder_result'] = f'Failed to move item to "{folder}" folder'
+            return
+
+        #: If all the checks have passed, return good result.
+        self.item_report['folder_result'] = f'Item moved to "{folder}" folder'
 
 
     def delete_protection_fix(self):
