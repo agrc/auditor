@@ -34,7 +34,7 @@ Because a user's folder only holds items that they own, it effectively checks al
 1. Clone the repository
    * `cd <my git directory>`
    * `git clone https://github.com/agrc/agol-validator.github`
-1. Create a `credentials.py` file in the repo's directory using the `credentials_template`. DO NOT check `credentials.py` into version control. The repo's `.gitignore` has been set to ignore `credentials.py`; verify this on your local repo.
+1. Create a `credentials.py` file in the repo's directory using `credentials_template.py`. DO NOT check `credentials.py` into version control. The repo's `.gitignore` has been set to ignore `credentials.py`; verify this on your local repo.
 
 ### Metatable format
 
