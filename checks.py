@@ -192,13 +192,12 @@ class ItemChecker:
                 if cased_tag not in self.new_tags:
                     self.new_tags.append(cased_tag)
 
-        #: Check the category tag
+        #: Check the category tag. If it doesn't exist, set to None
+        group_tag = None
         if self.static_shelved == 'shelved':
             group_tag = 'Shelved'
-        elif self.new_group:  #: If it exists, extract the group
+        elif self.new_group:
             group_tag = self.new_group.split('Utah SGID ')[-1]
-        else:  #: If it doesn't exist, set to None
-            group_tag = None
 
         if group_tag:
             #: If there's already a lowercase tag for the category, replace it
@@ -223,10 +222,10 @@ class ItemChecker:
                 self.new_tags.append('AGRC')
 
         #: Create tags data: tags_fix, tags_old, tags_new
+        tags_data = {'tags_fix':'N', 'tags_old':'', 'tags_new':''}
+
         if sorted(self.new_tags) != sorted(self.item.tags):
             tags_data = {'tags_fix':'Y', 'tags_old':self.item.tags, 'tags_new':self.new_tags}
-        else:
-            tags_data = {'tags_fix':'N', 'tags_old':'', 'tags_new':''}
 
         self.results_dict.update(tags_data)
 
@@ -241,10 +240,10 @@ class ItemChecker:
 
         #: Create title data: title_fix, title_old, title_new
         #: Always include the old title for readability
+        title_data = {'title_fix':'N', 'title_old':self.item.title, 'title_new':''}
+
         if self.new_title and self.new_title != self.item.title:
             title_data = {'title_fix':'Y', 'title_old':self.item.title, 'title_new':self.new_title}
-        else:
-            title_data = {'title_fix':'N', 'title_old':self.item.title, 'title_new':''}
 
         self.results_dict.update(title_data)
 
@@ -261,10 +260,10 @@ class ItemChecker:
         current_folder = itemid_and_folder[self.item.itemid]
 
         #: Create folder data: folder_fix, folder_old, folder_new
+        folder_data = {'folder_fix':'N', 'folder_old':'', 'folder_new':''}
+
         if self.new_folder and self.new_folder != current_folder:
             folder_data = {'folder_fix':'Y', 'folder_old':current_folder, 'folder_new':self.new_folder}
-        else:
-            folder_data = {'folder_fix':'N', 'folder_old':'', 'folder_new':''}
 
         self.results_dict.update(folder_data)
 
@@ -284,12 +283,12 @@ class ItemChecker:
             current_groups = ['Error']
 
         #: Create groups data: groups_fix, groups_old, group_new
+        groups_data = {'groups_fix':'N', 'groups_old':'', 'group_new':''}
+
         if current_groups[0].casefold() == 'error':
             groups_data = ['N', 'Can\'t get group', '']
         elif self.new_group and self.new_group not in current_groups:
             groups_data = {'groups_fix':'Y', 'groups_old':current_groups, 'group_new':self.new_group}
-        else:
-            groups_data = {'groups_fix':'N', 'groups_old':'', 'group_new':''}
 
         self.results_dict.update(groups_data)
 
@@ -310,11 +309,11 @@ class ItemChecker:
             properties = None
 
         #: Create protect data: downloads_fix
+        fix_downloads = {'downloads_fix':'N'}
+
         if self.in_SGID and properties and 'Extract' not in properties['capabilities']:
             self.downloads = True
             fix_downloads = {'downloads_fix':'Y'}
-        else:
-            fix_downloads = {'downloads_fix':'N'}
 
         self.results_dict.update(fix_downloads)
 
@@ -327,12 +326,12 @@ class ItemChecker:
                 {'delete_protection_fix':''}
         '''
 
+        protect_data = {'delete_protection_fix':'N'}
+
         #: item.protected is Boolean
         if self.in_SGID and not self.item.protected:
             self.protect = True
             protect_data = {'delete_protection_fix':'Y'}
-        else:
-            protect_data = {'delete_protection_fix':'N'}
 
         self.results_dict.update(protect_data)
 
@@ -343,24 +342,29 @@ class ItemChecker:
         feature class.
 
         Update results_dict with results:
-                {'metadata_fix': '', 'metadata_old': '', 'metadata_new': ''}
-            Where metadata_old is the string from item.metdata and metadata_new
-            is path to feature class.
+                {'metadata_fix': '', 'metadata_old': '', 'metadata_new': '',
+                 'metadata_note': ''}
+            Where metadata_old is the string from item.metdata, metadata_new
+            is path to feature class, and metadata_note is either '',
+            'shelved', or 'static'
         '''
 
-        if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
-            metadata_data = {'metadata_fix': 'Y', 'metadata_old': 'item.metadata from AGOL not shown due to length', 'metadata_new': self.feature_class_path}
+        metadata_data = {'metadata_fix': 'N',
+                         'metadata_old': '',
+                         'metadata_new': '',
+                         'metadata_note': ''}
 
-            # Set flag for description note for shelved/static data
+        if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
+            metadata_data = {'metadata_fix': 'Y',
+                             'metadata_old': 'item.metadata from AGOL not shown due to length',
+                             'metadata_new': self.feature_class_path,
+                             'metadata_note': ''}
+
+            # Update flag for description note for shelved/static data
             if self.new_group == 'AGRC Shelf':
                 metadata_data['metadata_note'] = 'shelved'
             elif self.metatable_dict[self.item.itemid][2] == 'static':
                 metadata_data['metadata_note'] = 'static'
-            else:
-                metadata_data['metadata_note'] = ''
-
-        else:
-            metadata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': '', 'metadata_note': ''}
 
         self.results_dict.update(metadata_data)
 
@@ -375,12 +379,12 @@ class ItemChecker:
                  'description_note_source': 'static' or 'shelved'}
         '''
 
+        description_data = {'description_note_fix': 'N', 'description_note_source': ''}
+
         if self.static_shelved == 'static' and not self.item.description.startswith(static_note):
             description_data = {'description_note_fix': 'Y', 'description_note_source': 'static'}
         elif self.static_shelved == 'shelved' and not self.item.description.startswith(shelved_note):
             description_data = {'description_note_fix': 'Y', 'description_note_source': 'shelved'}
-        else:
-            description_data = {'description_note_fix': 'N', 'description_note_source': ''}
 
         self.results_dict.update(description_data)
 
@@ -394,21 +398,19 @@ class ItemChecker:
                 {'thumbnail_fix': '', 'thumbnail_path': ''}
         '''
 
+        thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
+
         if self.new_group:
             group = self.new_group.split()[-1]  #: Either 'Shelf' or category name
 
-            if group != 'Shelf':
-                thumbnail_file_name = f'{group}.png'
-                thumbnail_path = join(thumbnail_dir, thumbnail_file_name)
+            #: Default is shelved, change as needed
+            thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': 'Shelved'}
 
-                if exists(thumbnail_path):
-                    thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': thumbnail_path}
-                else:
+            if group.casefold() != 'shelf':
+                thumbnail_path = join(thumbnail_dir, f'{group}.png')
+                thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': thumbnail_path}
+
+                if not exists(thumbnail_path):
                     thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
-            else:
-                thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': 'Shelved'}
-
-        else:
-            thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
 
         self.results_dict.update(thumbnail_data)
