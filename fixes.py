@@ -25,39 +25,54 @@ class ItemFixer:
         self.item_report = item_report
 
 
-    def tags_or_title_fix(self):
+    def tags_fix(self):
         '''
-        Use item.update() to update title and/or tags.
+        Use item.update() to update tags.
 
         Updates item_report with results for this fix:
-        {tags_title_result: result}
+        {tags_result: result}
         '''
 
-        title = self.item_report['title_new']
         tags = self.item_report['tags_new']
 
         #: Was no update needed?
-        if not title or tags:
-            self.item_report['tags_title_result'] = 'No update needed for title or tags'
+        if not tags:
+            self.item_report['tags_result'] = 'No update needed for tags'
             return
 
-        #: Tags and title combined .update()
-        update_dict = {}
-        messages = []
-        if title:
-            update_dict['title'] = title
-            messages.append(f'title to "{title}"')
-        if tags:
-            update_dict['tags'] = tags
-            messages.append(f'tags to {tags}')
-        update_result = self.item.update(update_dict)
+        update_result = self.item.update({'tags': tags})
 
         #:item.update() returns False if it fails
         if not update_result:
-            self.item_report['tags_title_result'] = f'Failed to update {", ".join(messages)}'
+            self.item_report['tags_result'] = f'Failed to update tags to {tags}'
             return
 
-        self.item_report['tags_title_result'] = f'Updated {", ".join(messages)}'
+        self.item_report['tags_result'] = f'Updated tags to {tags}'
+
+
+    def title_fix(self):
+        '''
+        Use item.update() to update title.
+
+        Updates item_report with results for this fix:
+        {title_result: result}
+        '''
+
+        title = self.item_report['title_new']
+
+        #: Was no update needed?
+        if not title:
+            self.item_report['title_result'] = 'No update needed for title'
+            return
+
+        update_result = self.item.update({'title': title})
+
+        #:item.update() returns False if it fails
+        if not update_result:
+            self.item_report['title_result'] = f'Failed to update title to "{title}"'
+            return
+
+        self.item_report['title_result'] = f'Updated title to "{title}"'
 
 
     def group_fix(self, groups_dict):
