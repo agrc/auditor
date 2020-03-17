@@ -285,7 +285,7 @@ class ItemChecker:
         #: Create groups data: groups_fix, groups_old, group_new
         groups_data = {'groups_fix':'N', 'groups_old':'', 'group_new':''}
 
-        if current_groups[0].casefold() == 'error':
+        if current_groups and current_groups[0].casefold() == 'error':
             groups_data = ['N', 'Can\'t get group', '']
         elif self.new_group and self.new_group not in current_groups:
             groups_data = {'groups_fix':'Y', 'groups_old':current_groups, 'group_new':self.new_group}
