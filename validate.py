@@ -217,7 +217,9 @@ class Validator:
                 fixer = fixes.ItemFixer(item, item_report)
 
                 fixer.metadata_fix()
-                fixer.tags_or_title_fix()
+                # fixer.tags_or_title_fix()
+                fixer.tags_fix()
+                fixer.title_fix()
                 fixer.group_fix(self.groups_dict)
                 fixer.folder_fix()
                 fixer.delete_protection_fix()
@@ -225,8 +227,9 @@ class Validator:
                 fixer.description_note_fix(self.static_note, self.shelved_note)
                 fixer.thumbnail_fix()
 
-                update_status_keys = ['metadata_result', 'tags_title_result',
-                                      'groups_result', 'folder_result',
+                update_status_keys = ['metadata_result', 'tags_result',
+                                      'title_result', 'groups_result',
+                                      'folder_result',
                                       'delete_protection_result',
                                       'downloads_result',
                                       'description_note_result',
