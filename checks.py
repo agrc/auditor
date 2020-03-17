@@ -77,8 +77,10 @@ class ItemChecker:
 
     def __init__(self, item, metatable_dict, sde_path):
 
-
+        #: Set up our results dict with first column after AGOL ID being SGID
+        #: name, if applicable
         self.results_dict = {}
+        self.results_dict['SGID_Name'] = ''
 
         self.item = item
         self.metatable_dict = metatable_dict
@@ -87,8 +89,14 @@ class ItemChecker:
         self.downloads = False
         self.protect = False
         self.static_shelved = None
-        self.in_SGID = False
 
+        #: These maybe overwritten below if the item is in the SGID
+        self.in_SGID = False
+        self.new_title = None
+        self.new_group = None
+        self.arcpy_metadata = None
+        self.feature_class_path = None
+        self.new_folder = None
 
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
@@ -97,24 +105,16 @@ class ItemChecker:
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
 
             feature_class_name = self.metatable_dict[self.item.itemid][0]
+            self.results_dict['SGID_Name'] = feature_class_name
             self.feature_class_path = join(sde_path, feature_class_name)
             if arcpy.Exists(self.feature_class_path):
                 self.arcpy_metadata = arcpy.metadata.Metadata(self.feature_class_path)
-            else:
-                self.arcpy_metadata = None
-        else:
-            self.new_title = None
-            self.new_group = None
-            self.arcpy_metadata = None
-            self.feature_class_path = None
 
         #: Get folder from SGID category if it's in the table
         if self.new_group == 'AGRC Shelf':
             self.new_folder = 'AGRC_Shelved'
         elif self.new_group:
             self.new_folder = self.new_group.split('Utah SGID ')[-1]
-        else:
-            self.new_folder = None
 
         #: Set static/shelved flag
         if self.new_group == 'AGRC Shelf':
