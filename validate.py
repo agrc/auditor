@@ -42,10 +42,9 @@ class Validator:
 
     def __init__(self, verbose=False):
         '''
-        Create an arcgis.gis.GIS object for 'user' at 'portal'. Automatically
+        Create an arcgis.gis.GIS object using the user, portal, and password set in credentials.py. Automatically
         create a list of all the Feature Service objects in the user's folders
-        and a dictionary of each item's folder based on itemid. Read 'metatable'
-        and agol_table into a dictionary based on the itemid.
+        and a dictionary of each item's folder based on itemid. Read SDE and AGOL metatables into a dictionary based on the itemid.
         '''
 
         #: Metatables
@@ -149,20 +148,11 @@ class Validator:
 
     def check_items(self, report_dir=None):
         '''
-        For each hosted feature layer, check:
-            > Tags for malformed spacing, standard AGRC/SGID tags
-                item.update({'tags':[tags]})
-            > Group & Folder (?) to match source data category
-                gis.content.share(item, everyone=True, groups=<Open Data Group>)
-                item.move(folder)
-            > Delete Protection enabled
-                item.protect=True
-            > Downloads enabled
-                manager = arcgis.features.FeatureLayerCollection.fromitem(item).manager
-                manager.update_definition({ 'capabilities': 'Query,Extract' })
-            > Title against metatable
-                item.update({'title':title})
-            > Metadata against SGID (Waiting until 2.5's arcpy metadata tools?)
+        Instantiates an ItemChecker for each item and manually runs the
+        specified check methods. The results of the checks are saved in
+        self.report_dict, which can be used to guide the fixes. Exports the
+        final self.report_dict to a csv named checks_yyyy-mm-dd.csv in
+        'report_dir', if specified.
         '''
 
         for item in self.feature_service_items:
@@ -201,9 +191,10 @@ class Validator:
 
     def fix_items(self, report_dir=None):
         '''
-        Perform any needed fixes by looping through report dictionary and
-        checking the various _fix entries. Append results string to report
-        dictionary and write to report_path (if specified).
+        Instantiates an ItemFixer for each item and manually runs the specified
+        fix methods using data in self.report_dict. Appends results to
+        self.report_dict and writes the whole dictionary to a csv named
+        checks_yyyy-mm-dd.csv in 'report_path' (if specified).
         '''
 
         try:
@@ -218,7 +209,6 @@ class Validator:
                 fixer = fixes.ItemFixer(item, item_report)
 
                 fixer.metadata_fix()
-                # fixer.tags_or_title_fix()
                 fixer.tags_fix()
                 fixer.title_fix()
                 fixer.group_fix(self.groups_dict)
