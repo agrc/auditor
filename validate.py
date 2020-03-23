@@ -240,6 +240,9 @@ class Validator:
                         if 'No update needed for' not in item_report[status]:
                             print(f'\t{item_report[status]}')
 
+        except KeyboardInterrupt:
+            print('Interrupted by Ctrl-c')
+            raise
 
         finally:
             #: Convert dict to pandas df for easy writing
