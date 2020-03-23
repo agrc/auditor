@@ -269,3 +269,30 @@ class ItemFixer:
             return
 
         self.item_report['thumbnail_result'] = f'Thumbnail updated from {thumbnail_path}'
+
+    def authoritative_fix(self):
+        '''
+        Change the item.content_status to 'authoritative', 'deprecated', or
+        None (to reset).
+
+        Updates item_report with results for this fix:
+        {authoritative_result: result}
+        '''
+
+        new_authoritative = self.item_report['authoritative_new']
+        if self.item_report['authoritative_fix'].casefold() != 'y':
+            self.item_report['authoritative_result'] = 'No update needed for content status'
+            return
+
+        try:
+            self.item.content_status = new_authoritative
+            self.item_report['authoritative_result'] = f'Content status updated to "{new_authoritative}"'
+            return
+
+        except ValueError:
+            self.item_report['authoritative_result'] = f'Invalid new authoritative value "{new_authoritative}"'
+            return
+
+        except RuntimeError:
+            self.item_report['authoritative_result'] = f'User does not have privileges to change content status. Must use an AGOL account that is assigned the Administrator role.'
+            return

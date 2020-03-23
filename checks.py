@@ -70,6 +70,11 @@ class ItemChecker:
     stored in the Validate class and passed to methods if needed (like lists of
     tags to uppercase, etc).
 
+    __init__() uses the metatable to set the desire state of the item as
+    instance variables. The various foo_check() methods use the ArcGIS API for
+    python to compare the AGOL item's current state against these instance
+    variables.
+
     The results_dict dictionary holds the results of every check that is
     completed. If a check isn't performed, it's results aren't added to the
     dictionary via results_dict.update().
@@ -97,12 +102,14 @@ class ItemChecker:
         self.arcpy_metadata = None
         self.feature_class_path = None
         self.new_folder = None
+        self.authoritative = ''
 
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
             self.in_SGID = True
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
+            self.authoritative = 'authoritative'
 
             feature_class_name = self.metatable_dict[self.item.itemid][0]
             self.results_dict['SGID_Name'] = feature_class_name
@@ -414,3 +421,26 @@ class ItemChecker:
                     thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
 
         self.results_dict.update(thumbnail_data)
+
+    def authoritative_check(self):
+        '''
+        Check if the item is set to authoritative or deprecated via the
+        item.content_status property.
+
+        Update results_dict with results:
+                {'authoritative_fix': 'N', 'authoritative_old': '',
+                 'authoritative_new': ''}
+        '''
+
+        authoritative_data = {'authoritative_fix': 'N',
+                              'authoritative_old': '',
+                              'authoritative_new': ''}
+
+        if self.item.content_status != self.authoritative:
+            authoritative_data = {'authoritative_fix': 'Y',
+                                  'authoritative_old': f'{self.item.content_status}',
+                                  'authoritative_new': self.authoritative}
+            if not self.item.content_status:
+                authoritative_data['authoritative_old'] = '\' \''
+
+        self.results_dict.update(authoritative_data)
