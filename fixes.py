@@ -10,9 +10,9 @@ class ItemFixer:
     ItemChecker. Uses the item report dictionary created by ItemChecker for the
     item to determine what needs to be fixed and what values to use.
 
-    This class is specific to a single item. General org-level data should be
-    stored in the Validate class and passed to methods if needed (like
-    dictionary of groups and their ids).
+    This class is specific to a single item. General org-level data (like
+    dictionary of groups and their ids) should be stored in the Validate class
+    and passed to methods if needed.
 
     The results of each fix, or a note that a fix was not needed, are added to
     the item_report dictionary passed to the ItemFixer like thus:
@@ -255,6 +255,9 @@ class ItemFixer:
         '''
         Overwrite the thumbnail if the item is in one of the icon groups. The
         item_report dictionary should have the path to the new thumbnail.
+
+        Updates item_report with results for this fix:
+        {thumbnail_result: result}
         '''
 
         if self.item_report['thumbnail_fix'].casefold() != 'y':
@@ -294,5 +297,5 @@ class ItemFixer:
             return
 
         except RuntimeError:
-            self.item_report['authoritative_result'] = f'User does not have privileges to change content status. Must use an AGOL account that is assigned the Administrator role.'
+            self.item_report['authoritative_result'] = f'User does not have privileges to change content status. Please use an AGOL account that is assigned the Administrator role.'
             return

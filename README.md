@@ -13,7 +13,8 @@ You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www
 * Description note for shelved/static items
 * Path to appropriate thumbnail image
 * Sets the flag for delete protection
-* Sets the flag to 'Allow others to export to different formats', which opens up GDB downloads in Open Data.
+* Sets the flag to 'Allow others to export to different formats', which opens up GDB downloads in Open Data
+* Marks the item as Authoritative
 
 It also validates the tags (proper-case tags, don't repeat words found in the title) for all Feature Service items in the user's folders, regardless if they are found in the metatables or not.
 

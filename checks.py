@@ -60,20 +60,15 @@ def get_group_from_table(metatable_dict_entry):
 
 class ItemChecker:
     '''
-    Class to validate an AGOL item. Uses a metatable entry if possible for some
-    information. Tags (partially), download options, and delete protection
-    don't rely on the metatable. __init__() gets what the values should be from
-    the metatable and stores them as instance variables. The x_check() methods
-    then use the instance variable to check against the item's existing data.
+    Class to validate an AGOL item. Uses a metatable entry for most information;
+    the tag check is the only check that doesn't rely on the metatables.
+    __init__() gets what the values should be from the metatable and stores them
+    as instance variables. The x_check() methods then use the instance variable
+    to check against the item's existing data.
 
-    This class is specific to a single item. General org-level data should be
-    stored in the Validate class and passed to methods if needed (like lists of
-    tags to uppercase, etc).
-
-    __init__() uses the metatable to set the desire state of the item as
-    instance variables. The various foo_check() methods use the ArcGIS API for
-    python to compare the AGOL item's current state against these instance
-    variables.
+    This class is specific to a single item. General org-level data (like lists
+    of tags to uppercase, etc) should be stored in the Validate class and
+    passed to methods if needed.
 
     The results_dict dictionary holds the results of every check that is
     completed. If a check isn't performed, it's results aren't added to the
@@ -440,6 +435,8 @@ class ItemChecker:
             authoritative_data = {'authoritative_fix': 'Y',
                                   'authoritative_old': f'{self.item.content_status}',
                                   'authoritative_new': self.authoritative}
+            #: item.content_status returns an empty string if it's not 
+            #: authoritative/deprecated.
             if not self.item.content_status:
                 authoritative_data['authoritative_old'] = '\' \''
 
