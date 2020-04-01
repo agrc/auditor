@@ -97,7 +97,7 @@ class Validator:
             print('Getting metatable info...')
         duplicate_keys = []
 
-        meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME']
+        meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
         meta_dupes = self.read_metatable(self.metatable, meta_fields)
 
         agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
@@ -130,16 +130,17 @@ class Validator:
         with arcpy.da.SearchCursor(table, fields) as meta_cursor:
             for row in meta_cursor:
 
-                if len(fields) == 3:  #: AGOLItems table only has three fields
-                    table_sgid_name, table_agol_itemid, table_agol_name = row
+                if fields[-1] == 'Authoritative':  #: AGOLItems table's last field is "Authoritative"
+                    table_sgid_name, table_agol_itemid, table_agol_name, table_authoritative = row
                     table_category = 'SGID'
 
-                else:  #: Shelved table hosted in AGOL has four fields
+                else:  #: Shelved table hosted in AGOL's last field is "CATEGORY"
                     table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
+                    table_authoritative = 'n'
 
                 if table_agol_itemid:  #: Don't evaluate null itemids
                     if table_agol_itemid not in self.metatable_dict:
-                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, table_category]
+                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, table_category, table_authoritative]
                     else:
                         duplicate_keys.append(table_agol_itemid)
 
