@@ -283,6 +283,9 @@ class ItemFixer:
         '''
 
         new_authoritative = self.item_report['authoritative_new']
+        if not self.item_report['authoritative_new']:
+            new_authoritative = None  #: translate '' to None for arcgis api
+            
         if self.item_report['authoritative_fix'].casefold() != 'y':
             self.item_report['authoritative_result'] = 'No update needed for content status'
             return

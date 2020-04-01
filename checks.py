@@ -47,7 +47,7 @@ def get_group_from_table(metatable_dict_entry):
     the shelved category.
     '''
 
-    SGID_name, _, item_category = metatable_dict_entry
+    SGID_name, _, item_category, _ = metatable_dict_entry
 
     if item_category == 'shelved':
         group = 'AGRC Shelf'
@@ -104,7 +104,8 @@ class ItemChecker:
             self.in_SGID = True
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
-            self.authoritative = 'authoritative'
+            if self.metatable_dict[self.item.itemid][3] and self.metatable_dict[self.item.itemid][3].casefold() == 'y':
+                self.authoritative = 'public_authoritative'
 
             feature_class_name = self.metatable_dict[self.item.itemid][0]
             self.results_dict['SGID_Name'] = feature_class_name
@@ -431,11 +432,12 @@ class ItemChecker:
                               'authoritative_old': '',
                               'authoritative_new': ''}
 
-        if self.item.content_status != self.authoritative:
+        #: item.content_status can be 'authoritative', 'deprecated', or ''
+        if self.item.content_status != 'deprecated' and self.item.content_status != self.authoritative:
             authoritative_data = {'authoritative_fix': 'Y',
                                   'authoritative_old': f'{self.item.content_status}',
                                   'authoritative_new': self.authoritative}
-            #: item.content_status returns an empty string if it's not 
+            #: item.content_status returns an empty string if it's not
             #: authoritative/deprecated.
             if not self.item.content_status:
                 authoritative_data['authoritative_old'] = '\' \''
