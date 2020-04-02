@@ -7,6 +7,7 @@ See __main__.py for usage
 import datetime
 
 from os.path import join
+from urllib.error import HTTPError
 
 import pandas as pd
 
@@ -71,51 +72,57 @@ class Validator:
         self.verbose = verbose
 
         self.username = credentials.USERNAME
-        self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
-        user_item = self.gis.users.me
+        try:
+            self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
-        #: Build list of folders. 'None' gives us the root folder.
-        if self.verbose:
-            print(f'Getting {self.username}\'s folders...')
-        folders = [None]
-        for folder in user_item.folders:
-            folders.append(folder['title'])
+            user_item = self.gis.users.me
 
-        #: Get info for every item in every folder
-        if self.verbose:
-            print('Getting item objects...')
-        for folder in folders:
-            for item in user_item.items(folder, 1000):
-                if item.type == 'Feature Service':
-                    self.feature_service_items.append(item)
-                    self.itemid_and_folder[item.itemid] = folder
+            #: Build list of folders. 'None' gives us the root folder.
+            if self.verbose:
+                print(f'Getting {self.username}\'s folders...')
+            folders = [None]
+            for folder in user_item.folders:
+                folders.append(folder['title'])
 
-        #: Read the metatable into memory as a dictionary based on itemid.
-        #: Getting this once so we don't have to re-read every iteration
-        if self.verbose:
-            print('Getting metatable info...')
-        duplicate_keys = []
+            #: Get info for every item in every folder
+            if self.verbose:
+                print('Getting item objects...')
+            for folder in folders:
+                for item in user_item.items(folder, 1000):
+                    if item.type == 'Feature Service':
+                        self.feature_service_items.append(item)
+                        self.itemid_and_folder[item.itemid] = folder
 
-        meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
-        meta_dupes = self.read_metatable(self.metatable, meta_fields)
+            #: Read the metatable into memory as a dictionary based on itemid.
+            #: Getting this once so we don't have to re-read every iteration
+            if self.verbose:
+                print('Getting metatable info...')
+            duplicate_keys = []
 
-        agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
-        agol_dupes = self.read_metatable(self.agol_table, agol_fields)
+            meta_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
+            meta_dupes = self.read_metatable(self.metatable, meta_fields)
 
-        if meta_dupes:
-            duplicate_keys.append(meta_dupes)
-        if agol_dupes:
-            duplicate_keys.append(agol_dupes)
+            agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
+            agol_dupes = self.read_metatable(self.agol_table, agol_fields)
 
-        if duplicate_keys:
-            raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {duplicate_keys}')
+            if meta_dupes:
+                duplicate_keys.append(meta_dupes)
+            if agol_dupes:
+                duplicate_keys.append(agol_dupes)
 
-        #: Get the groups
-        if self.verbose:
-            print('Getting groups...')
-        groups = self.gis.groups.search('title:*')
-        self.groups_dict = {g.title: g.id for g in groups}
+            if duplicate_keys:
+                raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {duplicate_keys}')
+
+            #: Get the groups
+            if self.verbose:
+                print('Getting groups...')
+            groups = self.gis.groups.search('title:*')
+            self.groups_dict = {g.title: g.id for g in groups}
+
+        except HTTPError:
+            print(f'Connection error, probably for connection with {credentials.ORG}')
+            raise
 
 
     def read_metatable(self, table, fields):
@@ -156,38 +163,44 @@ class Validator:
         'report_dir', if specified.
         '''
 
-        for item in self.feature_service_items:
+        try:
+            for item in self.feature_service_items:
 
-            if self.verbose:
-                print(f'Checking {item.title}...')
+                if self.verbose:
+                    print(f'Checking {item.title}...')
 
-            itemid = item.itemid
+                itemid = item.itemid
 
-            #: Initialize empty dictionary for this item
-            self.report_dict[itemid] = {}
+                #: Initialize empty dictionary for this item
+                self.report_dict[itemid] = {}
 
-            checker = checks.ItemChecker(item, self.metatable_dict, credentials.DB)
+                checker = checks.ItemChecker(item, self.metatable_dict, credentials.DB)
 
-            #: Run the checks on this item
-            checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
-            checker.title_check()
-            checker.folder_check(self.itemid_and_folder)
-            checker.groups_check()
-            checker.downloads_check()
-            checker.delete_protection_check()
-            checker.metadata_check()
-            checker.description_note_check(self.static_note, self.shelved_note)
-            checker.thumbnail_check(credentials.THUMBNAIL_DIR)
-            checker.authoritative_check()
+                #: Run the checks on this item
+                checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
+                checker.title_check()
+                checker.folder_check(self.itemid_and_folder)
+                checker.groups_check()
+                checker.downloads_check()
+                checker.delete_protection_check()
+                checker.metadata_check()
+                checker.description_note_check(self.static_note, self.shelved_note)
+                checker.thumbnail_check(credentials.THUMBNAIL_DIR)
+                checker.authoritative_check()
 
-            #: Add results to the report
-            self.report_dict[itemid].update(checker.results_dict)
+                #: Add results to the report
+                self.report_dict[itemid].update(checker.results_dict)
 
-        #: Convert dict to pandas df for easy writing
-        if report_dir:
-            report_path = join(report_dir, f'checks_{datetime.date.today()}.csv')
-            report_df = pd.DataFrame(self.report_dict).T
-            report_df.to_csv(report_path)
+        except HTTPError:
+            print(f'Connection error, probably for connection with {credentials.ORG}')
+            raise
+
+        finally:
+            #: Convert dict to pandas df for easy writing
+            if report_dir:
+                report_path = join(report_dir, f'checks_{datetime.date.today()}.csv')
+                report_df = pd.DataFrame(self.report_dict).T
+                report_df.to_csv(report_path)
 
 
     def fix_items(self, report_dir=None):
@@ -236,6 +249,10 @@ class Validator:
 
         except KeyboardInterrupt:
             print('Interrupted by Ctrl-c')
+            raise
+
+        except HTTPError:
+            print(f'Connection error, probably for connection with {credentials.ORG}')
             raise
 
         finally:
