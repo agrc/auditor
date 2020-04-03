@@ -104,8 +104,11 @@ class ItemChecker:
             self.in_SGID = True
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
-            if self.metatable_dict[self.item.itemid][3] and self.metatable_dict[self.item.itemid][3].casefold() == 'y':
-                self.authoritative = 'public_authoritative'
+            if self.metatable_dict[self.item.itemid][3]:
+                if self.metatable_dict[self.item.itemid][3].casefold() == 'y':
+                    self.authoritative = 'public_authoritative'
+                elif self.metatable_dict[self.item.itemid][3].casefold() == 'd':
+                    self.authoritative = 'deprecated'
 
             feature_class_name = self.metatable_dict[self.item.itemid][0]
             self.results_dict['SGID_Name'] = feature_class_name
@@ -432,8 +435,8 @@ class ItemChecker:
                               'authoritative_old': '',
                               'authoritative_new': ''}
 
-        #: item.content_status can be 'authoritative', 'deprecated', or ''
-        if self.item.content_status != 'deprecated' and self.item.content_status != self.authoritative:
+        #: item.content_status can be 'public_authoritative', 'deprecated', or ''
+        if self.in_SGID and self.item.content_status != self.authoritative:
             authoritative_data = {'authoritative_fix': 'Y',
                                   'authoritative_old': f'{self.item.content_status}',
                                   'authoritative_new': self.authoritative}
