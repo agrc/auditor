@@ -69,12 +69,20 @@ class Validator:
         #: A dictionary of groups and their ID:
         self.groups_dict = {}
 
+        #: Simplified count of fixes for logging:
+        self.fix_counts = {}
+
         self.verbose = verbose
 
         self.username = credentials.USERNAME
 
         try:
             self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
+
+            #: Make sure ArcGIS Pro is properly logged in
+            arcpy.SignInToPortal(arcpy.GetActivePortalURL(),
+                                 credentials.USERNAME,
+                                 credentials.PASSWORD)
 
             user_item = self.gis.users.me
 
@@ -242,9 +250,16 @@ class Validator:
                                       'thumbnail_result',
                                       'authoritative_result']
 
-                if self.verbose:
-                    for status in update_status_keys:
-                        if 'No update needed for' not in item_report[status]:
+
+                for status in update_status_keys:
+                    if 'No update needed for' not in item_report[status]:
+                        #: Increment fixed item summary statistic
+                        if status in self.fix_counts:
+                            self.fix_counts[status] += 1
+                        else:
+                            self.fix_counts[status] = 1
+                        #: Log actual fixes
+                        if self.verbose:
                             print(f'\t{item_report[status]}')
 
         except KeyboardInterrupt:
@@ -261,3 +276,8 @@ class Validator:
                 report_path = join(report_dir, f'fixes_{datetime.date.today()}.csv')
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
+
+            if self.fix_counts:
+                for fix_type in self.fix_counts:
+                    fix = fix_type.split('_')[0]
+                    print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
