@@ -195,6 +195,7 @@ class Validator:
                 checker.description_note_check(self.static_note, self.shelved_note)
                 checker.thumbnail_check(credentials.THUMBNAIL_DIR)
                 checker.authoritative_check()
+                checker.visibility_check()
 
                 #: Add results to the report
                 self.report_dict[itemid].update(checker.results_dict)
@@ -240,6 +241,7 @@ class Validator:
                 fixer.description_note_fix(self.static_note, self.shelved_note)
                 fixer.thumbnail_fix()
                 fixer.authoritative_fix()
+                fixer.visibility_fix()
 
                 update_status_keys = ['metadata_result', 'tags_result',
                                       'title_result', 'groups_result',
@@ -248,7 +250,8 @@ class Validator:
                                       'downloads_result',
                                       'description_note_result',
                                       'thumbnail_result',
-                                      'authoritative_result']
+                                      'authoritative_result',
+                                      'visibility_result']
 
 
                 for status in update_status_keys:
