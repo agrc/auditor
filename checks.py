@@ -85,10 +85,12 @@ class ItemChecker:
         self.item = item
         self.metatable_dict = metatable_dict
 
+        #: These may or may not be used outside their specific check methods
         self.new_tags = []
         self.downloads = False
         self.protect = False
         self.static_shelved = None
+        self.set_visibility = False
 
         #: These maybe overwritten below if the item is in the SGID
         self.in_SGID = False
@@ -446,3 +448,29 @@ class ItemChecker:
                 authoritative_data['authoritative_old'] = '\' \''
 
         self.results_dict.update(authoritative_data)
+
+    def visibility_check(self):
+        '''
+        Make sure item's default visibility is set to True
+
+        Update results_dict with results for this item:
+                {'visibility_fix':''}
+        '''
+
+        fix_visibility = {'visibility_fix':'N'}
+
+        for layer in self.item.layers:
+            
+            #: Check if default vis is true; wrap in try/except for robustness
+            try:
+                properties = json.loads(str(layer.manager.properties))
+            except:
+                properties = None
+
+            if properties and not properties['defaultVisibility']:
+                self.set_visibility = True
+
+        if self.set_visibility:
+            fix_visibility = {'visibility_fix':'Y'}
+
+        self.results_dict.update(fix_visibility)

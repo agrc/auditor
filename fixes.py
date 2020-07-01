@@ -302,3 +302,29 @@ class ItemFixer:
         except RuntimeError:
             self.item_report['authoritative_result'] = f'User does not have privileges to change content status. Please use an AGOL account that is assigned the Administrator role.'
             return
+
+    def visibility_fix(self):
+        '''
+        Access item's manager object and set it's defaultVisibility property
+        to True
+
+        Updates item_report with results for this fix:
+        {visibility_result: result}
+        '''
+
+        if self.item_report['visibility_fix'].casefold() != 'y':
+            self.item_report['visibility_result'] = 'No update needed for visibility'
+            return
+
+        success = True
+        for layer in self.item.layers:
+            visibility_result = layer.manager.update_definition({'defaultVisibility': True})
+
+            if not visibility_result['success']:
+                success= False
+
+        if not success:
+            self.item_report['visibility_result'] = f'Failed to set default visibility to True'
+            return
+
+        self.item_report['visibility_result'] = f'Default visibility set to True'
