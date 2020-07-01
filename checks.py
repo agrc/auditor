@@ -471,6 +471,6 @@ class ItemChecker:
                 self.set_visibility = True
 
         if self.set_visibility:
-            fix_visibility = {'visibility_fix':'Y'}
+            fix_visibility['visibility_fix'] = 'Y'
 
         self.results_dict.update(fix_visibility)
