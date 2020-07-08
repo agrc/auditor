@@ -87,7 +87,7 @@ class ItemFixer:
 
         #: Was no update needed?
         if self.item_report['groups_fix'].casefold() != 'y':
-            self.item_report['groups_result'] = 'No update needed for grpi[s'
+            self.item_report['groups_result'] = 'No update needed for groups'
             return
 
         #: Share to everyone and groups
