@@ -149,11 +149,13 @@ class ItemChecker:
             title = self.item.title
 
         #: Strip off any leading/trailing whitespace
-        orig_tags = [t.strip() for t in self.item.tags]
+        orig_tags = [t.strip() for t in self.item.tags if t.strip()]
 
         #: Add any tags in the metadata to list of tags to evaluate
         if self.arcpy_metadata and self.arcpy_metadata.tags:
-            orig_tags.extend([t.strip() for t in self.arcpy_metadata.tags.split(', ')])
+            orig_tags.extend([t.strip()
+                              for t in self.arcpy_metadata.tags.split(', ')
+                              if t.strip()])
 
         #: Evaluate existing tags
         for orig_tag in orig_tags:
