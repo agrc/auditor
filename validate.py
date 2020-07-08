@@ -171,11 +171,14 @@ class Validator:
         'report_dir', if specified.
         '''
 
+        counter = 0
         try:
             for item in self.feature_service_items:
+                
+                counter += 1
 
                 if self.verbose:
-                    print(f'Checking {item.title}...')
+                    print(f'Checking {item.title} ({counter} of {len(self.feature_service_items)})...')
 
                 itemid = item.itemid
 
@@ -220,14 +223,17 @@ class Validator:
         checks_yyyy-mm-dd.csv in 'report_path' (if specified).
         '''
 
+        counter = 0
         try:
             for itemid in self.report_dict:
+
+                counter += 1
 
                 item = self.gis.content.get(itemid)
                 item_report = self.report_dict[itemid]
 
                 if self.verbose:
-                    print(f'Evaluating report for fixes on {item.title}...')
+                    print(f'Evaluating report for fixes on {item.title} ({counter} of {len(self.report_dict)})...')
 
                 fixer = fixes.ItemFixer(item, item_report)
 
