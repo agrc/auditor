@@ -239,6 +239,9 @@ class Validator:
 
                 fixer = fixes.ItemFixer(item, item_report)
 
+                #: Do the metadata fix first so that the tags, title, and
+                #: description fixes later on aren't overwritten by the metadata
+                #: upload.
                 fixer.metadata_fix(self.metadata_xml_template)
                 fixer.tags_fix()
                 fixer.title_fix()
