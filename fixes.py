@@ -1,5 +1,7 @@
 import json
 
+from os.path import join
+
 import arcgis
 import arcpy
 
@@ -189,7 +191,7 @@ class ItemFixer:
         self.item_report['downloads_result'] = f'Downloads enabled'
 
 
-    def metadata_fix(self):
+    def metadata_fix(self, xml_template):
         '''
         Overwrite the existing AGOL metadata with the metadata from a source
         feature class using agol_item.metadata = fc_metadata.xml where
@@ -207,8 +209,12 @@ class ItemFixer:
         fc_path = self.item_report['metadata_new']
 
         arcpy_metadata = arcpy.metadata.Metadata(fc_path)
+        metadata_xml_path = join(arcpy.env.scratchFolder, 'md.xml')
+
+        arcpy_metadata.saveAsUsingCustomXSLT(metadata_xml_path, xml_template)
+
         try:
-            self.item.metadata = arcpy_metadata.xml
+            self.item.update(metadata = metadata_xml_path
 
             if self.item.metadata != arcpy_metadata.xml:
                 self.item_report['metadata_result'] = f'Tried to update metadata from "{fc_path}; verify manually"'
@@ -217,6 +223,10 @@ class ItemFixer:
         except ValueError:
             self.item_report['metadata_result'] = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
             return
+
+        finally:
+            if arcpy.Exists(metadata_xml_path):
+                arcpy.management.Delete(metadata_xml_path)
 
         self.item_report['metadata_result'] = f'Metadata updated from "{fc_path}"'
 

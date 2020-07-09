@@ -76,6 +76,8 @@ class Validator:
 
         self.username = credentials.USERNAME
 
+        self.metadata_xml_template = credentials.XML_TEMPLATE
+
         try:
             self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
@@ -237,7 +239,7 @@ class Validator:
 
                 fixer = fixes.ItemFixer(item, item_report)
 
-                fixer.metadata_fix()
+                fixer.metadata_fix(self.metadata_xml_template)
                 fixer.tags_fix()
                 fixer.title_fix()
                 fixer.group_fix(self.groups_dict)
