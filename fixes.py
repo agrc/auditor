@@ -214,7 +214,7 @@ class ItemFixer:
         arcpy_metadata.saveAsUsingCustomXSLT(metadata_xml_path, xml_template)
 
         try:
-            self.item.update(metadata = metadata_xml_path
+            self.item.update(metadata = metadata_xml_path)
 
             if self.item.metadata != arcpy_metadata.xml:
                 self.item_report['metadata_result'] = f'Tried to update metadata from "{fc_path}; verify manually"'
