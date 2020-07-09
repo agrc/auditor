@@ -1,6 +1,6 @@
 import json
 
-from os.path import join, exists
+from pathlib import Path
 
 import arcgis
 import arcpy
@@ -114,9 +114,9 @@ class ItemChecker:
 
             feature_class_name = self.metatable_dict[self.item.itemid][0]
             self.results_dict['SGID_Name'] = feature_class_name
-            self.feature_class_path = join(sde_path, feature_class_name)
-            if arcpy.Exists(self.feature_class_path):
-                self.arcpy_metadata = arcpy.metadata.Metadata(self.feature_class_path)
+            self.feature_class_path = Path(sde_path, feature_class_name)
+            if arcpy.Exists(str(self.feature_class_path)):
+                self.arcpy_metadata = arcpy.metadata.Metadata(str(self.feature_class_path))
 
         #: Get folder from SGID category if it's in the table
         if self.new_group == 'AGRC Shelf':
@@ -367,7 +367,7 @@ class ItemChecker:
         if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
             metadata_data = {'metadata_fix': 'Y',
                              'metadata_old': 'item.metadata from AGOL not shown due to length',
-                             'metadata_new': self.feature_class_path,
+                             'metadata_new': str(self.feature_class_path),
                              'metadata_note': ''}
 
             # Update flag for description note for shelved/static data
@@ -417,10 +417,10 @@ class ItemChecker:
             thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': 'Shelved'}
 
             if group.casefold() != 'shelf':
-                thumbnail_path = join(thumbnail_dir, f'{group}.png')
-                thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': thumbnail_path}
+                thumbnail_path = Path(thumbnail_dir, f'{group}.png')
+                thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_path)}
 
-                if not exists(thumbnail_path):
+                if not thumbnail_path.exists():
                     thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
 
         self.results_dict.update(thumbnail_data)

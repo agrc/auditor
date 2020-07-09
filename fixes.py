@@ -1,6 +1,6 @@
 import json
 
-from os.path import join
+from pathlib import Path
 
 import arcgis
 import arcpy
@@ -209,12 +209,12 @@ class ItemFixer:
         fc_path = self.item_report['metadata_new']
 
         arcpy_metadata = arcpy.metadata.Metadata(fc_path)
-        metadata_xml_path = join(arcpy.env.scratchFolder, 'md.xml')
+        metadata_xml_path = Path(arcpy.env.scratchFolder, 'md.xml')
 
-        arcpy_metadata.saveAsUsingCustomXSLT(metadata_xml_path, xml_template)
+        arcpy_metadata.saveAsUsingCustomXSLT(str(metadata_xml_path), xml_template)
 
         try:
-            self.item.update(metadata = metadata_xml_path)
+            self.item.update(metadata = str(metadata_xml_path))
 
             if self.item.metadata != arcpy_metadata.xml:
                 self.item_report['metadata_result'] = f'Tried to update metadata from "{fc_path}; verify manually"'
@@ -225,8 +225,8 @@ class ItemFixer:
             return
 
         finally:
-            if arcpy.Exists(metadata_xml_path):
-                arcpy.management.Delete(metadata_xml_path)
+            if metadata_xml_path.exists():
+                metadata_xml_path.unlink()
 
         self.item_report['metadata_result'] = f'Metadata updated from "{fc_path}"'
 
