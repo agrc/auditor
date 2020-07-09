@@ -6,7 +6,7 @@ See __main__.py for usage
 
 import datetime
 
-from os.path import join
+from pathlib import Path
 from urllib.error import HTTPError
 
 import pandas as pd
@@ -212,7 +212,7 @@ class Validator:
         finally:
             #: Convert dict to pandas df for easy writing
             if report_dir:
-                report_path = join(report_dir, f'checks_{datetime.date.today()}.csv')
+                report_path = Path(report_dir, f'checks_{datetime.date.today()}.csv')
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
 
@@ -287,7 +287,7 @@ class Validator:
         finally:
             #: Convert dict to pandas df for easy writing
             if report_dir:
-                report_path = join(report_dir, f'fixes_{datetime.date.today()}.csv')
+                report_path = Path(report_dir, f'fixes_{datetime.date.today()}.csv')
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
 
