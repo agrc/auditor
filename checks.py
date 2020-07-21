@@ -169,8 +169,9 @@ class ItemChecker:
             #: to be checked later.
 
             #: single-word tag in title
+            #: Safe to use lower case for single-word tags
             single_word_tag_in_title = False
-            if orig_tag in title.split():
+            if orig_tag.lower() in title.lower().split():
                 single_word_tag_in_title = True
             #: multi-word tag in title
             multi_word_tag_in_title = False
