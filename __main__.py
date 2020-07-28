@@ -42,6 +42,6 @@ def main():
         if not args['--dry']:
             org_validator.fix_items(report_dir)
 
-
+#: TODO: Add separate CLI/automated entry points
 if __name__ == '__main__':
     main()
