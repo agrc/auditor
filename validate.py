@@ -18,7 +18,7 @@ import arcpy
 import checks, fixes, credentials
 
 
-def retry(worker, tries=1):
+def retry(worker, verbose=True, tries=1):
     '''
     Helper function to retry a function or method with an incremental wait time.
     Useful for methods reliant on unreliable network connections.
@@ -33,7 +33,8 @@ def retry(worker, tries=1):
     except Exception as error:
         if tries <= max_tries:
             wait_time = delay ** tries
-            print(f'Exception thrown: {error}. Retrying after {wait_time} seconds...')
+            if verbose:
+                print(f'Exception "{error}" thrown on "{worker}". Retrying after {wait_time} seconds...')
             sleep(wait_time)
             retry(worker, tries+1)
         else:
