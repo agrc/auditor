@@ -58,7 +58,7 @@ class Validator:
     articles = ['a', 'an', 'the', 'of', 'is', 'in']
 
     #: Tags that should be deleted
-    tags_to_delete = ['.sd', 'service definition', 'Required: Common-Use Word Or Phrase Used To Describe the Subject of the Data Set']
+    tags_to_delete = ['.sd', 'service definition', 'required: common-use word or phrase used to describe the subject of the data set']
 
     #: Notes for static and shelved descriptions
     static_note = "<i><b>NOTE</b>: This dataset holds 'static' data that we don't expect to change. We have removed it from the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on opendata.gis.utah.gov.</i>"
