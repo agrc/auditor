@@ -7,6 +7,7 @@ See __main__.py for usage
 import datetime
 
 from pathlib import Path
+from time import sleep
 from urllib.error import HTTPError
 
 import pandas as pd
@@ -15,6 +16,28 @@ import arcgis
 import arcpy
 
 import checks, fixes, credentials
+
+
+def retry(worker, tries=1):
+    '''
+    Helper function to retry a function or method with an incremental wait time.
+    Useful for methods reliant on unreliable network connections.
+    '''
+    max_tries = 3
+    delay = 2  #: in seconds
+
+    try:
+        return worker()
+
+    #: Retry on HTTPErrors (ie, bad connections to AGOL)
+    except Exception as error:
+        if tries <= max_tries:
+            wait_time = delay ** tries
+            print(f'Exception thrown: {error}. Retrying after {wait_time} seconds...')
+            sleep(wait_time)
+            retry(worker, tries+1)
+        else:
+            raise error
 
 
 class Validator:
@@ -78,6 +101,7 @@ class Validator:
 
         self.metadata_xml_template = credentials.XML_TEMPLATE
 
+        #: TODO: Wrap in a method, call via retry()
         try:
             self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
@@ -187,27 +211,26 @@ class Validator:
                 #: Initialize empty dictionary for this item
                 self.report_dict[itemid] = {}
 
-                checker = checks.ItemChecker(item, self.metatable_dict, credentials.DB)
+                checker = checks.ItemChecker(item, self.metatable_dict)
+                retry(lambda: checker.setup(credentials.DB))
+
+                #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
 
                 #: Run the checks on this item
-                checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
-                checker.title_check()
-                checker.folder_check(self.itemid_and_folder)
-                checker.groups_check()
-                checker.downloads_check()
-                checker.delete_protection_check()
-                checker.metadata_check()
-                checker.description_note_check(self.static_note, self.shelved_note)
+                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))
+                retry(checker.title_check)
+                retry(lambda: checker.folder_check(self.itemid_and_folder))
+                retry(checker.groups_check)
+                retry(checker.downloads_check)
+                retry(checker.delete_protection_check)
+                retry(checker.metadata_check)
+                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))
                 checker.thumbnail_check(credentials.THUMBNAIL_DIR)
-                checker.authoritative_check()
-                checker.visibility_check()
+                retry(checker.authoritative_check)
+                retry(checker.visibility_check)
 
                 #: Add results to the report
                 self.report_dict[itemid].update(checker.results_dict)
-
-        except HTTPError:
-            print(f'Connection error, probably for connection with {credentials.ORG}')
-            raise
 
         finally:
             #: Convert dict to pandas df for easy writing
@@ -239,20 +262,22 @@ class Validator:
 
                 fixer = fixes.ItemFixer(item, item_report)
 
+                #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
+
                 #: Do the metadata fix first so that the tags, title, and
                 #: description fixes later on aren't overwritten by the metadata
                 #: upload.
-                fixer.metadata_fix(self.metadata_xml_template)
-                fixer.tags_fix()
-                fixer.title_fix()
-                fixer.group_fix(self.groups_dict)
-                fixer.folder_fix()
-                fixer.delete_protection_fix()
-                fixer.downloads_fix()
-                fixer.description_note_fix(self.static_note, self.shelved_note)
-                fixer.thumbnail_fix()
-                fixer.authoritative_fix()
-                fixer.visibility_fix()
+                retry(lambda: fixer.metadata_fix(self.metadata_xml_template))
+                retry(fixer.tags_fix)
+                retry(fixer.title_fix)
+                retry(lambda: fixer.group_fix(self.groups_dict))
+                retry(fixer.folder_fix)
+                retry(fixer.delete_protection_fix)
+                retry(fixer.downloads_fix)
+                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))
+                retry(fixer.thumbnail_fix)
+                retry(fixer.authoritative_fix)
+                retry(fixer.visibility_fix)
 
                 update_status_keys = ['metadata_result', 'tags_result',
                                       'title_result', 'groups_result',
@@ -278,10 +303,6 @@ class Validator:
 
         except KeyboardInterrupt:
             print('Interrupted by Ctrl-c')
-            raise
-
-        except HTTPError:
-            print(f'Connection error, probably for connection with {credentials.ORG}')
             raise
 
         finally:

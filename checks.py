@@ -75,7 +75,7 @@ class ItemChecker:
     dictionary via results_dict.update().
     '''
 
-    def __init__(self, item, metatable_dict, sde_path):
+    def __init__(self, item, metatable_dict):
 
         #: Set up our results dict with first column after AGOL ID being SGID
         #: name, if applicable
@@ -101,6 +101,15 @@ class ItemChecker:
         self.new_folder = None
         self.authoritative = ''
 
+
+    def setup(self, sde_path):
+        '''
+        Sets up the checker's properties with data from the metatable, feature
+        class, and AGOL item.
+
+        sde_path:   Path to the SDE database. Joined with the feature class
+                    name obtained from the metatable.
+        '''
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
             self.in_SGID = True
