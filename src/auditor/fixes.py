@@ -1,3 +1,6 @@
+"""
+fixes.py: Contains ItemFixer class for fixing problems identified in an AGOL item by an ItemChecker
+"""
 import json
 
 from pathlib import Path
@@ -7,7 +10,7 @@ import arcpy
 
 
 class ItemFixer:
-    '''
+    """
     Class to fix an AGOL item that has previously been checked using
     ItemChecker. Uses the item report dictionary created by ItemChecker for the
     item to determine what needs to be fixed and what values to use.
@@ -19,21 +22,20 @@ class ItemFixer:
     The results of each fix, or a note that a fix was not needed, are added to
     the item_report dictionary passed to the ItemFixer like thus:
     {<topic>_result: result}
-    '''
+    """
 
     def __init__(self, item, item_report):
 
         self.item = item
         self.item_report = item_report
 
-
     def tags_fix(self):
-        '''
+        """
         Use item.update() to update tags.
 
         Updates item_report with results for this fix:
         {tags_result: result}
-        '''
+        """
 
         tags = self.item_report['tags_new']
 
@@ -51,14 +53,13 @@ class ItemFixer:
 
         self.item_report['tags_result'] = f'Updated tags to {tags}'
 
-
     def title_fix(self):
-        '''
+        """
         Use item.update() to update title.
 
         Updates item_report with results for this fix:
         {title_result: result}
-        '''
+        """
 
         title = self.item_report['title_new']
 
@@ -76,16 +77,15 @@ class ItemFixer:
 
         self.item_report['title_result'] = f'Updated title to "{title}"'
 
-
     def group_fix(self, groups_dict):
-        '''
+        """
         Use item.share() to share to group
         groups_dict:    A dictionary of all the org's groups and their
                         corresponding ids.
 
         Updates item_report with results for this fix:
         {groups_result: result}
-        '''
+        """
 
         #: Was no update needed?
         if self.item_report['groups_fix'].casefold() != 'y':
@@ -111,14 +111,13 @@ class ItemFixer:
 
         self.item_report['groups_result'] = f'Shared with everyone and "{group_name}" group'
 
-
     def folder_fix(self):
-        '''
+        """
         Use item.move() to move item to folder.
 
         Updates item_report with results for this fix:
         {folder_result: result}
-        '''
+        """
 
         #: Was no update needed?
         if self.item_report['folder_fix'].casefold() != 'y':
@@ -142,14 +141,13 @@ class ItemFixer:
         #: If all the checks have passed, return good result.
         self.item_report['folder_result'] = f'Item moved to "{folder}" folder'
 
-
     def delete_protection_fix(self):
-        '''
+        """
         Use item.protect() to prevent item from being deleted.
 
         Updates item_report with results for this fix:
         {tags_title_result: result}
-        '''
+        """
 
         if self.item_report['delete_protection_fix'].casefold() != 'y':
             self.item_report['delete_protection_result'] = 'No update needed for delete protection'
@@ -158,20 +156,19 @@ class ItemFixer:
         protect_result = self.item.protect(True)
 
         if not protect_result['success']:
-            self.item_report['delete_protection_result'] = f'Failed to protect item'
+            self.item_report['delete_protection_result'] = 'Failed to protect item'
             return
 
-        self.item_report['delete_protection_result'] = f'Item protected'
-
+        self.item_report['delete_protection_result'] = 'Item protected'
 
     def downloads_fix(self):
-        '''
+        """
         Create a FeatureLayerCollection from item and use it's manager object to
         allow downloads by adding 'Extract' to it's capabilities.
 
         Updates item_report with results for this fix:
         {downloads_result: result}
-        '''
+        """
 
         if self.item_report['downloads_fix'].casefold() != 'y':
             self.item_report['downloads_result'] = 'No update needed for downloads'
@@ -185,14 +182,13 @@ class ItemFixer:
         download_result = manager.update_definition({'capabilities': new_capabilities})
 
         if not download_result['success']:
-            self.item_report['downloads_result'] = f'Failed to enable downloads'
+            self.item_report['downloads_result'] = 'Failed to enable downloads'
             return
 
-        self.item_report['downloads_result'] = f'Downloads enabled'
-
+        self.item_report['downloads_result'] = 'Downloads enabled'
 
     def metadata_fix(self, xml_template):
-        '''
+        """
         Overwrite the existing AGOL metadata with the metadata from a source
         feature class using agol_item.metadata = fc_metadata.xml where
         fc_metadata is an arcpy.metadata.Metadata() object created via the
@@ -200,7 +196,7 @@ class ItemFixer:
 
         Updates item_report with results for this fix:
         {metdata_result: result}
-        '''
+        """
 
         if self.item_report['metadata_fix'].casefold() != 'y':
             self.item_report['metadata_result'] = 'No update needed for metadata'
@@ -214,7 +210,7 @@ class ItemFixer:
         arcpy_metadata.saveAsUsingCustomXSLT(str(metadata_xml_path), xml_template)
 
         try:
-            self.item.update(metadata = str(metadata_xml_path))
+            self.item.update(metadata=str(metadata_xml_path))
 
             if self.item.metadata != arcpy_metadata.xml:
                 self.item_report['metadata_result'] = f'Tried to update metadata from "{fc_path}; verify manually"'
@@ -230,16 +226,15 @@ class ItemFixer:
 
         self.item_report['metadata_result'] = f'Metadata updated from "{fc_path}"'
 
-
     def description_note_fix(self, static_note, shelved_note):
-        '''
+        """
         Add static_note or shelved_note to beginning of the description field
         with a blank space before the rest of the description. static_note and
         shelved_note should be strings of properly-formatted HTML.
 
         Updates item_report with results for this fix:
         {description_note_result: result}
-        '''
+        """
 
         if self.item_report['description_note_fix'].casefold() != 'y':
             self.item_report['description_note_result'] = 'No update needed for description'
@@ -260,15 +255,14 @@ class ItemFixer:
 
         self.item_report['description_note_result'] = f'{source} note added to description'
 
-
     def thumbnail_fix(self):
-        '''
+        """
         Overwrite the thumbnail if the item is in one of the icon groups. The
         item_report dictionary should have the path to the new thumbnail.
 
         Updates item_report with results for this fix:
         {thumbnail_result: result}
-        '''
+        """
 
         if self.item_report['thumbnail_fix'].casefold() != 'y':
             self.item_report['thumbnail_result'] = 'No update needed for thumbnail'
@@ -284,18 +278,18 @@ class ItemFixer:
         self.item_report['thumbnail_result'] = f'Thumbnail updated from {thumbnail_path}'
 
     def authoritative_fix(self):
-        '''
+        """
         Change the item.content_status to 'authoritative', 'deprecated', or
         None (to reset).
 
         Updates item_report with results for this fix:
         {authoritative_result: result}
-        '''
+        """
 
         new_authoritative = self.item_report['authoritative_new']
         if not self.item_report['authoritative_new']:
             new_authoritative = None  #: translate '' to None for arcgis api
-            
+
         if self.item_report['authoritative_fix'].casefold() != 'y':
             self.item_report['authoritative_result'] = 'No update needed for content status'
             return
@@ -310,17 +304,20 @@ class ItemFixer:
             return
 
         except RuntimeError:
-            self.item_report['authoritative_result'] = f'User does not have privileges to change content status. Please use an AGOL account that is assigned the Administrator role.'
+            self.item_report['authoritative_result'] = (
+                'User does not have privileges to change content status. Please use an AGOL account that is assigned '
+                'the Administrator role.'
+            )
             return
 
     def visibility_fix(self):
-        '''
+        """
         Access item's manager object and set it's defaultVisibility property
         to True
 
         Updates item_report with results for this fix:
         {visibility_result: result}
-        '''
+        """
 
         if self.item_report['visibility_fix'].casefold() != 'y':
             self.item_report['visibility_result'] = 'No update needed for visibility'
@@ -331,10 +328,10 @@ class ItemFixer:
             visibility_result = layer.manager.update_definition({'defaultVisibility': True})
 
             if not visibility_result['success']:
-                success= False
+                success = False
 
         if not success:
-            self.item_report['visibility_result'] = f'Failed to set default visibility to True'
+            self.item_report['visibility_result'] = 'Failed to set default visibility to True'
             return
 
-        self.item_report['visibility_result'] = f'Default visibility set to True'
+        self.item_report['visibility_result'] = 'Default visibility set to True'
