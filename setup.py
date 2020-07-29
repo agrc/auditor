@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 """
 setup.py
-A module that installs agol-validator as a module
+A module that installs auditor as a module
 """
 from glob import glob
 from os.path import basename, splitext
@@ -10,13 +10,13 @@ from os.path import basename, splitext
 from setuptools import find_packages, setup
 
 setup(
-    name='agol-validator',
-    version='0.9.0',
+    name='auditor',
+    version='1.0.0',
     license='MIT',
-    description='Validates all hosted feature service items in a user\'s AGOL folders',
+    description='Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on an external metatable',
     author='Jake Adams',
     author_email='jdadams@utah.gov',
-    url='https://github.com/agrc/agol-validator',
+    url='https://github.com/agrc/auditor',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
@@ -29,12 +29,14 @@ setup(
         'Topic :: Utilities',
     ],
     project_urls={
-        'Issue Tracker': 'https://github.com/agrc/agol-validator/issues',
+        'Issue Tracker': 'https://github.com/agrc/auditor/issues',
     },
     keywords=['gis'],
     install_requires=[
         # 'package==1.0.*'
-        'docopt==0.6.*'
+        'docopt==0.6.*',
+        'pandas==1.*.*',
+        'arcgis==1.8.*'
     ],
     extras_require={
         'tests': [
@@ -53,6 +55,6 @@ setup(
         'pytest-runner',
     ],
     entry_points={'console_scripts': [
-        'agol-validator = validator.main:cli',
+        'auditor = auditor.main:cli',
     ]},
 )
