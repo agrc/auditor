@@ -1,3 +1,6 @@
+"""
+checks.py: contains ItemChecker class for evaluating an item's metadata, etc and determining needed fixes.
+"""
 import json
 
 from pathlib import Path
@@ -7,7 +10,7 @@ import arcpy
 
 
 def tag_case(tag, uppercased, articles):
-    '''
+    """
     Changes a tag to the correct title case while also removing any periods:
     'U.S. bureau Of Geoinformation' -> 'US Bureau of Geoinformation'. Should
     properly upper-case any words or single tags that are acronyms:
@@ -22,7 +25,7 @@ def tag_case(tag, uppercased, articles):
                 lower-cased to facilitate checking)
     articles:   Lower-cased list of words that should always be lower-cased:
                 'in', 'of', etc
-    '''
+    """
 
     new_words = []
     for word in tag.split():
@@ -42,10 +45,10 @@ def tag_case(tag, uppercased, articles):
 
 
 def get_group_from_table(metatable_dict_entry):
-    '''
+    """
     Return the appropriate group title based on either the SGID table name or
     the shelved category.
-    '''
+    """
 
     SGID_name, _, item_category, _ = metatable_dict_entry
 
@@ -59,7 +62,7 @@ def get_group_from_table(metatable_dict_entry):
 
 
 class ItemChecker:
-    '''
+    """
     Class to check an AGOL item. Uses a metatable entry for most information;
     the tag check is the only check that doesn't rely on the metatables.
     __init__() gets what the values should be from the metatable and stores them
@@ -73,7 +76,7 @@ class ItemChecker:
     The results_dict dictionary holds the results of every check that is
     completed. If a check isn't performed, it's results aren't added to the
     dictionary via results_dict.update().
-    '''
+    """
 
     def __init__(self, item, metatable_dict):
 
@@ -101,15 +104,14 @@ class ItemChecker:
         self.new_folder = None
         self.authoritative = ''
 
-
     def setup(self, sde_path):
-        '''
+        """
         Sets up the checker's properties with data from the metatable, feature
         class, and AGOL item.
 
         sde_path:   Path to the SDE database. Joined with the feature class
                     name obtained from the metatable.
-        '''
+        """
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
             self.in_SGID = True
@@ -139,9 +141,8 @@ class ItemChecker:
         elif self.in_SGID and self.metatable_dict[self.item.itemid][2] == 'static':
             self.static_shelved = 'static'
 
-
     def tags_check(self, tags_to_delete, uppercased_tags, articles):
-        '''
+        """
         Create a list of new, cleaned tags:
             * Properly case tags using uppercased_tags and articles
             * Delete any tags in tags_to_delete
@@ -149,7 +150,7 @@ class ItemChecker:
 
         Update results_dict with results for this item:
                 {'tags_fix':'', 'tags_old':'', 'tags_new':''}
-        '''
+        """
 
         #: Use existing title unless we have one from metatable
         if self.new_title:
@@ -162,9 +163,7 @@ class ItemChecker:
 
         #: Add any tags in the metadata to list of tags to evaluate
         if self.arcpy_metadata and self.arcpy_metadata.tags:
-            orig_tags.extend([t.strip()
-                              for t in self.arcpy_metadata.tags.split(', ')
-                              if t.strip()])
+            orig_tags.extend([t.strip() for t in self.arcpy_metadata.tags.split(', ') if t.strip()])
 
         #: Evaluate existing tags
         for orig_tag in orig_tags:
@@ -242,59 +241,56 @@ class ItemChecker:
                 self.new_tags.append('AGRC')
 
         #: Create tags data: tags_fix, tags_old, tags_new
-        tags_data = {'tags_fix':'N', 'tags_old':'', 'tags_new':''}
+        tags_data = {'tags_fix': 'N', 'tags_old': '', 'tags_new': ''}
 
         if sorted(self.new_tags) != sorted(self.item.tags):
-            tags_data = {'tags_fix':'Y', 'tags_old':self.item.tags, 'tags_new':self.new_tags}
+            tags_data = {'tags_fix': 'Y', 'tags_old': self.item.tags, 'tags_new': self.new_tags}
 
         self.results_dict.update(tags_data)
 
-
     def title_check(self):
-        '''
+        """
         Check item's title against title in metatable.
 
         Update results_dict with results for this item:
                 {'title_fix':'', 'title_old':'', 'title_new':''}
-        '''
+        """
 
         #: Create title data: title_fix, title_old, title_new
         #: Always include the old title for readability
-        title_data = {'title_fix':'N', 'title_old':self.item.title, 'title_new':''}
+        title_data = {'title_fix': 'N', 'title_old': self.item.title, 'title_new': ''}
 
         if self.new_title and self.new_title != self.item.title:
-            title_data = {'title_fix':'Y', 'title_old':self.item.title, 'title_new':self.new_title}
+            title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': self.new_title}
 
         self.results_dict.update(title_data)
 
-
     def folder_check(self, itemid_and_folder):
-        '''
+        """
         Check item's folder against SGID category name from metatable.
 
         Update results_dict with results for this item:
                 {'folder_fix':'', 'folder_old':'', 'folder_new':''}
-        '''
+        """
 
         #: Get current folder from dictionary of items' folders
         current_folder = itemid_and_folder[self.item.itemid]
 
         #: Create folder data: folder_fix, folder_old, folder_new
-        folder_data = {'folder_fix':'N', 'folder_old':'', 'folder_new':''}
+        folder_data = {'folder_fix': 'N', 'folder_old': '', 'folder_new': ''}
 
         if self.new_folder and self.new_folder != current_folder:
-            folder_data = {'folder_fix':'Y', 'folder_old':current_folder, 'folder_new':self.new_folder}
+            folder_data = {'folder_fix': 'Y', 'folder_old': current_folder, 'folder_new': self.new_folder}
 
         self.results_dict.update(folder_data)
 
-
     def groups_check(self):
-        '''
+        """
         Check item's group against SGID category from metatable.
 
         Update results_dict with results for this item:
                 {'groups_fix':'', 'groups_old':'', 'group_new':''}
-        '''
+        """
 
         #: Get current group, wrapped in try/except for groups that error out
         try:
@@ -303,23 +299,22 @@ class ItemChecker:
             current_groups = ['Error']
 
         #: Create groups data: groups_fix, groups_old, group_new
-        groups_data = {'groups_fix':'N', 'groups_old':'', 'group_new':''}
+        groups_data = {'groups_fix': 'N', 'groups_old': '', 'group_new': ''}
 
         if current_groups and current_groups[0].casefold() == 'error':
             groups_data = {'groups_fix': 'N', 'groups_old': 'Can\'t get group', 'group_new': ''}
         elif self.new_group and self.new_group not in current_groups:
-            groups_data = {'groups_fix':'Y', 'groups_old':current_groups, 'group_new':self.new_group}
+            groups_data = {'groups_fix': 'Y', 'groups_old': current_groups, 'group_new': self.new_group}
 
         self.results_dict.update(groups_data)
 
-
     def downloads_check(self):
-        '''
+        """
         Make sure item's 'Allow others to export to different formats' box is checked
 
         Update results_dict with results for this item:
                 {'downloads_fix':''}
-        '''
+        """
 
         #: Check if downloads enabled; wrap in try/except for robustness
         try:
@@ -329,35 +324,33 @@ class ItemChecker:
             properties = None
 
         #: Create protect data: downloads_fix
-        fix_downloads = {'downloads_fix':'N'}
+        fix_downloads = {'downloads_fix': 'N'}
 
         if self.in_SGID and properties and 'Extract' not in properties['capabilities']:
             self.downloads = True
-            fix_downloads = {'downloads_fix':'Y'}
+            fix_downloads = {'downloads_fix': 'Y'}
 
         self.results_dict.update(fix_downloads)
 
-
     def delete_protection_check(self):
-        '''
+        """
         Prevent item from being accidentally deleted.
 
         Update results_dict with results for this item:
                 {'delete_protection_fix':''}
-        '''
+        """
 
-        protect_data = {'delete_protection_fix':'N'}
+        protect_data = {'delete_protection_fix': 'N'}
 
         #: item.protected is Boolean
         if self.in_SGID and not self.item.protected:
             self.protect = True
-            protect_data = {'delete_protection_fix':'Y'}
+            protect_data = {'delete_protection_fix': 'Y'}
 
         self.results_dict.update(protect_data)
 
-
     def metadata_check(self):
-        '''
+        """
         Check item's .metadata property against the .xml property of it's source
         feature class.
 
@@ -367,18 +360,17 @@ class ItemChecker:
             Where metadata_old is the string from item.metdata, metadata_new
             is path to feature class, and metadata_note is either '',
             'shelved', or 'static'
-        '''
+        """
 
-        metadata_data = {'metadata_fix': 'N',
-                         'metadata_old': '',
-                         'metadata_new': '',
-                         'metadata_note': ''}
+        metadata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': '', 'metadata_note': ''}
 
         if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
-            metadata_data = {'metadata_fix': 'Y',
-                             'metadata_old': 'item.metadata from AGOL not shown due to length',
-                             'metadata_new': str(self.feature_class_path),
-                             'metadata_note': ''}
+            metadata_data = {
+                'metadata_fix': 'Y',
+                'metadata_old': 'item.metadata from AGOL not shown due to length',
+                'metadata_new': str(self.feature_class_path),
+                'metadata_note': ''
+            }
 
             # Update flag for description note for shelved/static data
             if self.new_group == 'AGRC Shelf':
@@ -388,16 +380,15 @@ class ItemChecker:
 
         self.results_dict.update(metadata_data)
 
-
     def description_note_check(self, static_note, shelved_note):
-        '''
+        """
         Check to see if the AGOL description begins with static_note or
         shelved_note.
 
         Update results_dict with results:
                 {'description_note_fix': '',
                  'description_note_source': 'static' or 'shelved'}
-        '''
+        """
 
         description_data = {'description_note_fix': 'N', 'description_note_source': ''}
 
@@ -408,15 +399,14 @@ class ItemChecker:
 
         self.results_dict.update(description_data)
 
-
     def thumbnail_check(self, thumbnail_dir):
-        '''
+        """
         Create the path to the appropriate thumbnail if the item is in an SGID
         group or is shelved.
 
         Update results_dict with results:
                 {'thumbnail_fix': '', 'thumbnail_path': ''}
-        '''
+        """
 
         thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
 
@@ -436,24 +426,24 @@ class ItemChecker:
         self.results_dict.update(thumbnail_data)
 
     def authoritative_check(self):
-        '''
+        """
         Check if the item is set to authoritative or deprecated via the
         item.content_status property.
 
         Update results_dict with results:
                 {'authoritative_fix': 'N', 'authoritative_old': '',
                  'authoritative_new': ''}
-        '''
+        """
 
-        authoritative_data = {'authoritative_fix': 'N',
-                              'authoritative_old': '',
-                              'authoritative_new': ''}
+        authoritative_data = {'authoritative_fix': 'N', 'authoritative_old': '', 'authoritative_new': ''}
 
         #: item.content_status can be 'public_authoritative', 'deprecated', or ''
         if self.in_SGID and self.item.content_status != self.authoritative:
-            authoritative_data = {'authoritative_fix': 'Y',
-                                  'authoritative_old': f'{self.item.content_status}',
-                                  'authoritative_new': self.authoritative}
+            authoritative_data = {
+                'authoritative_fix': 'Y',
+                'authoritative_old': f'{self.item.content_status}',
+                'authoritative_new': self.authoritative
+            }
             #: item.content_status returns an empty string if it's not
             #: authoritative/deprecated.
             if not self.item.content_status:
@@ -462,17 +452,17 @@ class ItemChecker:
         self.results_dict.update(authoritative_data)
 
     def visibility_check(self):
-        '''
+        """
         Make sure item's default visibility is set to True
 
         Update results_dict with results for this item:
                 {'visibility_fix':''}
-        '''
+        """
 
-        fix_visibility = {'visibility_fix':'N'}
+        fix_visibility = {'visibility_fix': 'N'}
 
         for layer in self.item.layers:
-            
+
             #: Check if default vis is true; wrap in try/except for robustness
             try:
                 properties = json.loads(str(layer.manager.properties))
