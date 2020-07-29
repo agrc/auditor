@@ -60,14 +60,14 @@ def get_group_from_table(metatable_dict_entry):
 
 class ItemChecker:
     '''
-    Class to validate an AGOL item. Uses a metatable entry for most information;
+    Class to check an AGOL item. Uses a metatable entry for most information;
     the tag check is the only check that doesn't rely on the metatables.
     __init__() gets what the values should be from the metatable and stores them
     as instance variables. The x_check() methods then use the instance variable
     to check against the item's existing data.
 
     This class is specific to a single item. General org-level data (like lists
-    of tags to uppercase, etc) should be stored in the Validate class and
+    of tags to uppercase, etc) should be stored in the Auditor class and
     passed to methods if needed.
 
     The results_dict dictionary holds the results of every check that is

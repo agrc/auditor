@@ -1,7 +1,7 @@
 '''
-validate.py
+auditor.py
 
-See main.py for usage
+See cli.py for usage
 '''
 
 import datetime
@@ -41,10 +41,10 @@ def retry(worker, verbose=True, tries=1):
             raise error
 
 
-class Validator:
+class Auditor:
     '''
     An object representing an AGOL/Portal organization and information about
-    its items. Contains methods for validating and fixing various elements of
+    its items. Contains methods for checking and fixing various elements of
     each item's settings (name, tags, group, etc).
 
     This class contains data and methods specific to all items in the org.

@@ -1,8 +1,8 @@
 '''
-agol-validator
+auditor
 
 Usage:
-    agol-validator [--save_report=<dir> --dry --verbose]
+    auditor [--save_report=<dir> --dry --verbose]
 
 Options:
     -h, --help
@@ -11,18 +11,18 @@ Options:
     -v, --verbose               Print status updates to the console [default: False]
 
 Examples:
-    agol-validator --save_report=c:\\temp -v
+    auditor --save_report=c:\\temp -v
 '''
 
 from docopt import docopt, DocoptExit
 
 from . import credentials
-from .validate import Validator
+from .auditor import Auditor
 
 
 def cli():
     '''
-    Main command-line entry point for agol-validtor; instantiates Validator
+    Main command-line entry point for auditor; instantiates Auditor
     object, calls its check_items() method, and then calls its fix_items() if
     --dry flag is not set.
     '''
@@ -37,8 +37,8 @@ def cli():
 
         report_dir = args['--save_report']
 
-        org_validator = Validator(args['--verbose'])
-        org_validator.check_items(report_dir)
+        org_auditor = Auditor(args['--verbose'])
+        org_auditor.check_items(report_dir)
 
         if not args['--dry']:
-            org_validator.fix_items(report_dir)
+            org_auditor.fix_items(report_dir)
