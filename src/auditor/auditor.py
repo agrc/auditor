@@ -71,9 +71,16 @@ class Auditor:
     ]
 
     #: Notes for static and shelved descriptions
-    static_note = '<i><b>NOTE</b>: This dataset holds \'static\' data that we don\'t expect to change. We have removed it from the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on opendata.gis.utah.gov.</i>'
+    static_note = (
+        '<i><b>NOTE</b>: This dataset holds \'static\' data that we don\'t expect to change. We have removed it from '
+        'the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on '
+        'opendata.gis.utah.gov.</i>'
+    )
 
-    shelved_note = '<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and \'shelved\' in ArcGIS Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>'
+    shelved_note = (
+        '<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and \'shelved\' in ArcGIS '
+        'Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>'
+    )
 
     def __init__(self, verbose=False):
         """
@@ -317,5 +324,5 @@ class Auditor:
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
-                    fix = fix_type.split('_')[0]
+                    # fix = fix_type.split('_')[0]  #: will be used later to ignore certain fix counts
                     print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
