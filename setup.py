@@ -55,6 +55,6 @@ setup(
         'pytest-runner',
     ],
     entry_points={'console_scripts': [
-        'auditor = auditor.main:cli',
+        'auditor = auditor.cli:cli',
     ]},
 )
