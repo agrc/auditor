@@ -16,8 +16,8 @@ Examples:
 
 from docopt import docopt, DocoptExit
 
-import credentials
-from validate import Validator
+from . import credentials
+from .validate import Validator
 
 
 def cli():
