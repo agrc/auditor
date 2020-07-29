@@ -1,7 +1,7 @@
 '''
 validate.py
 
-See __main__.py for usage
+See main.py for usage
 '''
 
 import datetime
