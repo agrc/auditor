@@ -1,8 +1,8 @@
 # import arcgis
 
-from validator import credentials
-from validator import checks
-from validator.validate import Validator
+from auditor import credentials
+from auditor import checks
+from auditor.auditor import Auditor
 
 # @pytest.fixture
 # def agol_item():
@@ -25,7 +25,7 @@ from validator.validate import Validator
 
 def test_upercased_tags():
     test_tag = 'udot'
-    cased = checks.tag_case(test_tag, Validator.uppercased_tags, Validator.articles)
+    cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
     assert cased == 'UDOT'
 
 def test_meta_tag_removal():
