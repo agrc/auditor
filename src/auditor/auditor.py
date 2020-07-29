@@ -1,8 +1,8 @@
-'''
+"""
 auditor.py
 
 See cli.py for usage
-'''
+"""
 
 import datetime
 
@@ -19,10 +19,10 @@ from . import checks, fixes, credentials
 
 
 def retry(worker, verbose=True, tries=1):
-    '''
+    """
     Helper function to retry a function or method with an incremental wait time.
     Useful for methods reliant on unreliable network connections.
-    '''
+    """
     max_tries = 3
     delay = 2  #: in seconds
 
@@ -32,45 +32,55 @@ def retry(worker, verbose=True, tries=1):
     #: Retry on HTTPErrors (ie, bad connections to AGOL)
     except Exception as error:
         if tries <= max_tries:
-            wait_time = delay ** tries
+            wait_time = delay**tries
             if verbose:
                 print(f'Exception "{error}" thrown on "{worker}". Retrying after {wait_time} seconds...')
             sleep(wait_time)
-            retry(worker, verbose, tries+1)
+            retry(worker, verbose, tries + 1)
         else:
             raise error
 
 
 class Auditor:
-    '''
+    """
     An object representing an AGOL/Portal organization and information about
     its items. Contains methods for checking and fixing various elements of
     each item's settings (name, tags, group, etc).
 
     This class contains data and methods specific to all items in the org.
     Specifics to each item should go in the ItemChecker or ItemFixer classes.
-    '''
+    """
 
     #: Tags or words that should be uppercased, saved as lower to check against
-    uppercased_tags = ['2g', '3g', '4g', 'agol', 'agrc', 'aog', 'at&t', 'atv', 'blm', 'brat', 'caf', 'cdl', 'dabc', 'daq', 'dem', 'dfcm', 'dfirm', 'dnr', 'dogm', 'dot', 'dsl', 'dsm', 'dtm', 'dwq', 'e911', 'ems', 'epa', 'fae', 'fcc', 'fema', 'gcdb', 'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'ngda', 'nox', 'npsbn', 'ntia', 'nwi', 'osa', 'pli', 'plss', 'pm10', 'ppm', 'psap', 'sao', 'sbdc', 'sbi', 'sgid', 'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugs', 'uhp', 'uic', 'uipa', 'us', 'usao', 'usdw', 'usfs', 'usfws', 'usps', 'ustc', 'ut', 'uta', 'utsc', 'vcp', 'vista', 'voc', 'wbd', 'wre']
+    uppercased_tags = [
+        '2g', '3g', '4g', 'agol', 'agrc', 'aog', 'at&t', 'atv', 'blm', 'brat', 'caf', 'cdl', 'dabc', 'daq', 'dem',
+        'dfcm', 'dfirm', 'dnr', 'dogm', 'dsl', 'dsm', 'dtm', 'dwq', 'e911', 'ems', 'epa', 'fae', 'fcc', 'fema', 'gcdb',
+        'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'ngda', 'nox', 'npsbn',
+        'ntia', 'nwi', 'osa', 'pli', 'plss', 'pm10', 'ppm', 'psap', 'sao', 'sbdc', 'sbi', 'sgid', 'sitla', 'sligp',
+        'trax', 'uca', 'udot', 'ugs', 'uhp', 'uic', 'uipa', 'us', 'usao', 'usdw', 'usfs', 'usfws', 'usps', 'ustc', 'ut',
+        'uta', 'utsc', 'vcp', 'vista', 'voc', 'wbd', 'wre'
+    ]
 
     #: Articles that should be left lowercase.
     articles = ['a', 'an', 'the', 'of', 'is', 'in']
 
     #: Tags that should be deleted, saved as lower to check against
-    tags_to_delete = ['.sd', 'service definition', 'required: common-use word or phrase used to describe the subject of the data set', '002', 'required: common-use word or phrase used to describe the subject of the data set.']
+    tags_to_delete = [
+        '.sd', 'service definition', 'required: common-use word or phrase used to describe the subject of the data set',
+        '002'
+    ]
 
     #: Notes for static and shelved descriptions
-    static_note = "<i><b>NOTE</b>: This dataset holds 'static' data that we don't expect to change. We have removed it from the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on opendata.gis.utah.gov.</i>"
+    static_note = '<i><b>NOTE</b>: This dataset holds \'static\' data that we don\'t expect to change. We have removed it from the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on opendata.gis.utah.gov.</i>'
 
-    shelved_note = "<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and 'shelved' in ArcGIS Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>"
+    shelved_note = '<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and \'shelved\' in ArcGIS Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>'
 
     def __init__(self, verbose=False):
-        '''
+        """
         Create an arcgis.gis.GIS object using the user, portal, and password set in credentials.py. Automatically
-        create a list of all the Feature Service objects in the user's folders
-        and a dictionary of each item's folder based on itemid. Read SDE and AGOL metatables into a dictionary based on the itemid.
-        '''
+        create a list of all the Feature Service objects in the user's folders and a dictionary of each item's folder
+        based on itemid. Read SDE and AGOL metatables into a dictionary based on the itemid.
+        """
 
         #: Metatables
         self.metatable = credentials.METATABLE
@@ -107,9 +117,7 @@ class Auditor:
             self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
             #: Make sure ArcGIS Pro is properly logged in
-            arcpy.SignInToPortal(arcpy.GetActivePortalURL(),
-                                 credentials.USERNAME,
-                                 credentials.PASSWORD)
+            arcpy.SignInToPortal(arcpy.GetActivePortalURL(), credentials.USERNAME, credentials.PASSWORD)
 
             user_item = self.gis.users.me
 
@@ -159,13 +167,12 @@ class Auditor:
             print(f'Connection error, probably for connection with {credentials.ORG}')
             raise
 
-
     def read_metatable(self, table, fields):
-        '''
+        """
         Read metatable 'table' into self.metatable_dict.
 
         Returns: list of any duplicate AGOL item ids found
-        '''
+        """
 
         duplicate_keys = []
 
@@ -182,26 +189,27 @@ class Auditor:
 
                 if table_agol_itemid:  #: Don't evaluate null itemids
                     if table_agol_itemid not in self.metatable_dict:
-                        self.metatable_dict[table_agol_itemid] = [table_sgid_name, table_agol_name, table_category, table_authoritative]
+                        self.metatable_dict[table_agol_itemid] = [
+                            table_sgid_name, table_agol_name, table_category, table_authoritative
+                        ]
                     else:
                         duplicate_keys.append(table_agol_itemid)
 
         return duplicate_keys
 
-
     def check_items(self, report_dir=None):
-        '''
+        """
         Instantiates an ItemChecker for each item and manually runs the
         specified check methods. The results of the checks are saved in
         self.report_dict, which can be used to guide the fixes. Exports the
         final self.report_dict to a csv named checks_yyyy-mm-dd.csv in
         'report_dir', if specified.
-        '''
+        """
 
         counter = 0
         try:
             for item in self.feature_service_items:
-                
+
                 counter += 1
 
                 if self.verbose:
@@ -240,14 +248,13 @@ class Auditor:
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
 
-
     def fix_items(self, report_dir=None):
-        '''
+        """
         Instantiates an ItemFixer for each item and manually runs the specified
         fix methods using data in self.report_dict. Appends results to
         self.report_dict and writes the whole dictionary to a csv named
         checks_yyyy-mm-dd.csv in 'report_path' (if specified).
-        '''
+        """
 
         counter = 0
         try:
@@ -280,16 +287,11 @@ class Auditor:
                 retry(fixer.authoritative_fix)
                 retry(fixer.visibility_fix)
 
-                update_status_keys = ['metadata_result', 'tags_result',
-                                      'title_result', 'groups_result',
-                                      'folder_result',
-                                      'delete_protection_result',
-                                      'downloads_result',
-                                      'description_note_result',
-                                      'thumbnail_result',
-                                      'authoritative_result',
-                                      'visibility_result']
-
+                update_status_keys = [
+                    'metadata_result', 'tags_result', 'title_result', 'groups_result', 'folder_result',
+                    'delete_protection_result', 'downloads_result', 'description_note_result', 'thumbnail_result',
+                    'authoritative_result', 'visibility_result'
+                ]
 
                 for status in update_status_keys:
                     if 'No update needed for' not in item_report[status]:

@@ -1,4 +1,4 @@
-'''
+"""
 auditor
 
 Usage:
@@ -12,20 +12,19 @@ Options:
 
 Examples:
     auditor --save_report=c:\\temp -v
-'''
+"""
 
 from docopt import docopt, DocoptExit
 
-from . import credentials
 from .auditor import Auditor
 
 
 def cli():
-    '''
+    """
     Main command-line entry point for auditor; instantiates Auditor
     object, calls its check_items() method, and then calls its fix_items() if
     --dry flag is not set.
-    '''
+    """
 
     #: try/except/else to print help if bad input received
     try:
