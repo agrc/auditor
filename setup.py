@@ -53,6 +53,6 @@ setup(
         'pytest-runner',
     ],
     entry_points={'console_scripts': [
-        'agol-validator = agol-validator.main:auto',
+        'agol-validator = validator.main:auto',
     ]},
 )
