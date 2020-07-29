@@ -87,7 +87,7 @@ class Validator:
         self.itemid_and_folder = {}
 
         #: A dictionary of the metatable records, indexed by the metatable's itemid
-        #: values: {item_id: [table_sgid_name, table_agol_name, table_category]}
+        #: values: {item_id: [table_sgid_name, table_agol_name, table_category, table_authoritative]}
         self.metatable_dict = {}
 
         #: A dictionary of groups and their ID:
