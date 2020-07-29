@@ -15,7 +15,7 @@ import pandas as pd
 import arcgis
 import arcpy
 
-import checks, fixes, credentials
+from . import checks, fixes, credentials
 
 
 def retry(worker, verbose=True, tries=1):
