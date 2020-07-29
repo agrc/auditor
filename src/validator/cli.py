@@ -42,18 +42,3 @@ def cli():
 
         if not args['--dry']:
             org_validator.fix_items(report_dir)
-
-
-def auto():
-    '''
-    Main entry point for automated/scheduled running. Instantiates Validator
-    and calls both checks and fixes using report path from credentials.py.
-    '''
-
-    org_validator = Validator()
-    org_validator.check_items(credentials.REPORT_DIR)
-    org_validator.fix_items(credentials.REPORT_DIR)
-
-
-if __name__ == '__main__':
-    cli()
