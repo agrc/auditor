@@ -16,14 +16,15 @@ Examples:
 
 from docopt import docopt, DocoptExit
 
+import credentials
 from validate import Validator
 
 
-def main():
+def cli():
     '''
-    Main entry point for agol-validtor; instantiates Validator object, calls
-    its check_items() method, and then calls its fix_item() if --dry flag is
-    not set.
+    Main command-line entry point for agol-validtor; instantiates Validator
+    object, calls its check_items() method, and then calls its fix_items() if
+    --dry flag is not set.
     '''
 
     #: try/except/else to print help if bad input received
@@ -42,6 +43,17 @@ def main():
         if not args['--dry']:
             org_validator.fix_items(report_dir)
 
-#: TODO: Add separate CLI/automated entry points
+
+def auto():
+    '''
+    Main entry point for automated/scheduled running. Instantiates Validator
+    and calls both checks and fixes using report path from credentials.py.
+    '''
+
+    org_validator = Validator()
+    org_validator.check_items(credentials.REPORT_DIR)
+    org_validator.fix_items(credentials.REPORT_DIR)
+
+
 if __name__ == '__main__':
-    main()
+    cli()

@@ -6,3 +6,4 @@ THUMBNAIL_DIR = ''  #: Directory with thumbnails named sgid_group.png
 METATABLE = ''  #: Full path to SGID.META.AGOLItems metatable
 AGOL_TABLE = ''  #: URL for Feature Service REST endpoint for AGOL-hosted metatable
 XML_TEMPLATE = ''  #: Path to 'exact copy of.xslt' template
+REPORT_DIR = ''  #: Directory to dump report CSVs detailing everything that was fixed
