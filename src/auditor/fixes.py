@@ -13,7 +13,7 @@ class ItemFixer:
     item to determine what needs to be fixed and what values to use.
 
     This class is specific to a single item. General org-level data (like
-    dictionary of groups and their ids) should be stored in the Validate class
+    dictionary of groups and their ids) should be stored in the Auditor class
     and passed to methods if needed.
 
     The results of each fix, or a note that a fix was not needed, are added to

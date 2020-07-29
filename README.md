@@ -1,4 +1,6 @@
-# agol-validator
+# Auditor
+
+(TODO: change reference from agol-validator to auditor)
 
 You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www.youtube.com/watch?v=Cbk980jV7Ao))
 

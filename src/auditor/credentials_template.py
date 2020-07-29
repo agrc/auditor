@@ -1,5 +1,5 @@
 ORG = ''  #: URL to AGOL organization (https://www.arcgis.com)
-USERNAME = ''  #: User whose items will be validated
+USERNAME = ''  #: User whose items will be audited
 PASSWORD = ''  #: USERNAME's password
 DB = ''  #: Full path to sde connection file
 THUMBNAIL_DIR = ''  #: Directory with thumbnails named sgid_group.png
