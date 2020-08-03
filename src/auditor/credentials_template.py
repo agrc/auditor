@@ -1,3 +1,6 @@
+"""
+credentials_template.py: An example template of all the credentials and settings that need to be set.
+"""
 ORG = ''  #: URL to AGOL organization (https://www.arcgis.com)
 USERNAME = ''  #: User whose items will be audited
 PASSWORD = ''  #: USERNAME's password
