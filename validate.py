@@ -36,7 +36,7 @@ def retry(worker, verbose=True, tries=1):
             if verbose:
                 print(f'Exception "{error}" thrown on "{worker}". Retrying after {wait_time} seconds...')
             sleep(wait_time)
-            retry(worker, tries+1)
+            retry(worker, verbose, tries+1)
         else:
             raise error
 
