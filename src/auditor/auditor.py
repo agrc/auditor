@@ -129,7 +129,7 @@ class Auditor:
             #: Make sure ArcGIS Pro is properly logged in
             arcpy.SignInToPortal(arcpy.GetActivePortalURL(), credentials.USERNAME, credentials.PASSWORD)
 
-            user_item = self.gis.users.me
+            user_item = self.gis.users.me  # pylint: disable=no-member
 
             #: Build list of folders. 'None' gives us the root folder.
             if self.verbose:
@@ -170,7 +170,7 @@ class Auditor:
             #: Get the groups
             if self.verbose:
                 print('Getting groups...')
-            groups = self.gis.groups.search('title:*')
+            groups = self.gis.groups.search('title:*')  # pylint: disable=no-member
             self.groups_dict = {g.title: g.id for g in groups}
 
         except HTTPError:
@@ -186,7 +186,7 @@ class Auditor:
 
         duplicate_keys = []
 
-        with arcpy.da.SearchCursor(table, fields) as meta_cursor:
+        with arcpy.da.SearchCursor(table, fields) as meta_cursor:  # pylint: disable=no-member
             for row in meta_cursor:
 
                 if fields[-1] == 'Authoritative':  #: AGOLItems table's last field is "Authoritative"
@@ -231,19 +231,19 @@ class Auditor:
                 self.report_dict[itemid] = {}
 
                 checker = checks.ItemChecker(item, self.metatable_dict)
-                retry(lambda: checker.setup(credentials.DB))
+                retry(lambda: checker.setup(credentials.DB))  # pylint: disable=W0640
 
                 #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
 
                 #: Run the checks on this item
-                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))
+                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))  # pylint: disable=W0640
                 retry(checker.title_check)
-                retry(lambda: checker.folder_check(self.itemid_and_folder))
+                retry(lambda: checker.folder_check(self.itemid_and_folder))  # pylint: disable=W0640
                 retry(checker.groups_check)
                 retry(checker.downloads_check)
                 retry(checker.delete_protection_check)
                 retry(checker.metadata_check)
-                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))
+                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))  # pylint: disable=W0640
                 checker.thumbnail_check(credentials.THUMBNAIL_DIR)
                 retry(checker.authoritative_check)
                 retry(checker.visibility_check)
@@ -272,7 +272,7 @@ class Auditor:
 
                 counter += 1
 
-                item = self.gis.content.get(itemid)
+                item = self.gis.content.get(itemid)  # pylint: disable=no-member
                 item_report = self.report_dict[itemid]
 
                 if self.verbose:
@@ -285,14 +285,14 @@ class Auditor:
                 #: Do the metadata fix first so that the tags, title, and
                 #: description fixes later on aren't overwritten by the metadata
                 #: upload.
-                retry(lambda: fixer.metadata_fix(self.metadata_xml_template))
+                retry(lambda: fixer.metadata_fix(self.metadata_xml_template))  # pylint: disable=W0640
                 retry(fixer.tags_fix)
                 retry(fixer.title_fix)
-                retry(lambda: fixer.group_fix(self.groups_dict))
+                retry(lambda: fixer.group_fix(self.groups_dict))  # pylint: disable=W0640
                 retry(fixer.folder_fix)
                 retry(fixer.delete_protection_fix)
                 retry(fixer.downloads_fix)
-                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))
+                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))  # pylint: disable=W0640
                 retry(fixer.thumbnail_fix)
                 retry(fixer.authoritative_fix)
                 retry(fixer.visibility_fix)

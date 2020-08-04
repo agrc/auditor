@@ -50,7 +50,7 @@ def get_group_from_table(metatable_dict_entry):
     the shelved category.
     """
 
-    SGID_name, _, item_category, _ = metatable_dict_entry
+    SGID_name, _, item_category, _ = metatable_dict_entry  # pylint: disable=invalid-name
 
     if item_category == 'shelved':
         group = 'AGRC Shelf'
@@ -96,7 +96,7 @@ class ItemChecker:
         self.set_visibility = False
 
         #: These maybe overwritten below if the item is in the SGID
-        self.in_SGID = False
+        self.in_SGID = False  # pylint: disable=invalid-name
         self.new_title = None
         self.new_group = None
         self.arcpy_metadata = None
@@ -295,7 +295,7 @@ class ItemChecker:
         #: Get current group, wrapped in try/except for groups that error out
         try:
             current_groups = [group.title for group in self.item.shared_with['groups']]
-        except:
+        except:  # pylint: disable=bare-except
             current_groups = ['Error']
 
         #: Create groups data: groups_fix, groups_old, group_new
@@ -320,7 +320,7 @@ class ItemChecker:
         try:
             manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
             properties = json.loads(str(manager.properties))
-        except:
+        except:  # pylint: disable=bare-except
             properties = None
 
         #: Create protect data: downloads_fix
@@ -466,7 +466,7 @@ class ItemChecker:
             #: Check if default vis is true; wrap in try/except for robustness
             try:
                 properties = json.loads(str(layer.manager.properties))
-            except:
+            except:  # pylint: disable=bare-except
                 properties = None
 
             if properties and not properties['defaultVisibility']:
