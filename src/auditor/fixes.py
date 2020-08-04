@@ -205,7 +205,7 @@ class ItemFixer:
         fc_path = self.item_report['metadata_new']
 
         arcpy_metadata = arcpy.metadata.Metadata(fc_path)
-        metadata_xml_path = Path(arcpy.env.scratchFolder, 'md.xml')
+        metadata_xml_path = Path(arcpy.env.scratchFolder, 'md.xml')  # pylint: disable=no-member
 
         arcpy_metadata.saveAsUsingCustomXSLT(str(metadata_xml_path), xml_template)
 
