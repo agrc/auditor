@@ -23,11 +23,12 @@ from auditor.auditor import Auditor
 
 #     return fake_metatable
 
+
 def test_upercased_tags():
     test_tag = 'udot'
     cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
     assert cased == 'UDOT'
 
-def test_meta_tag_removal():
-    test_tag = 'Required: Common-Use Word Or Phrase Used To Describe the Subject of the Data Set'
-    
+
+# def test_meta_tag_removal():
+#     test_tag = 'Required: Common-Use Word Or Phrase Used To Describe the Subject of the Data Set'
