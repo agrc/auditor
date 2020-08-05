@@ -13,7 +13,10 @@ setup(
     name='auditor',
     version='1.0.0',
     license='MIT',
-    description='Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on an external metatable',
+    description=(
+        'Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on '
+        'an external metatable'
+    ),
     author='Jake Adams',
     author_email='jdadams@utah.gov',
     url='https://github.com/agrc/auditor',
@@ -54,7 +57,5 @@ setup(
     setup_requires=[
         'pytest-runner',
     ],
-    entry_points={'console_scripts': [
-        'auditor = auditor.cli:cli',
-    ]},
+    entry_points={'console_scripts': ['auditor = auditor.cli:cli']},
 )
