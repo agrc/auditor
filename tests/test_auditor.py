@@ -1,6 +1,6 @@
 import pytest
 
-from auditor import auditor
+from auditor.auditor import retry
 
 
 def test_retry():
@@ -14,4 +14,4 @@ def test_retry():
             raise CustomError
 
     with pytest.raises(CustomError):
-        auditor.retry(inner_retry)
+        retry(inner_retry)
