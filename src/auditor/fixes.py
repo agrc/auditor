@@ -205,7 +205,11 @@ class ItemFixer:
         fc_path = self.item_report['metadata_new']
 
         arcpy_metadata = arcpy.metadata.Metadata(fc_path)
-        metadata_xml_path = Path(arcpy.env.scratchFolder, 'md.xml')  # pylint: disable=no-member
+
+        item_id = self.item.itemid
+        metadata_xml_path = Path(arcpy.env.scratchFolder, f'{item_id}.xml')  # pylint: disable=no-member
+        if metadata_xml_path.exists():
+            metadata_xml_path.unlink()
 
         arcpy_metadata.saveAsUsingCustomXSLT(str(metadata_xml_path), xml_template)
 
@@ -219,10 +223,6 @@ class ItemFixer:
         except ValueError:
             self.item_report['metadata_result'] = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
             return
-
-        finally:
-            if metadata_xml_path.exists():
-                metadata_xml_path.unlink()
 
         self.item_report['metadata_result'] = f'Metadata updated from "{fc_path}"'
 
