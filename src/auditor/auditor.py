@@ -329,3 +329,8 @@ class Auditor:
                 for fix_type in self.fix_counts:
                     # fix = fix_type.split('_')[0]  #: will be used later to ignore certain fix counts
                     print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
+
+            if not self.verbose:
+                scratch_path = Path(arcpy.env.scratchFolder)  # pylint: disable=no-member
+                for child in scratch_path.iterdir():
+                    child.unlink()
