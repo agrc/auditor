@@ -362,7 +362,12 @@ class ItemChecker:
             'shelved', or 'static'
         """
 
-        metadata_data = {'metadata_fix': 'N', 'metadata_old': '', 'metadata_new': '', 'metadata_note': ''}
+        metadata_data = {
+            'metadata_fix': 'N',
+            'metadata_old': '',
+            'metadata_new': '',
+            'metadata_note': '',
+        }
 
         if self.arcpy_metadata and self.arcpy_metadata.xml != self.item.metadata:
             metadata_data = {
