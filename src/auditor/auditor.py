@@ -231,19 +231,19 @@ class Auditor:
                 self.report_dict[itemid] = {}
 
                 checker = checks.ItemChecker(item, self.metatable_dict)
-                retry(lambda: checker.setup(credentials.DB))  # pylint: disable=W0640
+                retry(lambda: checker.setup(credentials.DB))  # pylint: disable=cell-var-from-loop
 
                 #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
 
                 #: Run the checks on this item
-                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))  # pylint: disable=W0640
+                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))  # pylint: disable=cell-var-from-loop
                 retry(checker.title_check)
-                retry(lambda: checker.folder_check(self.itemid_and_folder))  # pylint: disable=W0640
+                retry(lambda: checker.folder_check(self.itemid_and_folder))  # pylint: disable=cell-var-from-loop
                 retry(checker.groups_check)
                 retry(checker.downloads_check)
                 retry(checker.delete_protection_check)
                 retry(checker.metadata_check)
-                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))  # pylint: disable=W0640
+                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
                 checker.thumbnail_check(credentials.THUMBNAIL_DIR)
                 retry(checker.authoritative_check)
                 retry(checker.visibility_check)
@@ -285,14 +285,14 @@ class Auditor:
                 #: Do the metadata fix first so that the tags, title, and
                 #: description fixes later on aren't overwritten by the metadata
                 #: upload.
-                retry(lambda: fixer.metadata_fix(self.metadata_xml_template))  # pylint: disable=W0640
+                retry(lambda: fixer.metadata_fix(self.metadata_xml_template))  # pylint: disable=cell-var-from-loop
                 retry(fixer.tags_fix)
                 retry(fixer.title_fix)
-                retry(lambda: fixer.group_fix(self.groups_dict))  # pylint: disable=W0640
+                retry(lambda: fixer.group_fix(self.groups_dict))  # pylint: disable=cell-var-from-loop
                 retry(fixer.folder_fix)
                 retry(fixer.delete_protection_fix)
                 retry(fixer.downloads_fix)
-                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))  # pylint: disable=W0640
+                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
                 retry(fixer.thumbnail_fix)
                 retry(fixer.authoritative_fix)
                 retry(fixer.visibility_fix)
