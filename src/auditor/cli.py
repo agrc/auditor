@@ -14,6 +14,9 @@ Examples:
     auditor --save_report=c:\\temp -v
 """
 
+import logging
+import sys
+
 from docopt import docopt, DocoptExit
 
 from .auditor import Auditor
@@ -36,7 +39,17 @@ def cli():
 
         report_dir = args['--save_report']
 
-        org_auditor = Auditor(args['--verbose'])
+        cli_logger = logging.getLogger('auditor')
+        cli_logger.setLevel(logging.DEBUG)
+        detailed_formatter = logging.Formatter(
+            fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s', datefmt='%m-%d %H:%M:%S'
+        )
+        cli_handler = logging.StreamHandler(stream=sys.stdout)
+        cli_handler.setLevel(logging.DEBUG)
+        cli_handler.setFormatter(detailed_formatter)
+        cli_logger.addHandler(cli_handler)
+
+        org_auditor = Auditor(cli_logger, args['--verbose'])
         org_auditor.check_items(report_dir)
 
         if not args['--dry']:

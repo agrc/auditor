@@ -13,6 +13,6 @@ class AuditorPallet(Pallet):
         return True
 
     def process(self):
-        org_auditor = auditor.Auditor()
+        org_auditor = auditor.Auditor(self.log)
         org_auditor.check_items(credentials.REPORT_DIR)
         org_auditor.fix_items(credentials.REPORT_DIR)

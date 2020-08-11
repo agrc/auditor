@@ -85,7 +85,7 @@ class Auditor:
         'Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>'
     )
 
-    def __init__(self, verbose=False):
+    def __init__(self, log, verbose=False):
         """
         Create an arcgis.gis.GIS object using the user, portal, and password set in credentials.py. Automatically
         create a list of all the Feature Service objects in the user's folders and a dictionary of each item's folder
@@ -121,6 +121,8 @@ class Auditor:
         self.username = credentials.USERNAME
 
         self.metadata_xml_template = credentials.XML_TEMPLATE
+
+        self.log = log
 
         #: TODO: Wrap in a method, call via retry()
         try:
@@ -216,6 +218,8 @@ class Auditor:
         'report_dir', if specified.
         """
 
+        self.log.info(f'Checking {len(self.feature_service_items)} items...')
+
         counter = 0
         try:
             for item in self.feature_service_items:
@@ -265,6 +269,8 @@ class Auditor:
         self.report_dict and writes the whole dictionary to a csv named
         checks_yyyy-mm-dd.csv in 'report_path' (if specified).
         """
+
+        self.log.info(f'Fixing {len(self.report_dict)} items...')
 
         counter = 0
         try:
@@ -316,7 +322,7 @@ class Auditor:
 
         except KeyboardInterrupt:
             print('Interrupted by Ctrl-c')
-            raise   
+            raise
 
         finally:
             #: Convert dict to pandas df for easy writing
@@ -329,7 +335,9 @@ class Auditor:
                 for fix_type in self.fix_counts:
                     fix = fix_type.rpartition('_')[0]  #: will be used later to ignore certain fix counts
                     if fix not in ['thumbnail']:
-                        print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
+                        self.log.info(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
+            else:
+                self.log.info('No items fixed.')
 
             if not self.verbose:
                 scratch_path = Path(arcpy.env.scratchFolder)
