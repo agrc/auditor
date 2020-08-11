@@ -186,7 +186,7 @@ class Auditor:
 
         duplicate_keys = []
 
-        with arcpy.da.SearchCursor(table, fields) as meta_cursor:  # pylint: disable=no-member
+        with arcpy.da.SearchCursor(table, fields) as meta_cursor:
             for row in meta_cursor:
 
                 if fields[-1] == 'Authoritative':  #: AGOLItems table's last field is "Authoritative"
@@ -331,6 +331,6 @@ class Auditor:
                     print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
 
             if not self.verbose:
-                scratch_path = Path(arcpy.env.scratchFolder)  # pylint: disable=no-member
+                scratch_path = Path(arcpy.env.scratchFolder)
                 for child in scratch_path.iterdir():
                     child.unlink()
