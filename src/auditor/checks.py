@@ -50,12 +50,12 @@ def get_group_from_table(metatable_dict_entry):
     the shelved category.
     """
 
-    SGID_name, _, item_category, _ = metatable_dict_entry  # pylint: disable=invalid-name
+    sgid_name, _, item_category, _ = metatable_dict_entry
 
     if item_category == 'shelved':
         group = 'AGRC Shelf'
     else:
-        table_category = SGID_name.split('.')[1].title()
+        table_category = sgid_name.split('.')[1].title()
         group = f'Utah SGID {table_category}'
 
     return group
@@ -96,7 +96,7 @@ class ItemChecker:
         self.set_visibility = False
 
         #: These maybe overwritten below if the item is in the SGID
-        self.in_SGID = False  # pylint: disable=invalid-name
+        self.in_sgid = False
         self.new_title = None
         self.new_group = None
         self.arcpy_metadata = None
@@ -114,7 +114,7 @@ class ItemChecker:
         """
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
-            self.in_SGID = True
+            self.in_sgid = True
             self.new_title = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
             if self.metatable_dict[self.item.itemid][3]:
@@ -138,7 +138,7 @@ class ItemChecker:
         #: Set static/shelved flag
         if self.new_group == 'AGRC Shelf':
             self.static_shelved = 'shelved'
-        elif self.in_SGID and self.metatable_dict[self.item.itemid][2] == 'static':
+        elif self.in_sgid and self.metatable_dict[self.item.itemid][2] == 'static':
             self.static_shelved = 'static'
 
     def tags_check(self, tags_to_delete, uppercased_tags, articles):
@@ -326,7 +326,7 @@ class ItemChecker:
         #: Create protect data: downloads_fix
         fix_downloads = {'downloads_fix': 'N'}
 
-        if self.in_SGID and properties and 'Extract' not in properties['capabilities']:
+        if self.in_sgid and properties and 'Extract' not in properties['capabilities']:
             self.downloads = True
             fix_downloads = {'downloads_fix': 'Y'}
 
@@ -343,7 +343,7 @@ class ItemChecker:
         protect_data = {'delete_protection_fix': 'N'}
 
         #: item.protected is Boolean
-        if self.in_SGID and not self.item.protected:
+        if self.in_sgid and not self.item.protected:
             self.protect = True
             protect_data = {'delete_protection_fix': 'Y'}
 
@@ -438,7 +438,7 @@ class ItemChecker:
         authoritative_data = {'authoritative_fix': 'N', 'authoritative_old': '', 'authoritative_new': ''}
 
         #: item.content_status can be 'public_authoritative', 'deprecated', or ''
-        if self.in_SGID and self.item.content_status != self.authoritative:
+        if self.in_sgid and self.item.content_status != self.authoritative:
             authoritative_data = {
                 'authoritative_fix': 'Y',
                 'authoritative_old': f'{self.item.content_status}',
@@ -464,10 +464,11 @@ class ItemChecker:
         for layer in self.item.layers:
 
             #: Check if default vis is true; wrap in try/except for robustness
+            properties = None
             try:
                 properties = json.loads(str(layer.manager.properties))
             except:  # pylint: disable=bare-except
-                properties = None
+                pass
 
             if properties and not properties['defaultVisibility']:
                 self.set_visibility = True
