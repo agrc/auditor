@@ -36,10 +36,9 @@ setup(
     },
     keywords=['gis'],
     install_requires=[
-        # 'package==1.0.*'
         'docopt==0.6.*',
         'pandas==1.*',
-        'arcgis==1.8.*'
+        'arcgis==1.8.*',
     ],
     extras_require={
         'tests': [
