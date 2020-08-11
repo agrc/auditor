@@ -316,7 +316,7 @@ class Auditor:
 
         except KeyboardInterrupt:
             print('Interrupted by Ctrl-c')
-            raise
+            raise   
 
         finally:
             #: Convert dict to pandas df for easy writing
@@ -327,8 +327,9 @@ class Auditor:
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
-                    # fix = fix_type.split('_')[0]  #: will be used later to ignore certain fix counts
-                    print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
+                    fix = fix_type.rpartition('_')[0]  #: will be used later to ignore certain fix counts
+                    if fix not in ['thumbnail']:
+                        print(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
 
             if not self.verbose:
                 scratch_path = Path(arcpy.env.scratchFolder)
