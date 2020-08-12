@@ -4,6 +4,8 @@ You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www
 
 (This is a holdover from when this was named "validator", but it's too good to remove.)
 
+![auditor_sm](https://user-images.githubusercontent.com/325813/90076350-b8c37100-dcbc-11ea-9df7-48ea21ec138a.png)
+
 ## Item Checks
 
 `auditor` audits all the AGOL Feature Service items in a user's folders so long as the items' ids are found in either an SDE-hosted or AGOL-hosted metatable. The following AGOL item properties are checked:
