@@ -5,6 +5,7 @@ See cli.py for usage
 """
 
 import datetime
+import logging
 
 from pathlib import Path
 from time import sleep
@@ -126,6 +127,8 @@ class Auditor:
 
         #: TODO: Wrap in a method, call via retry()
         try:
+            self.log.info(f'Logging into {credentials.ORG} as {credentials.USERNAME}')
+
             self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
             #: Make sure ArcGIS Pro is properly logged in
@@ -218,7 +221,7 @@ class Auditor:
         'report_dir', if specified.
         """
 
-        self.log.info(f'Checking {len(self.feature_service_items)} items...')
+        self.log.info(f'Checking {len(self.feature_service_items)} items')
 
         counter = 0
         try:
@@ -270,7 +273,7 @@ class Auditor:
         checks_yyyy-mm-dd.csv in 'report_path' (if specified).
         """
 
-        self.log.info(f'Fixing {len(self.report_dict)} items...')
+        self.log.info(f'Evaluating report for fixes on {len(self.report_dict)} items')
 
         counter = 0
         try:
@@ -330,6 +333,32 @@ class Auditor:
                 report_path = Path(report_dir, f'fixes_{datetime.date.today()}.csv')
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
+
+            #: Set up a rotating file handler for the report long
+            report_path = Path(credentials.REPORT_DIR, 'audit_report.csv')
+            report_logger = logging.getLogger('audit_report')
+            report_handler = logging.handlers.RotatingFileHandler(report_path, backupCount=18)
+            report_handler.doRollover()
+            report_handler.setLevel(logging.DEBUG)
+            report_logger.addHandler(report_handler)
+            report_logger.setLevel(logging.DEBUG)
+
+            #: Log date
+            timestamp = datetime.datetime.now()
+            report_logger.info(timestamp)
+
+            #: Get the column values from the keys of nested dict of the first item and log as csv header
+            columns = list(next(iter(self.report_dict.items()))[1].keys())
+            header = f'agol_id|{"|".join(columns)}'
+            report_logger.info(header)
+
+            #: iterate through report_dict, using the columns generated above as keys of each nested dict to
+            #: ensure the order stays the same for each row.
+            for agol_id, item_report_dict in self.report_dict.items():
+                item_list = [agol_id]
+                item_list.extend([str(item_report_dict[col]) for col in columns])
+                print(item_list)
+                report_logger.info('|'.join(item_list))
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
