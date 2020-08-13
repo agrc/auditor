@@ -2,16 +2,16 @@
 auditor
 
 Usage:
-    auditor [--save_report=<dir> --dry --verbose]
+    auditor [--save_report --dry --verbose]
 
 Options:
     -h, --help
-    -r, --save_report <dir>     Directory to save report to, e.g. `c:\\temp`
+    -r, --save_report           Save report to the file specified in the credentials file (will be rotated)
     -d, --dry                   Only run the checks, don't do any fixes [default: False]
     -v, --verbose               Print status updates to the console [default: False]
 
 Examples:
-    auditor --save_report=c:\\temp -v
+    auditor -r -v
 """
 
 import logging
@@ -37,7 +37,7 @@ def cli():
         print(__doc__)
     else:
 
-        report_dir = args['--save_report']
+        # report_dir = args['--save_report']
 
         cli_logger = logging.getLogger('auditor')
         cli_logger.setLevel(logging.DEBUG)
@@ -50,7 +50,9 @@ def cli():
         cli_logger.addHandler(cli_handler)
 
         org_auditor = Auditor(cli_logger, args['--verbose'])
-        org_auditor.check_items(report_dir)
 
-        if not args['--dry']:
-            org_auditor.fix_items(report_dir)
+        if args['--dry']:
+            org_auditor.check_items(args['--save_report'])
+        else:
+            org_auditor.check_items(report=False)  #: only do the fix report on a full run.
+            org_auditor.fix_items(args['--save_report'])

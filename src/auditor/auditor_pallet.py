@@ -3,7 +3,7 @@ auditor_pallet.py: forklift-compliant entry point
 """
 from forklift.models import Pallet
 
-from . import auditor, credentials
+from . import auditor
 
 
 class AuditorPallet(Pallet):
@@ -14,5 +14,5 @@ class AuditorPallet(Pallet):
 
     def process(self):
         org_auditor = auditor.Auditor(self.log)
-        org_auditor.check_items(credentials.REPORT_DIR)
-        org_auditor.fix_items(credentials.REPORT_DIR)
+        org_auditor.check_items(report=False)  #: Don't bother reporting checks
+        org_auditor.fix_items(report=True)

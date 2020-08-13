@@ -11,8 +11,6 @@ from pathlib import Path
 from time import sleep
 from urllib.error import HTTPError
 
-import pandas as pd
-
 import arcgis
 import arcpy
 
@@ -56,7 +54,7 @@ def log_report(report_dict, report_file, separator='|', rotate_count=18):
     rotate_count:   The number of files to save before RotatingFileHandler deletes old reports. Defaults to 2.5 weeks.
 
     """
-    #: Set up a rotating file handler for the report long
+    #: Set up a rotating file handler for the report log
     report_path = Path(report_file)
     report_logger = logging.getLogger('audit_report')
     report_handler = logging.handlers.RotatingFileHandler(report_path, backupCount=rotate_count)
@@ -252,7 +250,7 @@ class Auditor:
 
         return duplicate_keys
 
-    def check_items(self, report_dir=None):
+    def check_items(self, report=False):
         """
         Instantiates an ItemChecker for each item and manually runs the
         specified check methods. The results of the checks are saved in
@@ -299,13 +297,10 @@ class Auditor:
                 self.report_dict[itemid].update(checker.results_dict)
 
         finally:
-            #: Convert dict to pandas df for easy writing
-            if report_dir:
-                report_path = Path(report_dir, f'checks_{datetime.date.today()}.csv')
-                report_df = pd.DataFrame(self.report_dict).T
-                report_df.to_csv(report_path)
+            if report:
+                log_report(self.report_dict, credentials.REPORT_BASE_PATH)
 
-    def fix_items(self, report_dir=None):
+    def fix_items(self, report=False):
         """
         Instantiates an ItemFixer for each item and manually runs the specified
         fix methods using data in self.report_dict. Appends results to
@@ -368,22 +363,19 @@ class Auditor:
             raise
 
         finally:
-            #: Convert dict to pandas df for easy writing
-            if report_dir:
-                report_path = Path(report_dir, f'fixes_{datetime.date.today()}.csv')
-                report_df = pd.DataFrame(self.report_dict).T
-                report_df.to_csv(report_path)
-
-            log_report(self.report_dict, credentials.REPORT_BASE_PATH)
+            if report:
+                log_report(self.report_dict, credentials.REPORT_BASE_PATH)
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
-                    fix = fix_type.rpartition('_')[0]  #: will be used later to ignore certain fix counts
+                    fix = fix_type.rpartition('_')[0]
                     if fix not in ['thumbnail']:
                         self.log.info(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
             else:
                 self.log.info('No items fixed.')
 
+            #: Wipe scratch environment unless verbose (to save metadata xmls for troubleshooting)
+            #: TODO: Change so this doesn't stomp other processes using arpcy.env.scratchFolder
             if not self.verbose:
                 scratch_path = Path(arcpy.env.scratchFolder)
                 for child in scratch_path.iterdir():
