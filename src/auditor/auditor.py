@@ -42,6 +42,47 @@ def retry(worker, verbose=True, tries=1):
             raise error
 
 
+#: TODO: Modify structure so each check/fix method returns its values directly rather than putting them inside
+#: the dictionary, and then log results at the end of each for item in collection iteration.
+def log_report(report_dict, report_file, separator='|', rotate_count=18):
+    """
+    Logs a nested dictionary to a rotating csv file via the logging module.
+
+    report_dict:    Nested dictionary in the form of {Unique ID: {field1:data, field2:data, field3:data},
+                    Unique ID: {field1:data, field2:data, field3:data}, ... }.
+    report_file:    Base log file name, as a string. Automatically rotated by a logging RotatingFileHandler on each
+                    call.
+    separator:      The character used as a csv delimiter. Default to '|' to avoid common conflicts with text data.
+    rotate_count:   The number of files to save before RotatingFileHandler deletes old reports. Defaults to 2.5 weeks.
+
+    """
+    #: Set up a rotating file handler for the report long
+    report_path = Path(report_file)
+    report_logger = logging.getLogger('audit_report')
+    report_handler = logging.handlers.RotatingFileHandler(report_path, backupCount=rotate_count)
+    report_handler.doRollover()  #: Rotate the log on each run
+    report_handler.setLevel(logging.DEBUG)
+    report_logger.addHandler(report_handler)
+    report_logger.setLevel(logging.DEBUG)
+
+    #: Log date
+    timestamp = datetime.datetime.now()
+    report_logger.info(timestamp)
+
+    #: Get the column values from the keys of nested dict of the first item and log as csv header
+    columns = list(next(iter(report_dict.items()))[1].keys())
+    header = f'agol_id{separator}{separator.join(columns)}'
+    report_logger.info(header)
+
+    #: iterate through report_dict, using the columns generated above as keys of each nested dict to
+    #: ensure the order stays the same for each row.
+    for agol_id, item_report_dict in report_dict.items():
+        item_list = [agol_id]
+        item_list.extend([str(item_report_dict[col]) for col in columns])
+        print(item_list)
+        report_logger.info(separator.join(item_list))
+
+
 class Auditor:
     """
     An object representing an AGOL/Portal organization and information about
@@ -334,31 +375,7 @@ class Auditor:
                 report_df = pd.DataFrame(self.report_dict).T
                 report_df.to_csv(report_path)
 
-            #: Set up a rotating file handler for the report long
-            report_path = Path(credentials.REPORT_DIR, 'audit_report.csv')
-            report_logger = logging.getLogger('audit_report')
-            report_handler = logging.handlers.RotatingFileHandler(report_path, backupCount=18)
-            report_handler.doRollover()
-            report_handler.setLevel(logging.DEBUG)
-            report_logger.addHandler(report_handler)
-            report_logger.setLevel(logging.DEBUG)
-
-            #: Log date
-            timestamp = datetime.datetime.now()
-            report_logger.info(timestamp)
-
-            #: Get the column values from the keys of nested dict of the first item and log as csv header
-            columns = list(next(iter(self.report_dict.items()))[1].keys())
-            header = f'agol_id|{"|".join(columns)}'
-            report_logger.info(header)
-
-            #: iterate through report_dict, using the columns generated above as keys of each nested dict to
-            #: ensure the order stays the same for each row.
-            for agol_id, item_report_dict in self.report_dict.items():
-                item_list = [agol_id]
-                item_list.extend([str(item_report_dict[col]) for col in columns])
-                print(item_list)
-                report_logger.info('|'.join(item_list))
+            log_report(self.report_dict, credentials.REPORT_BASE_PATH)
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
