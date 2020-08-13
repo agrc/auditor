@@ -79,7 +79,6 @@ def log_report(report_dict, report_file, separator='|', rotate_count=18):
     for agol_id, item_report_dict in report_dict.items():
         item_list = [agol_id]
         item_list.extend([str(item_report_dict[col]) for col in columns])
-        print(item_list)
         report_logger.info(separator.join(item_list))
 
 
