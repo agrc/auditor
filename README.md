@@ -47,18 +47,18 @@ Because a user's folder only holds items that they own, it effectively checks al
 
 ### Command line
 
-`python auditor [-r|--save_report=<dir> -d|--dry -v|--verbose]`
+`python auditor [-r|--save_report -d|--dry -v|--verbose]`
 
 Options:
 
 * `-h`, `--help`
-* `-r`, `--save_report <dir>`     Directory to save report to, e.g. `c:\temp`
+* `-r`, `--save_report`           Save report to the file specified in the credentials file (will be rotated)
 * `-d`, `--dry`                   Only run the checks, don't do any fixes
 * `-v`, `--verbose`               Print status updates to the console
 
 Example:
 
-* `auditor -v -r c:\temp`
+* `auditor -v -r`
 
 ### Forklift
 
