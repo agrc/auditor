@@ -72,10 +72,10 @@ class ItemFixer:
 
         #:item.update() returns False if it fails
         if not update_result:
-            self.item_report['title_result'] = f'Failed to update title to "{title}"'
+            self.item_report['title_result'] = f'Failed to update title to \'{title}\''
             return
 
-        self.item_report['title_result'] = f'Updated title to "{title}"'
+        self.item_report['title_result'] = f'Updated title to \'{title}\''
 
     def group_fix(self, groups_dict):
         """
@@ -101,15 +101,15 @@ class ItemFixer:
 
             #: Report if we couldn't share it with group
             if gid in result_dict['notSharedWith']:
-                self.item_report['groups_result'] = f'Failed to share with everyone and "{group_name}" group'
+                self.item_report['groups_result'] = f'Failed to share with everyone and \'{group_name}\' group'
                 return
 
         #: Groups should always be found, but in case they're not, report
         except KeyError:
-            self.item_report['groups_result'] = f'Cannot find group "{group_name}" in organization'
+            self.item_report['groups_result'] = f'Cannot find group \'{group_name}\' in organization'
             return
 
-        self.item_report['groups_result'] = f'Shared with everyone and "{group_name}" group'
+        self.item_report['groups_result'] = f'Shared with everyone and \'{group_name}\' group'
 
     def folder_fix(self):
         """
@@ -130,16 +130,16 @@ class ItemFixer:
 
         #: .move(folder) returns None if folder not found
         if not move_result:
-            self.item_report['folder_result'] = f'"{folder}" folder not found'
+            self.item_report['folder_result'] = f'\'{folder}\' folder not found'
             return
 
         #: Catching any other abnormal result
         if not move_result['success']:
-            self.item_report['folder_result'] = f'Failed to move item to "{folder}" folder'
+            self.item_report['folder_result'] = f'Failed to move item to \'{folder}\' folder'
             return
 
         #: If all the checks have passed, return good result.
-        self.item_report['folder_result'] = f'Item moved to "{folder}" folder'
+        self.item_report['folder_result'] = f'Item moved to \'{folder}\' folder'
 
     def delete_protection_fix(self):
         """
@@ -224,14 +224,14 @@ class ItemFixer:
             self.item.update(metadata=str(metadata_xml_path))
 
             if self.item.metadata != arcpy_metadata.xml:
-                self.item_report['metadata_result'] = f'Tried to update metadata from "{fc_path}; verify manually"'
+                self.item_report['metadata_result'] = f'Tried to update metadata from \'{fc_path}\'; verify manually'
                 return
 
         except ValueError:
-            self.item_report['metadata_result'] = f'Metadata too long to upload from "{fc_path}" (>32,767 characters)'
+            self.item_report['metadata_result'] = f'Metadata too long to upload from \'{fc_path}\' (>32,767 characters)'
             return
 
-        self.item_report['metadata_result'] = f'Metadata updated from "{fc_path}"'
+        self.item_report['metadata_result'] = f'Metadata updated from \'{fc_path}\''
 
     def description_note_fix(self, static_note, shelved_note):
         """
@@ -303,11 +303,11 @@ class ItemFixer:
 
         try:
             self.item.content_status = new_authoritative
-            self.item_report['authoritative_result'] = f'Content status updated to "{new_authoritative}"'
+            self.item_report['authoritative_result'] = f'Content status updated to \'{new_authoritative}\''
             return
 
         except ValueError:
-            self.item_report['authoritative_result'] = f'Invalid new authoritative value "{new_authoritative}"'
+            self.item_report['authoritative_result'] = f'Invalid new authoritative value \'{new_authoritative}\''
             return
 
         except RuntimeError:
