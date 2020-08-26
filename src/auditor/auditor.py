@@ -6,6 +6,7 @@ See cli.py for usage
 
 import datetime
 import logging
+import uuid
 
 from pathlib import Path
 from time import sleep
@@ -243,13 +244,21 @@ class Auditor:
                     table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
                     table_authoritative = 'n'
 
-                if table_agol_itemid:  #: Don't evaluate null itemids
-                    if table_agol_itemid not in self.metatable_dict:
-                        self.metatable_dict[table_agol_itemid] = [
-                            table_sgid_name, table_agol_name, table_category, table_authoritative
-                        ]
-                    else:
-                        duplicate_keys.append(table_agol_itemid)
+                #: Item IDs are UUIDs. If we can't parse the item id listed in the table, it means the layer is not
+                #: in AGOL and this row should be skipped (catches both magic words and empty entries)
+                try:
+                    uuid.UUID(table_agol_itemid)
+                except (AttributeError, ValueError, TypeError):
+                    if self.verbose:
+                        print(f'{table_sgid_name} from {table} table not in AGOL')
+                    continue
+
+                if table_agol_itemid not in self.metatable_dict:
+                    self.metatable_dict[table_agol_itemid] = [
+                        table_sgid_name, table_agol_name, table_category, table_authoritative
+                    ]
+                else:
+                    duplicate_keys.append(table_agol_itemid)
 
         return duplicate_keys
 
