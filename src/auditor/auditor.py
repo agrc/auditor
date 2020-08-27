@@ -367,10 +367,8 @@ class Auditor:
                         continue
 
                     #: Increment fixed item summary statistic
-                    if status in self.fix_counts:
-                        self.fix_counts[status] += 1
-                    else:
-                        self.fix_counts[status] = 1
+                    self.fix_counts.setdefault(status, 0)
+                    self.fix_counts[status] += 1
                     #: Log actual fixes
                     if self.verbose:
                         print(f'\t{item_report[status]}')
