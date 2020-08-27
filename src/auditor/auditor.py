@@ -249,8 +249,6 @@ class Auditor:
                 try:
                     uuid.UUID(table_agol_itemid)
                 except (AttributeError, ValueError, TypeError):
-                    if self.verbose:
-                        print(f'{table_sgid_name} from {table} table not in AGOL')
                     continue
 
                 if table_agol_itemid not in self.metatable_dict:
