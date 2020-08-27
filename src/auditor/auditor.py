@@ -84,6 +84,8 @@ def log_report(report_dict, report_file, separator='|', rotate_count=18):
 class Metatable:
 
     def __init__(self):
+        #: A dictionary of the metatable records, indexed by the metatable's itemid
+        #: values: {item_id: [table_sgid_name, table_agol_name, table_category, table_authoritative]}
         self.metatable_dict = {}
         self.duplicate_keys = []
 
@@ -164,7 +166,7 @@ class Auditor:
         'Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>'
     )
 
-    def __init__(self, log, items_to_check=[], verbose=False):
+    def __init__(self, log, verbose=False, item_ids=None):
         """
         Create an arcgis.gis.GIS object using the user, portal, and password set in credentials.py. Automatically
         create a list of all the Feature Service objects in the user's folders and a dictionary of each item's folder
@@ -184,12 +186,15 @@ class Auditor:
         #: A list of feature service items to audit
         self.items_to_check = []
 
+        #: Hosted Feature Service items in the AGOL org
+        self.agol_items = []
+
         #: A dictionary of items and their folder
         self.itemid_and_folder = {}
 
         #: A dictionary of the metatable records, indexed by the metatable's itemid
         #: values: {item_id: [table_sgid_name, table_agol_name, table_category, table_authoritative]}
-        self.metatable_dict = {}
+        # self.metatable_dict = {}
 
         #: A dictionary of groups and their ID:
         self.groups_dict = {}
@@ -210,6 +215,10 @@ class Auditor:
         self.metadata_xml_template = credentials.XML_TEMPLATE
 
         self.log = log
+
+        self.item_ids = item_ids
+
+        self.setup()
 
     #: TODO: Wrap in a method, call via retry()
     def setup(self):
@@ -236,8 +245,15 @@ class Auditor:
         for folder in folders:
             for item in user_item.items(folder, 1000):
                 if item.type == 'Feature Service':
-                    self.items_to_check.append(item)
+                    self.agol_items.append(item)
                     self.itemid_and_folder[item.itemid] = folder
+
+        #: If no item IDs have been passed, check all items
+        if self.item_ids:
+            for item_id in self.item_ids:
+                self.items_to_check.append(self.gis.content.get(item_id))  # pylint: disable=no-member
+        else:
+            self.items_to_check = self.agol_items
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
@@ -289,7 +305,7 @@ class Auditor:
                 #: Initialize empty dictionary for this item
                 self.report_dict[itemid] = {}
 
-                checker = checks.ItemChecker(item, self.metatable_dict)
+                checker = checks.ItemChecker(item, self.metatable.metatable_dict)
                 retry(lambda: checker.setup(credentials.DB))  # pylint: disable=cell-var-from-loop
 
                 #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
