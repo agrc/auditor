@@ -359,16 +359,21 @@ class Auditor:
                     'authoritative_result', 'visibility_result'
                 ]
 
+                #: Update summary statistics, print results if verbose
                 for status in update_status_keys:
-                    if 'No update needed for' not in item_report[status]:
-                        #: Increment fixed item summary statistic
-                        if status in self.fix_counts:
-                            self.fix_counts[status] += 1
-                        else:
-                            self.fix_counts[status] = 1
-                        #: Log actual fixes
-                        if self.verbose:
-                            print(f'\t{item_report[status]}')
+
+                    #: Skip statuses not updated
+                    if 'No update needed for' in item_report[status]:
+                        continue
+
+                    #: Increment fixed item summary statistic
+                    if status in self.fix_counts:
+                        self.fix_counts[status] += 1
+                    else:
+                        self.fix_counts[status] = 1
+                    #: Log actual fixes
+                    if self.verbose:
+                        print(f'\t{item_report[status]}')
 
         except KeyboardInterrupt:
             print('Interrupted by Ctrl-c')
