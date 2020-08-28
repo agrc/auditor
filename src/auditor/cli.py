@@ -2,13 +2,14 @@
 auditor
 
 Usage:
-    auditor [--save_report --dry --verbose]
+    auditor [--save_report --dry --verbose ITEM ...]
 
 Options:
     -h, --help
     -r, --save_report           Save report to the file specified in the credentials file (will be rotated)
     -d, --dry                   Only run the checks, don't do any fixes [default: False]
     -v, --verbose               Print status updates to the console [default: False]
+    ITEM                        One or more AGOL item IDs to audit. If none are specified, all items are audited.
 
 Examples:
     auditor -r -v
@@ -49,7 +50,7 @@ def cli():
         cli_handler.setFormatter(detailed_formatter)
         cli_logger.addHandler(cli_handler)
 
-        org_auditor = Auditor(cli_logger, args['--verbose'])
+        org_auditor = Auditor(cli_logger, args['--verbose'], args['ITEM'])
 
         if args['--dry']:
             org_auditor.check_items(args['--save_report'])
