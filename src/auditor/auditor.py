@@ -193,15 +193,8 @@ class Auditor:
         #: A list of feature service items to audit
         self.items_to_check = []
 
-        #: Hosted Feature Service items in the AGOL org
-        self.agol_items = []
-
         #: A dictionary of items and their folder
         self.itemid_and_folder = {}
-
-        #: A dictionary of the metatable records, indexed by the metatable's itemid
-        #: values: {item_id: [table_sgid_name, table_agol_name, table_category, table_authoritative]}
-        # self.metatable_dict = {}
 
         #: A dictionary of groups and their ID:
         self.groups_dict = {}
@@ -244,29 +237,38 @@ class Auditor:
 
         user_item = self.gis.users.me  # pylint: disable=no-member
 
-        #: Build list of folders. 'None' gives us the root folder.
+        #: Build dict of folders. 'None' gives us the root folder.
         if self.verbose:
             print(f'Getting {self.username}\'s folders...')
-        folders = [None]
+        folders = {None: None}
         for folder in user_item.folders:
-            folders.append(folder['title'])
+            folders[folder['id']] = folder['title']
 
-        #: Get info for every item in every folder
-        self.agol_items = []  #: Clear this out again in case retry calls setup() multiple times.
+        self.items_to_check = []  #: Clear this out again in case retry calls setup() multiple times.
+
+        #: Get item object and it's correspond folder for each relevant item
         if self.verbose:
             print('Getting item objects...')
-        for folder in folders:
-            for item in user_item.items(folder, 1000):
-                if item.type == 'Feature Service':
-                    self.agol_items.append(item)
-                    self.itemid_and_folder[item.itemid] = folder
 
-        #: If no item IDs have been passed, check all items
+        #: User-provided list
         if self.item_ids:
             for item_id in self.item_ids:
-                self.items_to_check.append(self.gis.content.get(item_id))  # pylint: disable=no-member
+                item = self.gis.content.get(item_id)  # pylint: disable=no-member
+                if not item:
+                    raise ValueError(f'Item {item_id} not found')
+                self.items_to_check.append(item)
+                try:
+                    self.itemid_and_folder[item.itemid] = folders[item.ownerFolder]
+                except KeyError:
+                    raise ValueError(f'Folder id {item.ownerFolder} not found (wrong user?)')
+
+        #: No user-provided item ids, get all hosted feature services in every folder
         else:
-            self.items_to_check = self.agol_items
+            for _, name in folders.items():
+                for item in user_item.items(name, 1000):
+                    if item.type == 'Feature Service':
+                        self.items_to_check.append(item)
+                        self.itemid_and_folder[item.itemid] = name
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
