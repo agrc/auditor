@@ -289,10 +289,6 @@ class Auditor:
         groups = self.gis.groups.search('title:*')  # pylint: disable=no-member
         self.groups_dict = {g.title: g.id for g in groups}
 
-    # except HTTPError:
-    #     print(f'Connection error, probably for connection with {credentials.ORG}')
-    #     raise
-
     def check_items(self, report=False):
         """
         Instantiates an ItemChecker for each item and manually runs the
