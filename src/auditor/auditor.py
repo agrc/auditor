@@ -225,13 +225,14 @@ class Auditor:
 
         self.item_ids = item_ids
 
-        self.setup()
+        #: Wrapped in retry() to catch any connection problems.
+        retry(self.setup)
 
-    #: TODO: Wrap in a method, call via retry()
     def setup(self):
         """
         Sets up the Auditor by logging into the ArcGIS org, getting all the items and folders, and reading in the
         metatable(s). To be called in __init__().
+        In case of multiple calls (ie, for retry()), all data are re-instantiated/initialized.
         """
 
         self.log.info(f'Logging into {credentials.ORG} as {credentials.USERNAME}')
@@ -251,6 +252,7 @@ class Auditor:
             folders.append(folder['title'])
 
         #: Get info for every item in every folder
+        self.agol_items = []  #: Clear this out again in case retry calls setup() multiple times.
         if self.verbose:
             print('Getting item objects...')
         for folder in folders:
