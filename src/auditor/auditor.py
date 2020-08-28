@@ -10,7 +10,6 @@ import uuid
 
 from pathlib import Path
 from time import sleep
-from urllib.error import HTTPError
 
 import arcgis
 import arcpy
@@ -82,6 +81,14 @@ def log_report(report_dict, report_file, separator='|', rotate_count=18):
 
 
 class Metatable:
+    """
+    Represents the metatable containing information about SGID items uploaded to AGOL.
+    read_metatable() can be called on both the SGID AGOLItems table or the AGOL-hosted AGOLItems_Shelved table.
+    Table stored as self.metatable_dict in the following format:
+        {item_id: [table_sgid_name, table_agol_name, table_category, table_authoritative]}
+    Any duplicate item ids (either a table has the same AGOL item in more than one row, or the item id exists in
+    multiple tables) are added to the self.duplicate_keys list.
+    """
 
     def __init__(self):
         #: A dictionary of the metatable records, indexed by the metatable's itemid
@@ -222,6 +229,10 @@ class Auditor:
 
     #: TODO: Wrap in a method, call via retry()
     def setup(self):
+        """
+        Sets up the Auditor by logging into the ArcGIS org, getting all the items and folders, and reading in the
+        metatable(s). To be called in __init__().
+        """
 
         self.log.info(f'Logging into {credentials.ORG} as {credentials.USERNAME}')
 
