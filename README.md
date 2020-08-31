@@ -8,7 +8,7 @@ You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www
 
 ## Item Checks
 
-`auditor` audits all the AGOL Feature Service items in a user's folders so long as the items' ids are found in either an SDE-hosted or AGOL-hosted metatable. The following AGOL item properties are checked:
+`auditor` audits AGOL Feature Service items based on information from either an SDE-hosted or AGOL-hosted metatable using the AGOL Item ID as a lookup key. The following item properties are checked using information from the metatable(s):
 
 * Title
 * Group
@@ -20,11 +20,11 @@ You... are AWESOME (go watch Kurt Kuenne's short film ["Validation"](https://www
 * Sets the flag to 'Allow others to export to different formats', which opens up GDB downloads in Open Data
 * Marks the item as Authoritative
 
-It also validates the tags (proper-case tags, don't repeat words found in the title) for *all* Feature Service items in the user's folders, regardless if they are found in the metatables or not.
+Additionally, it also checks the tags (proper-case tags, remove unnecessary tags) regardless if the item(s) are found in the metatables or not.
 
 ### What Items Does it Check?
 
-`auditor` checks all the Feature Service items in a user's folders. It does this by getting a list of the user's folders and then searching for any Feature Services in each folder (including the root directory).
+`auditor` will either check the items specified on the command line, or if none are specified it will check all the Feature Service items in a user's folders. It does this by getting a list of the user's folders and then searching for any Feature Services in each folder (including the root directory).
 
 Because a user's folder only holds items that they own, it effectively checks all the user's Feature Service items. However, be aware of the distinction of all the Feature Services in a user's folders vs all a user's Feature Services in case you run into a weird edge case.
 
@@ -47,7 +47,7 @@ Because a user's folder only holds items that they own, it effectively checks al
 
 ### Command line
 
-`python auditor [-r|--save_report -d|--dry -v|--verbose]`
+`python auditor [-r|--save_report -d|--dry -v|--verbose ITEM ...]`
 
 Options:
 
@@ -55,10 +55,12 @@ Options:
 * `-r`, `--save_report`           Save report to the file specified in the credentials file (will be rotated)
 * `-d`, `--dry`                   Only run the checks, don't do any fixes
 * `-v`, `--verbose`               Print status updates to the console
+* ITEM                            One or more AGOL item IDs to audit. If none are specified, all items are audited.
 
 Example:
 
 * `auditor -v -r`
+* `auditor -v -r aaaaaaaabbbbccccddddeeeeeeeeeeee ffffffff111122223333444444444444`
 
 ### Forklift
 
@@ -71,10 +73,11 @@ The SGID metatable is read using `arcpy` and should at a minimum have the three 
 1. `TABLENAME`: The fully-qualified source table name. The schema will be used to determine the group and folder (ie, `SGID10.BOUNDARIES.Counties`'s category is `Utah SGID Boundaries` and its folder is `Boundaries`)
 1. `AGOL_ITEM_ID`: The published AGOL item id for the table.
 1. `AGOL_PUBLISHED_NAME`: The table's desired AGOL Feature Service name.
+1. `Authoritative`: Whether the dataset should be marked as "Authoritative" (`y`), "Deprecated" (`d`), or neither (blank).
 
-The AGOL metatable is hosted on AGOL and is also read with `arcpy`. It needs the following fields in addition to the SGID metatable's fields:
+The AGOL metatable is hosted on AGOL and is also read with `arcpy`. It does not contain the `Authoritative` field, and it needs the following field in addition to the SGID metatable's fields:
 
-1. `Category`: Whether the layer is `shelved` or `static`.
+1. `CATEGORY`: Whether the layer is `shelved` or `static`.
 
 ## Thumbnail Directory
 
