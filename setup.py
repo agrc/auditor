@@ -50,6 +50,7 @@ setup(
             'pytest-watch==4.2.*',
             'pytest==4.*',
             'yapf==0.30.*',
+            'pytest-mock==3.2.*',
         ]
     },
     setup_requires=[
