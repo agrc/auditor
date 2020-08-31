@@ -99,18 +99,18 @@ class Metatable:
     def read_metatable(self, table, fields):
         """
         Read metatable 'table' into self.metatable_dict.
-
-        Returns: list of any duplicate AGOL item ids found
         """
 
         with arcpy.da.SearchCursor(table, fields) as meta_cursor:
             for row in meta_cursor:
 
-                if fields[-1] == 'Authoritative':  #: SGID's AGOLItems table's last field is "Authoritative"
+                #: If table is from SGID, get "authoritative" from table and set "category" to SGID. Otherwise,
+                #: get "category" from table and set "authoritative" to 'n'.
+                #: SGID's AGOLItems table has "Authoritative" field, shelved table does not.
+                if 'Authoritative' in fields:
                     table_sgid_name, table_agol_itemid, table_agol_name, table_authoritative = row
                     table_category = 'SGID'
-
-                else:  #: Shelved table hosted in AGOL's last field is "CATEGORY"
+                else:
                     table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
                     table_authoritative = 'n'
 
