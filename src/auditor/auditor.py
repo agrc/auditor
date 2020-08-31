@@ -99,6 +99,9 @@ class Metatable:
     def read_metatable(self, table, fields):
         """
         Read metatable 'table' into self.metatable_dict.
+
+        table:      Path to a table readable by arcpy.da.SearchCursor
+        fields:     List of fields names to access in the table. 
         """
 
         with arcpy.da.SearchCursor(table, fields) as meta_cursor:
