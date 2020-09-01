@@ -139,10 +139,9 @@ class Metatable:
         fields:     List of fields names to access in the table.
         """
 
-        search_cursor = arcpy.da.SearchCursor(table, fields)
-        for row in search_cursor:
-            yield row
-        search_cursor = None
+        with arcpy.da.SearchCursor(table, fields) as search_cursor:
+            for row in search_cursor:
+                yield row
 
 
 class Auditor:
