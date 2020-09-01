@@ -98,38 +98,51 @@ class Metatable:
 
     def read_metatable(self, table, fields):
         """
-        Read metatable 'table' into self.metatable_dict.
+        Read metatable 'table' into self.metatable_dict. Any duplicate Item IDs are added to self.duplicate_keys.
+        Any rows with an Item ID that can't be parsed as a UUID is not added to self.metatable_dict.
 
         table:      Path to a table readable by arcpy.da.SearchCursor
-        fields:     List of fields names to access in the table. 
+        fields:     List of fields names to access in the table.
         """
 
-        with arcpy.da.SearchCursor(table, fields) as meta_cursor:
-            for row in meta_cursor:
+        for row in self._cursor_wrapper(table, fields):
 
-                #: If table is from SGID, get "authoritative" from table and set "category" to SGID. Otherwise,
-                #: get "category" from table and set "authoritative" to 'n'.
-                #: SGID's AGOLItems table has "Authoritative" field, shelved table does not.
-                if 'Authoritative' in fields:
-                    table_sgid_name, table_agol_itemid, table_agol_name, table_authoritative = row
-                    table_category = 'SGID'
-                else:
-                    table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
-                    table_authoritative = 'n'
+            #: If table is from SGID, get "authoritative" from table and set "category" to SGID. Otherwise,
+            #: get "category" from table and set "authoritative" to 'n'.
+            #: SGID's AGOLItems table has "Authoritative" field, shelved table does not.
+            if 'Authoritative' in fields:
+                table_sgid_name, table_agol_itemid, table_agol_name, table_authoritative = row
+                table_category = 'SGID'
+            else:
+                table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
+                table_authoritative = 'n'
 
-                #: Item IDs are UUIDs. If we can't parse the item id listed in the table, it means the layer is not
-                #: in AGOL and this row should be skipped (catches both magic words and empty entries)
-                try:
-                    uuid.UUID(table_agol_itemid)
-                except (AttributeError, ValueError, TypeError):
-                    continue
+            #: Item IDs are UUIDs. If we can't parse the item id listed in the table, it means the layer is not
+            #: in AGOL and this row should be skipped (catches both magic words and empty entries)
+            try:
+                uuid.UUID(table_agol_itemid)
+            except (AttributeError, ValueError, TypeError):
+                continue
 
-                if table_agol_itemid not in self.metatable_dict:
-                    self.metatable_dict[table_agol_itemid] = [
-                        table_sgid_name, table_agol_name, table_category, table_authoritative
-                    ]
-                else:
-                    self.duplicate_keys.append(table_agol_itemid)
+            if table_agol_itemid not in self.metatable_dict:
+                self.metatable_dict[table_agol_itemid] = [
+                    table_sgid_name, table_agol_name, table_category, table_authoritative
+                ]
+            else:
+                self.duplicate_keys.append(table_agol_itemid)
+
+    def _cursor_wrapper(self, table, fields):
+        """
+        Wrapper for arcpy.da.SearchCursor so that it can be Mocked out in testing.
+
+        table:      Path to a table readable by arcpy.da.SearchCursor
+        fields:     List of fields names to access in the table.
+        """
+
+        search_cursor = arcpy.da.SearchCursor(table, fields)
+        for row in search_cursor:
+            yield row
+        search_cursor = None
 
 
 class Auditor:
