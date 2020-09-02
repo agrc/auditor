@@ -241,7 +241,8 @@ class ItemChecker:
                 self.new_tags.append('AGRC')
 
         #: Create tags data: tags_fix, tags_old, tags_new
-        tags_data = {'tags_fix': 'N', 'tags_old': '', 'tags_new': ''}
+        #: Report existing tags for troubleshooting why some items don't seem to be checked during weekly run.
+        tags_data = {'tags_fix': 'N', 'tags_old': self.item.tags, 'tags_new': ''}
 
         if sorted(self.new_tags) != sorted(self.item.tags):
             tags_data = {'tags_fix': 'Y', 'tags_old': self.item.tags, 'tags_new': self.new_tags}
