@@ -148,7 +148,7 @@ def test_org_checker_completes_and_logs(mocker, caplog):
     cli_logger = logging.getLogger('test')
 
     agol_item = namedtuple('agol_item', ['title', 'itemid'])
-    item_list = [agol_item('foo', 1), agol_item('bar', 2), agol_item('foo', 3)]
+    item_list = [agol_item('foo', 1), agol_item('foo', 2)]
 
     mocker.patch('auditor.auditor.Auditor.setup')
     
@@ -158,4 +158,20 @@ def test_org_checker_completes_and_logs(mocker, caplog):
         test_auditor.check_organization_wide()
 
         assert 'check_for_duplicate_titles results (1):' in caplog.text
-        assert 'foo: [1, 3]' in caplog.text
+        assert 'foo: [1, 2]' in caplog.text
+
+def test_org_checker_reports_no_results(mocker, caplog):
+
+    cli_logger = logging.getLogger('test')
+
+    agol_item = namedtuple('agol_item', ['title', 'itemid'])
+    item_list = [agol_item('foo', 1), agol_item('bar', 2)]
+
+    mocker.patch('auditor.auditor.Auditor.setup')
+    
+    test_auditor = Auditor(cli_logger, verbose=True)
+    test_auditor.items_to_check = item_list
+    with caplog.at_level(logging.DEBUG, logger='test'):
+        test_auditor.check_organization_wide()
+
+        assert 'check_for_duplicate_titles returned no results' in caplog.text
