@@ -14,7 +14,7 @@ from time import sleep
 import arcgis
 import arcpy
 
-from . import checks, fixes, credentials
+from . import checks, fixes, credentials, org_checker
 
 
 def retry(worker, verbose=True, tries=1):
@@ -355,6 +355,20 @@ class Auditor:
         finally:
             if report:
                 log_report(self.report_dict, credentials.REPORT_BASE_PATH)
+
+    def check_organization_wide(self):
+
+        #: Run organization-wide checks
+        organization_checker = org_checker.OrgChecker(self.items_to_check)
+        org_results = organization_checker.run_checks()
+
+        #: Log results to main logger
+        for check, check_results_dict in org_results.items():
+            if check_results_dict:
+                self.log.info(f'{check} results ({len(check_results_dict)}):')
+                for key, value in check_results_dict.items():
+                    self.log.info(f'{key}: {value}')
+
 
     def fix_items(self, report=False):
         """

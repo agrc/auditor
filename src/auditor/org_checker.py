@@ -19,7 +19,11 @@ class OrgChecker:
         Run all checks in the OrgChecker. Any new checks should be added to this method.
         """
 
-        self.check_for_duplicate_titles()
+        results_dict = {}
+
+        results_dict['check_for_duplicate_titles'] = self.check_for_duplicate_titles()
+
+        return results_dict
 
     def check_for_duplicate_titles(self):
         """
