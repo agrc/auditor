@@ -14,5 +14,6 @@ class AuditorPallet(Pallet):
 
     def process(self):
         org_auditor = auditor.Auditor(self.log)
+        org_auditor.check_organization_wide()
         org_auditor.check_items(report=False)  #: Don't bother reporting checks
         org_auditor.fix_items(report=True)

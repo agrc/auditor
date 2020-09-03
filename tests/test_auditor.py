@@ -1,6 +1,9 @@
 import pytest
+import logging
 
-from auditor.auditor import retry, Metatable
+from collections import namedtuple
+
+from auditor.auditor import Auditor, retry, Metatable
 
 
 def test_retry():
@@ -138,3 +141,21 @@ def test_duplicate_itemids_from_different_tables_reported_in_list(mocker):
     assert test_table.metatable_dict['9d2e949a9492425dbb4e5d5212f9ef19'] == [
         'sgid table name', 'sgid agol title', 'SGID', None
     ]
+
+
+def test_org_checker_completes_and_logs(mocker, caplog):
+
+    cli_logger = logging.getLogger('test')
+
+    agol_item = namedtuple('agol_item', ['title', 'itemid'])
+    item_list = [agol_item('foo', 1), agol_item('bar', 2), agol_item('foo', 3)]
+
+    mocker.patch('auditor.auditor.Auditor.setup')
+    
+    test_auditor = Auditor(cli_logger, verbose=True)
+    test_auditor.items_to_check = item_list
+    with caplog.at_level(logging.DEBUG, logger='test'):
+        test_auditor.check_organization_wide()
+
+        assert 'check_for_duplicate_titles results (1):' in caplog.text
+        assert 'foo: [1, 3]' in caplog.text
