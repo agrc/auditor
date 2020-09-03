@@ -358,6 +358,8 @@ class Auditor:
 
     def check_organization_wide(self):
 
+        self.log.info('Running organization-wide checks...')
+
         #: Run organization-wide checks
         organization_checker = org_checker.OrgChecker(self.items_to_check)
         org_results = organization_checker.run_checks()
@@ -368,6 +370,8 @@ class Auditor:
                 self.log.info(f'{check} results ({len(check_results_dict)}):')
                 for key, value in check_results_dict.items():
                     self.log.info(f'{key}: {value}')
+            else:
+                self.log.info(f'{check} returned no results')
 
 
     def fix_items(self, report=False):
