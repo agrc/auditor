@@ -88,6 +88,13 @@ class ItemChecker:
         self.item = item
         self.metatable_dict = metatable_dict
 
+        #: Get the REST properties object once
+        try:
+            manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
+            self.properties = json.loads(str(manager.properties))
+        except:  # pylint: disable=bare-except
+            self.properties = None
+
         #: These may or may not be used outside their specific check methods
         self.new_tags = []
         self.downloads = False
@@ -483,3 +490,22 @@ class ItemChecker:
             fix_visibility['visibility_fix'] = 'Y'
 
         self.results_dict.update(fix_visibility)
+
+    def cache_age_check(self, max_age):
+        """
+        Make sure the cacheMaxAge setting matches the desired time. Sets the "Cache Control" value in the AGOL
+        item settings.
+
+        Update results_dict with results for this item:
+                {'cache_age_fix':'', 'cache_age_old':'', 'cache_age_new:''}
+        """
+
+        #: Create protect data: downloads_fix
+        fix_cache_age = {'cache_age_fix': 'N', 'cache_age_old': '', 'cache_age_new': ''}
+
+        if self.in_sgid and self.properties:
+            current_age = self.properties['adminServiceInfo']['cacheMaxAge']
+            if current_age != max_age:
+                fix_cache_age = {'cache_age_fix': 'Y', 'cache_age_old': current_age, 'cache_age_new': max_age}
+
+        self.results_dict.update(fix_cache_age)

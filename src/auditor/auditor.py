@@ -348,6 +348,7 @@ class Auditor:
                 checker.thumbnail_check(credentials.THUMBNAIL_DIR)
                 retry(checker.authoritative_check)
                 retry(checker.visibility_check)
+                retry(lambda: checker.cache_age_check(credentials.CACHE_MAX_AGE))  # pylint: disable=cell-var-from-loop
 
                 #: Add results to the report
                 self.report_dict[itemid].update(checker.results_dict)
