@@ -415,11 +415,12 @@ class Auditor:
                 retry(fixer.thumbnail_fix)
                 retry(fixer.authoritative_fix)
                 retry(fixer.visibility_fix)
+                retry(fixer.cache_age_fix)
 
                 update_status_keys = [
                     'metadata_result', 'tags_result', 'title_result', 'groups_result', 'folder_result',
                     'delete_protection_result', 'downloads_result', 'description_note_result', 'thumbnail_result',
-                    'authoritative_result', 'visibility_result'
+                    'authoritative_result', 'visibility_result', 'cache_age_result'
                 ]
 
                 #: Update summary statistics, print results if verbose
