@@ -342,3 +342,27 @@ class ItemFixer:
             return
 
         self.item_report['visibility_result'] = 'Default visibility set to True'
+
+    def cache_age_fix(self):
+        """
+        Create a FeatureLayerCollection from item and use it's manager object to
+        change the cacheAgeMax property
+
+        Updates item_report with results for this fix:
+        {cache_age_result: result}
+        """
+
+        if self.item_report['cache_age_fix'].casefold() != 'y':
+            self.item_report['cache_age_result'] = 'No update needed for cacheAgeMax'
+            return
+
+        new_age = self.item_report['cache_age_new']
+
+        manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
+        cache_age_result = manager.update_definition({'cache_age_max': new_age})
+
+        if not cache_age_result['success']:
+            self.item_report['cache_age_result'] = f'Failed to set cacheAgeMax to {new_age}'
+            return
+
+        self.item_report['cache_age_result'] = f'cacheAgeMax set to {new_age}'
