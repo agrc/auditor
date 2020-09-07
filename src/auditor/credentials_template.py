@@ -10,3 +10,4 @@ METATABLE = ''  #: Full path to SGID.META.AGOLItems metatable
 AGOL_TABLE = ''  #: URL for Feature Service REST endpoint for AGOL-hosted metatable
 XML_TEMPLATE = ''  #: Path to 'exact copy of.xslt' template
 REPORT_BASE_PATH = ''  #: File path for report CSVs of everything that was fixed; rotated on each run
+CACHE_MAX_AGE = None  #: Number of seconds for the Cache Control/cacheMaxAge property (int)
