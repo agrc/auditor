@@ -374,7 +374,6 @@ class Auditor:
             else:
                 self.log.info(f'{check} returned no results')
 
-
     def fix_items(self, report=False):
         """
         Instantiates an ItemFixer for each item and manually runs the specified
