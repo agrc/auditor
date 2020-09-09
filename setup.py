@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='auditor',
-    version='1.4.0',
+    version='1.3.0',
     license='MIT',
     description=(
         'Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on '
@@ -27,7 +27,7 @@ setup(
     zip_safe=True,
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: System Administrators',
         'Topic :: Utilities',
     ],
