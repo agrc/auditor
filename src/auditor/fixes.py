@@ -346,23 +346,23 @@ class ItemFixer:
     def cache_age_fix(self):
         """
         Create a FeatureLayerCollection from item and use it's manager object to
-        change the cacheAgeMax property
+        change the cacheMaxAge property
 
         Updates item_report with results for this fix:
         {cache_age_result: result}
         """
 
         if self.item_report['cache_age_fix'].casefold() != 'y':
-            self.item_report['cache_age_result'] = 'No update needed for cacheAgeMax'
+            self.item_report['cache_age_result'] = 'No update needed for cacheMaxAge'
             return
 
         new_age = self.item_report['cache_age_new']
 
         manager = arcgis.features.FeatureLayerCollection.fromitem(self.item).manager
-        cache_age_result = manager.update_definition({'cache_age_max': new_age})
+        cache_age_result = manager.update_definition({'cacheMaxAge': new_age})
 
         if not cache_age_result['success']:
-            self.item_report['cache_age_result'] = f'Failed to set cacheAgeMax to {new_age}'
+            self.item_report['cache_age_result'] = f'Failed to set cacheMaxAge to {new_age}'
             return
 
-        self.item_report['cache_age_result'] = f'cacheAgeMax set to {new_age}'
+        self.item_report['cache_age_result'] = f'cacheMaxAge set to {new_age}'
