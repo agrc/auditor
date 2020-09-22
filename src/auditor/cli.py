@@ -52,9 +52,10 @@ def cli():
 
         org_auditor = Auditor(cli_logger, args['--verbose'], args['ITEM'])
 
-        org_auditor.check_organization_wide()
         if args['--dry']:
             org_auditor.check_items(args['--save_report'])
         else:
             org_auditor.check_items(report=False)  #: only do the fix report on a full run.
             org_auditor.fix_items(args['--save_report'])
+
+        org_auditor.check_organization_wide()
