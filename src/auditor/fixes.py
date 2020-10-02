@@ -202,6 +202,11 @@ class ItemFixer:
             self.item_report['metadata_result'] = 'No update needed for metadata'
             return
 
+        #: Save tags in case metadata upload replaces them with tags that aren't exposed by the arcpy metadata's .tags
+        #: property (those tags are handled properly in the tag check/fix)
+        good_tags = self.item.tags
+        tag_result = 'successfully reapplied tags'
+
         fc_path = self.item_report['metadata_new']
 
         arcpy_metadata = arcpy.metadata.Metadata(fc_path)
@@ -223,15 +228,22 @@ class ItemFixer:
         try:
             self.item.update(metadata=str(metadata_xml_path))
 
+            #: Re-upload tags
+            tag_update_result = self.item.update({'tags': good_tags})
+
+            if not tag_update_result:
+                tag_result = 'unable to reapply tags'
+
             if self.item.metadata != arcpy_metadata.xml:
-                self.item_report['metadata_result'] = f'Tried to update metadata from \'{fc_path}\'; verify manually'
+                self.item_report['metadata_result'
+                                ] = f'Tried to update metadata from \'{fc_path}\'; verify manually; {tag_result}'
                 return
 
         except ValueError:
             self.item_report['metadata_result'] = f'Metadata too long to upload from \'{fc_path}\' (>32,767 characters)'
             return
 
-        self.item_report['metadata_result'] = f'Metadata updated from \'{fc_path}\''
+        self.item_report['metadata_result'] = f'Metadata updated from \'{fc_path}\'; {tag_result}'
 
     def description_note_fix(self, static_note, shelved_note):
         """
