@@ -4,6 +4,7 @@ checks.py: contains ItemChecker class for evaluating an item's metadata, etc and
 import json
 
 from pathlib import Path
+from collections import namedtuple
 
 import arcgis
 import arcpy
@@ -61,6 +62,32 @@ def get_group_from_table(metatable_dict_entry):
     return group
 
 
+def get_item_properties(item):
+    ItemProperties = namedtuple(
+        'ItemProperties',
+        ['title', 'tags', 'shared_with', 'itemid', 'protected', 'description', 'metadata', 'content_status', 'layers']
+    )
+
+    title = item.title
+    tags = item.tags
+    try:
+        shared_with = item.shared_with
+    except:
+        shared_with = Exception
+    itemid = item.itemid
+    protected = item.protected
+    description = item.description
+    metadata = item.metadata
+    content_status = item.content_status
+    layers = item.layers
+
+    item_properties = ItemProperties(
+        title, tags, shared_with, itemid, protected, description, metadata, content_status, layers
+    )
+
+    return item_properties
+
+
 class ItemChecker:
     """
     Class to check an AGOL item. Uses a metatable entry for most information;
@@ -85,7 +112,8 @@ class ItemChecker:
         self.results_dict = {}
         self.results_dict['SGID_Name'] = ''
 
-        self.item = item
+        # self.item = item
+        self.item = get_item_properties(item)
         self.metatable_dict = metatable_dict
 
         #: Get the REST properties object once

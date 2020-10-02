@@ -317,10 +317,13 @@ class Auditor:
 
         self.log.info(f'Checking {len(self.items_to_check)} items')
 
+        times = []
+
         counter = 0
         try:
             for item in self.items_to_check:
 
+                start = datetime.datetime.now()
                 counter += 1
 
                 if self.verbose:
@@ -353,9 +356,15 @@ class Auditor:
                 #: Add results to the report
                 self.report_dict[itemid].update(checker.results_dict)
 
+                end = datetime.datetime.now()
+                times.append((str(end - start), item.title))
+
         finally:
             if report:
                 log_report(self.report_dict, credentials.REPORT_BASE_PATH)
+
+            for time in times:
+                print(time)
 
     def check_organization_wide(self):
 
