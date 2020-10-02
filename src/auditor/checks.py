@@ -64,7 +64,7 @@ def get_group_from_table(metatable_dict_entry):
 
 def get_item_properties(item):
     """
-    Gets all the relevant info about item in successive calls; seems to speed up times by about .5 to 1 second per item. 
+    Gets all the relevant info about item in successive calls; seems to speed up times by about .5 to 1 second per item.
     """
     ItemProperties = namedtuple(
         'ItemProperties',
