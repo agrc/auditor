@@ -75,8 +75,8 @@ def get_item_properties(item):
     tags = item.tags
     try:
         shared_with = item.shared_with
-    except:  # pylint: disable=bare-except
-        shared_with = Exception
+    except Exception as ex:
+        shared_with = ex
     itemid = item.itemid
     protected = item.protected
     description = item.description
