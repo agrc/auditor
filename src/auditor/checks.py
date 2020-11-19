@@ -454,17 +454,13 @@ class ItemChecker:
         thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': ''}
 
         if self.new_group:
-            group = self.new_group.split()[-1]  #: Either 'Shelf' or category name
+            group = self.new_group.split()[-1].casefold()
 
-            #: Default is shelved, change as needed
-            thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': 'Shelved'}
+            thumbnail_path = Path(thumbnail_dir, f'{group}.png')
+            thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_path)}
 
-            if group.casefold() != 'shelf':
-                thumbnail_path = Path(thumbnail_dir, f'{group}.png')
-                thumbnail_data = {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_path)}
-
-                if not thumbnail_path.exists():
-                    thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
+            if not thumbnail_path.exists():
+                thumbnail_data = {'thumbnail_fix': 'N', 'thumbnail_path': f'Thumbnail not found: {thumbnail_path}'}
 
         self.results_dict.update(thumbnail_data)
 
