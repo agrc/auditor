@@ -116,7 +116,7 @@ def test_same_group_doesnt_update_thumbnail(mocker):
     assert item.results_dict == {'thumbnail_fix': 'N', 'thumbnail_path': ''}
 
 
-def test_report_invald_thumbnail_path(mocker):
+def test_report_invalid_thumbnail_path(mocker):
     item = mocker.Mock()
     item.new_group = 'foo'
     item.results_dict = {}
@@ -127,3 +127,16 @@ def test_report_invald_thumbnail_path(mocker):
         'thumbnail_fix': 'N',
         'thumbnail_path': f'Thumbnail not found: {Path(credentials.THUMBNAIL_DIR, "foo.png")}'
     }
+
+
+def test_correct_thumbnails_dir(mocker):
+    item = mocker.Mock()
+    item.new_group = 'Shelved'
+    item.results_dict = {}
+
+    repo_path = Path(__file__).parents[1]
+    thumbnail_path = repo_path / 'thumbnails'
+
+    checks.ItemChecker.thumbnail_check(item, thumbnail_path)
+
+    assert item.results_dict == {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_path / 'shelved.png')}

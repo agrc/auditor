@@ -229,6 +229,9 @@ class Auditor:
 
         self.metadata_xml_template = credentials.XML_TEMPLATE
 
+        repo_base_path = Path(__file__).parents[2]
+        self.thumbnail_dir = repo_base_path / 'thumbnails'
+
         self.log = log
 
         self.item_ids = item_ids
@@ -345,7 +348,7 @@ class Auditor:
                 retry(checker.delete_protection_check)
                 retry(checker.metadata_check)
                 retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
-                checker.thumbnail_check(credentials.THUMBNAIL_DIR)
+                checker.thumbnail_check(self.thumbnail_dir)
                 retry(checker.authoritative_check)
                 retry(checker.visibility_check)
                 retry(lambda: checker.cache_age_check(credentials.CACHE_MAX_AGE))  # pylint: disable=cell-var-from-loop
