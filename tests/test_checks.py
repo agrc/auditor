@@ -3,6 +3,7 @@
 import unittest
 
 from collections import namedtuple
+from pathlib import Path
 
 from auditor import credentials
 from auditor import checks
@@ -28,7 +29,7 @@ from auditor.auditor import Auditor
 #     return fake_metatable
 
 
-def test_upercased_tags():
+def test_lowercase_abbreviation_to_uppercase():
     test_tag = 'udot'
     cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
     assert cased == 'UDOT'
@@ -71,3 +72,40 @@ def test_max_age_ignores_non_sgid_item(mocker):
     checks.ItemChecker.cache_age_check(item, 5)
 
     assert item.results_dict == {'cache_age_fix': 'N', 'cache_age_old': '', 'cache_age_new': ''}
+
+
+def test_shelved_item_propercased_gets_shelved_thumbnail(mocker):
+
+    item = mocker.Mock()
+    item.new_group = 'Shelved'
+    item.results_dict = {}
+
+    checks.ItemChecker.thumbnail_check(item, credentials.THUMBNAIL_DIR)
+
+    assert item.results_dict == {
+        'thumbnail_fix': 'Y',
+        'thumbnail_path': r'c:\gis\Logos\AGOL Thumbnails\All2\shelved.png'
+    }
+
+
+def test_same_group_doesnt_update_thumbnail(mocker):
+    item = mocker.Mock()
+    item.new_group = None
+    item.results_dict = {}
+
+    checks.ItemChecker.thumbnail_check(item, credentials.THUMBNAIL_DIR)
+
+    assert item.results_dict == {'thumbnail_fix': 'N', 'thumbnail_path': ''}
+
+
+def test_report_invald_thumbnail_path(mocker):
+    item = mocker.Mock()
+    item.new_group = 'foo'
+    item.results_dict = {}
+
+    checks.ItemChecker.thumbnail_check(item, credentials.THUMBNAIL_DIR)
+
+    assert item.results_dict == {
+        'thumbnail_fix': 'N',
+        'thumbnail_path': f'Thumbnail not found: {Path(credentials.THUMBNAIL_DIR, "foo.png")}'
+    }
