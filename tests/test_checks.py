@@ -35,6 +35,24 @@ def test_lowercase_abbreviation_to_uppercase():
     assert cased == 'UDOT'
 
 
+def test_lowercased_tag_to_propercase():
+    test_tag = 'random'
+    cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
+    assert cased == 'Random'
+
+
+def test_propercased_article_to_lowercase():
+    test_tag = 'The'
+    cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
+    assert cased == 'the'
+
+
+def test_integrated_tag_check():
+    test_tag = 'u.s. bureau Of Geoinformation'
+    cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
+    assert cased == 'US Bureau of Geoinformation'
+
+
 # def test_meta_tag_removal():
 #     test_tag = 'Required: Common-Use Word Or Phrase Used To Describe the Subject of the Data Set'
 
