@@ -21,7 +21,7 @@ def test_cache_age_fix_doesnt_run_on_N(mocker):
 
     ItemFixer.cache_age_fix(fixer_item)
 
-    assert fixer_item.item_report['cache_age_result'] == 'No update needed for cacheAgeMax'
+    assert fixer_item.item_report['cache_age_result'] == 'No update needed for cacheMaxAge'
 
 
 def test_cache_age_fix_sets_correct_results(mocker):
@@ -38,7 +38,7 @@ def test_cache_age_fix_sets_correct_results(mocker):
 
     ItemFixer.cache_age_fix(fixer_item)
 
-    assert fixer_item.item_report['cache_age_result'] == 'cacheAgeMax set to 5'
+    assert fixer_item.item_report['cache_age_result'] == 'cacheMaxAge set to 5'
 
 
 def test_cache_age_reports_failed_fix(mocker):
@@ -55,4 +55,4 @@ def test_cache_age_reports_failed_fix(mocker):
 
     ItemFixer.cache_age_fix(fixer_item)
 
-    assert fixer_item.item_report['cache_age_result'] == 'Failed to set cacheAgeMax to 5'
+    assert fixer_item.item_report['cache_age_result'] == 'Failed to set cacheMaxAge to 5'
