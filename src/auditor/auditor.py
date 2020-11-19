@@ -227,9 +227,8 @@ class Auditor:
 
         self.username = credentials.USERNAME
 
-        self.metadata_xml_template = credentials.XML_TEMPLATE
-
         repo_base_path = Path(__file__).parents[2]
+        self.metadata_xml_template = repo_base_path / 'exact copy of.xslt'
         self.thumbnail_dir = repo_base_path / 'thumbnails'
 
         self.log = log
