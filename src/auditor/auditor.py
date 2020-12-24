@@ -145,13 +145,28 @@ class Metatable:
 
 
 class Auditor:
-    """
-    An object representing an AGOL/Portal organization and information about
-    its items. Contains methods for checking and fixing various elements of
-    each item's settings (name, tags, group, etc).
+    """Audits and fixes some or all Hosted Feature Services in an AGOL/Portal Organization
 
     This class contains data and methods specific to all items in the org.
     Specifics to each item should go in the ItemChecker or ItemFixer classes.
+
+    Attributes
+    ----------
+        self.sgid_table: Path to SGID Metatable
+        self.agol_table: Path to AGOL Metatable
+        self.report_dict: Nested dictionary holding the results of checks and fixes
+        self.items_to_check: List of ArcGIS API for Python Item objects to audit
+        self.itemid_and_folder: Dict of item ids and their folders
+        self.groups_dict: Dict of group names and ids
+        self.fix_counts: Dict of number of fixes performed for each fix type
+        self.gis: The organization's ArcGIS API for Python gis object
+        self.metatable: auditor.Metatable object holding info from both metatables
+        self.verbose: Print status messages
+        self.username: Username for working with self.gis
+        self.metadata_xml_template: Path to XML template for properly exporting metadata .xml files
+        self.thumbnail_dir: Path holding item thumbnail .pngs
+        self.log: logging object
+        self.item_ids: Optional; if provided, only check these ids. Otherwise, check all HFS in org.
     """
 
     #: Tags or words that should be uppercased, saved as lower to check against
@@ -309,12 +324,11 @@ class Auditor:
         self.groups_dict = {g.title: g.id for g in groups}
 
     def check_items(self, report=False):
-        """
-        Instantiates an ItemChecker for each item and manually runs the
-        specified check methods. The results of the checks are saved in
-        self.report_dict, which can be used to guide the fixes. Exports the
-        final self.report_dict to a csv named checks_yyyy-mm-dd.csv in
-        'report_dir', if specified.
+        """Runs the checks on all the items and saves results in self.report_dict for use by a fixer
+
+        Args
+        ----
+            report: Optional; If True, save self.report_dict to path specified in credentials.py
         """
 
         self.log.info(f'Checking {len(self.items_to_check)} items')
