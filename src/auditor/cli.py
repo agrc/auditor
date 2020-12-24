@@ -57,8 +57,8 @@ def cli():
         cli_logger.addHandler(cli_handler)
 
         #: Create a string stream to grab all messages also going to console for summary report
-        summary = StringIO()
-        summary_handler = logging.StreamHandler(stream=summary)
+        summary_stream = StringIO()
+        summary_handler = logging.StreamHandler(stream=summary_stream)
         summary_handler.setFormatter(detailed_formatter)
         cli_logger.addHandler(summary_handler)
 
@@ -84,7 +84,7 @@ def cli():
 
         #: Build and send summary message
         summary_message = MessageDetails()
-        summary_message.message = summary.getvalue()
+        summary_message.message = summary_stream.getvalue()
         summary_message.project_name = 'auditor'
         summary_message.log_file = credentials.REPORT_BASE_PATH
         summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
