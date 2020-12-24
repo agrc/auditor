@@ -15,12 +15,18 @@ Examples:
     auditor -r -v
 """
 
+import datetime
 import logging
 import sys
 
+from io import StringIO
+
 from docopt import docopt, DocoptExit
 
-from .auditor import Auditor
+from supervisor.models import MessageDetails, Supervisor
+from supervisor.message_handlers import EmailHandler
+
+from .auditor import Auditor, credentials
 
 
 def cli():
@@ -50,6 +56,22 @@ def cli():
         cli_handler.setFormatter(detailed_formatter)
         cli_logger.addHandler(cli_handler)
 
+        #: Create a string stream to grab all messages also going to console for summary report
+        summary = StringIO()
+        summary_handler = logging.StreamHandler(stream=summary)
+        summary_handler.setFormatter(detailed_formatter)
+        cli_logger.addHandler(summary_handler)
+
+        #: set up supervisor, add email handler
+        auditor_supervisor = Supervisor('auditor', credentials.REPORT_BASE_PATH)
+        email_settings = {
+            'smtpServer': 'send.state.ut.us',
+            'smtpPort': 25,
+            'from_address': 'noreply@utah.gov',
+            'to_addresses': 'jdadams@utah.gov',
+        }
+        auditor_supervisor.add_message_handler(EmailHandler(email_settings))
+
         org_auditor = Auditor(cli_logger, args['--verbose'], args['ITEM'])
 
         if args['--dry']:
@@ -59,3 +81,12 @@ def cli():
             org_auditor.fix_items(args['--save_report'])
 
         org_auditor.check_organization_wide()
+
+        #: Build and send summary message
+        summary_message = MessageDetails()
+        summary_message.message = summary.getvalue()
+        summary_message.project_name = 'auditor'
+        summary_message.log_file = credentials.REPORT_BASE_PATH
+        summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
+
+        auditor_supervisor.notify(summary_message)
