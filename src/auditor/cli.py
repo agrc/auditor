@@ -17,6 +17,7 @@ Examples:
 
 import datetime
 import logging
+import socket
 import sys
 
 from io import StringIO
@@ -46,33 +47,39 @@ def cli():
 
         # report_dir = args['--save_report']
 
-        cli_logger = logging.getLogger('auditor')
-        cli_logger.setLevel(logging.DEBUG)
+        summary_logger = logging.getLogger('auditor')
+        summary_logger.setLevel(logging.DEBUG)
         detailed_formatter = logging.Formatter(
             fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s', datefmt='%m-%d %H:%M:%S'
         )
-        cli_handler = logging.StreamHandler(stream=sys.stdout)
-        cli_handler.setLevel(logging.DEBUG)
-        cli_handler.setFormatter(detailed_formatter)
-        cli_logger.addHandler(cli_handler)
 
-        #: Create a string stream to grab all messages also going to console for summary report
+        #: Only dump summary to the console if verbose
+        if args['--verbose']:
+            cli_handler = logging.StreamHandler(stream=sys.stdout)
+            cli_handler.setLevel(logging.DEBUG)
+            cli_handler.setFormatter(detailed_formatter)
+            summary_logger.addHandler(cli_handler)
+
+        #: Create a string stream for summary report
         summary_stream = StringIO()
         summary_handler = logging.StreamHandler(stream=summary_stream)
         summary_handler.setFormatter(detailed_formatter)
-        cli_logger.addHandler(summary_handler)
+        summary_logger.addHandler(summary_handler)
 
         #: set up supervisor, add email handler
-        auditor_supervisor = Supervisor('auditor', credentials.REPORT_BASE_PATH)
+        auditor_supervisor = Supervisor(
+            project_name='auditor', log=summary_logger, log_path=credentials.REPORT_BASE_PATH
+        )
         email_settings = {
             'smtpServer': 'send.state.ut.us',
             'smtpPort': 25,
             'from_address': 'noreply@utah.gov',
             'to_addresses': 'jdadams@utah.gov',
+            'prefix': f'Auditor on {socket.gethostname()}: ',
         }
         auditor_supervisor.add_message_handler(EmailHandler(email_settings))
 
-        org_auditor = Auditor(cli_logger, args['--verbose'], args['ITEM'])
+        org_auditor = Auditor(summary_logger, args['--verbose'], args['ITEM'])
 
         if args['--dry']:
             org_auditor.check_items(args['--save_report'])
