@@ -47,7 +47,7 @@ def cli():
 
         # report_dir = args['--save_report']
 
-        summary_logger = logging.getLogger('auditor')
+        summary_logger = logging.getLogger(__name__)
         summary_logger.setLevel(logging.DEBUG)
         detailed_formatter = logging.Formatter(
             fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s', datefmt='%m-%d %H:%M:%S'
@@ -68,7 +68,7 @@ def cli():
 
         #: set up supervisor, add email handler
         auditor_supervisor = Supervisor(
-            project_name='auditor', log=summary_logger, log_path=credentials.REPORT_BASE_PATH
+            project_name='auditor', logger=summary_logger, log_path=credentials.REPORT_BASE_PATH
         )
         email_settings = {
             'smtpServer': 'send.state.ut.us',
