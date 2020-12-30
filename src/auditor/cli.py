@@ -2,7 +2,7 @@
 auditor
 
 Usage:
-    auditor spot [--save_report --dry --verbose ITEM ...] 
+    auditor spot [--save_report --dry --verbose ITEM ...]
     auditor scheduled
 
 Options:
@@ -13,12 +13,13 @@ Options:
     ITEM                        One or more AGOL item IDs to audit. If none are specified, all items are audited.
 
 Examples:
-    auditor -r -v
+    auditor spot -r -v
+    auditor spot -v -r aaaaaaaabbbbccccddddeeeeeeeeeeee
+    auditor scheduled
 """
 
 import datetime
 import logging
-import socket
 import sys
 
 from io import StringIO
@@ -32,11 +33,7 @@ from .auditor import Auditor, credentials
 
 
 def cli():
-    """
-    Main command-line entry point for auditor; instantiates Auditor
-    object, calls its check_items() method, and then calls its fix_items() if
-    --dry flag is not set.
-    """
+    """Main entry point for auditor; parses args using docopt"""
 
     #: try/except/else to print help if bad input received
     try:
@@ -46,11 +43,14 @@ def cli():
         print(__doc__)
     else:
 
+        #: Logger that will gather the summary information.
         summary_logger = logging.getLogger(__name__)
         summary_logger.setLevel(logging.DEBUG)
 
         if args['spot']:
-            #: Only dump summary to the console if verbose
+
+            #: Only dump summary info to the console if verbose
+            #: Note: currently, org-wide checks (duplicate names) only reported if verbose
             if args['--verbose']:
                 cli_handler = logging.StreamHandler(stream=sys.stdout)
                 cli_handler.setLevel(logging.DEBUG)
@@ -60,17 +60,17 @@ def cli():
                 cli_handler.setFormatter(cli_formatter)
                 summary_logger.addHandler(cli_handler)
 
+            #: Set up org, check & fix items
             org_auditor = Auditor(summary_logger, args['--verbose'], args['ITEM'])
-
             if args['--dry']:
                 org_auditor.check_items(args['--save_report'])
             else:
                 org_auditor.check_items(report=False)  #: only do the fix report on a full run.
                 org_auditor.fix_items(args['--save_report'])
-
             org_auditor.check_organization_wide()
 
         elif args['scheduled']:
+
             #: Create a string stream for summary report
             summary_stream = StringIO()
             summary_handler = logging.StreamHandler(stream=summary_stream)
@@ -85,12 +85,12 @@ def cli():
             auditor_supervisor = Supervisor(
                 project_name='auditor', logger=summary_logger, log_path=credentials.REPORT_BASE_PATH
             )
-
             auditor_supervisor.add_message_handler(EmailHandler(credentials.EMAIL_SETTINGS))
 
+            #: Set up org, check & fix items
             org_auditor = Auditor(summary_logger)
             org_auditor.check_organization_wide()
-            org_auditor.check_items(report=False)  #: Don't bother reporting checks
+            org_auditor.check_items(report=False)  #: Checks will be reported in fix report
             org_auditor.fix_items(report=True)
 
             #: Build and send summary message
