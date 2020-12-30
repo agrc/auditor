@@ -1,6 +1,9 @@
 """
 credentials_template.py: An example template of all the credentials and settings that need to be set.
 """
+
+import socket
+
 ORG = ''  #: URL to AGOL organization (https://www.arcgis.com)
 USERNAME = ''  #: User whose items will be audited
 PASSWORD = ''  #: USERNAME's password
@@ -9,3 +12,10 @@ METATABLE = ''  #: Full path to SGID.META.AGOLItems metatable
 AGOL_TABLE = ''  #: URL for Feature Service REST endpoint for AGOL-hosted metatable
 REPORT_BASE_PATH = ''  #: File path for report CSVs of everything that was fixed; rotated on each run
 CACHE_MAX_AGE = None  #: Number of seconds for the Cache Control/cacheMaxAge property (int)
+EMAIL_SETTINGS = {  #: Settings for EmailHandler
+    'smtpServer': '',
+    'smtpPort': 25,
+    'from_address': '',
+    'to_addresses': '',
+    'prefix': f'Auditor on {socket.gethostname()}: ',
+}
