@@ -75,7 +75,8 @@ def cli():
             summary_stream = StringIO()
             summary_handler = logging.StreamHandler(stream=summary_stream)
             stream_formatter = logging.Formatter(
-                fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s<br />', datefmt='%m-%d %H:%M:%S'
+                fmt='<pre>%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s</pre>',
+                datefmt='%m-%d %H:%M:%S'
             )
             summary_handler.setFormatter(stream_formatter)
             summary_logger.addHandler(summary_handler)
