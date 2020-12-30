@@ -36,8 +36,13 @@ Because a user's folder only holds items that they own, it effectively checks al
 1. Clone the repository
    * `cd <my git directory>`
    * `git clone https://github.com/agrc/auditor.git`
-1. Create a `credentials.py` file in the repo's directory using `credentials_template.py`.
+1. Create a `credentials.py` file in the auditor directory using `credentials_template.py`.
    * DO NOT check `credentials.py` into version control! The repo's `.gitignore` has been set to ignore `credentials.py`; verify this on your local repo.
+1. Install the supervisor prerequisite: (someday this may be pypi'd)
+   * `cd <my git directory>`
+   * `git clone https://github.com/agrc/supervisor.git`
+   * `cd <my git directory>\supervisor`
+   * `pip install .`
 1. Install auditor:
    * `cd <my git directory>\auditor`
    * `pip install .`
@@ -47,7 +52,14 @@ Because a user's folder only holds items that they own, it effectively checks al
 
 ### Command line
 
-`python auditor [-r|--save_report -d|--dry -v|--verbose ITEM ...]`
+``` python
+python auditor spot [-r|--save_report -d|--dry -v|--verbose ITEM ...]
+python auditor scheduled
+```
+
+`spot`: Run a spot audit using options below.
+
+`scheduled`: Run a full audit, including sending notifications via supervisor and saving the report.
 
 Options:
 
@@ -55,14 +67,15 @@ Options:
 * `-r`, `--save_report`           Save report to the file specified in the credentials file (will be rotated)
 * `-d`, `--dry`                   Only run the checks, don't do any fixes
 * `-v`, `--verbose`               Print status updates to the console
-* ITEM                            One or more AGOL item IDs to audit. If none are specified, all items are audited.
+* `ITEM`                          One or more AGOL item IDs to audit. If none are specified, all items are audited.
 
 Example:
 
-* `auditor -v -r`
-* `auditor -v -r aaaaaaaabbbbccccddddeeeeeeeeeeee ffffffff111122223333444444444444`
+* `auditor spot -vr`
+* `auditor spot -v -r aaaaaaaabbbbccccddddeeeeeeeeeeee`
+* `auditor scheduled`
 
-### Forklift
+### Forklift (deprecated)
 
 `auditor` has a forklift pallet (`src/auditor/auditor_pallet.py`) that will run both the checks and fixes and save the reports in the report directory specified in the `credentials.py` file.
 
@@ -79,6 +92,6 @@ The AGOL metatable is hosted on AGOL and is also read with `arcpy`. It does not 
 
 1. `CATEGORY`: Whether the layer is `shelved` or `static`.
 
-## Thumbnail Directory
+## Thumbnails
 
-The thumbnail directory specified in `credentials.py` should hold thumbnails named `group_name.png`, where `group_name` is the SGID group (in lowercase)
+The repo's `thumbnails` directory hold thumbnails named `group_name.png`, where `group_name` is the SGID group (in lowercase).
