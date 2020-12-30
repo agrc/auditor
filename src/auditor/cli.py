@@ -84,14 +84,8 @@ def cli():
             auditor_supervisor = Supervisor(
                 project_name='auditor', logger=summary_logger, log_path=credentials.REPORT_BASE_PATH
             )
-            email_settings = {
-                'smtpServer': 'send.state.ut.us',
-                'smtpPort': 25,
-                'from_address': 'noreply@utah.gov',
-                'to_addresses': 'jdadams@utah.gov',
-                'prefix': f'Auditor on {socket.gethostname()}: ',
-            }
-            auditor_supervisor.add_message_handler(EmailHandler(email_settings))
+
+            auditor_supervisor.add_message_handler(EmailHandler(credentials.EMAIL_SETTINGS))
 
             org_auditor = Auditor(summary_logger)
             org_auditor.check_organization_wide()
