@@ -93,7 +93,7 @@ def cli():
         summary_message = MessageDetails()
         summary_message.message = summary_stream.getvalue()
         summary_message.project_name = 'auditor'
-        summary_message.log_file = credentials.REPORT_BASE_PATH
+        summary_message.attachments = [credentials.REPORT_BASE_PATH]
         summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
 
         auditor_supervisor.notify(summary_message)
