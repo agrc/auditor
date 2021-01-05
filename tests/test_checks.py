@@ -98,12 +98,11 @@ def test_shelved_item_propercased_gets_shelved_thumbnail(mocker):
     item.new_group = 'Shelved'
     item.results_dict = {}
 
-    checks.ItemChecker.thumbnail_check(item, credentials.THUMBNAIL_DIR)
+    thumbnail_dir = Path(__file__).parents[1] / 'thumbnails'
 
-    assert item.results_dict == {
-        'thumbnail_fix': 'Y',
-        'thumbnail_path': r'c:\gis\Logos\AGOL Thumbnails\All2\shelved.png'
-    }
+    checks.ItemChecker.thumbnail_check(item, thumbnail_dir)
+
+    assert item.results_dict == {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_dir / 'shelved.png')}
 
 
 def test_same_group_doesnt_update_thumbnail(mocker):
@@ -111,7 +110,9 @@ def test_same_group_doesnt_update_thumbnail(mocker):
     item.new_group = None
     item.results_dict = {}
 
-    checks.ItemChecker.thumbnail_check(item, credentials.THUMBNAIL_DIR)
+    thumbnail_dir = Path(__file__).parents[1] / 'thumbnails'
+
+    checks.ItemChecker.thumbnail_check(item, thumbnail_dir)
 
     assert item.results_dict == {'thumbnail_fix': 'N', 'thumbnail_path': ''}
 
@@ -121,11 +122,13 @@ def test_report_invalid_thumbnail_path(mocker):
     item.new_group = 'foo'
     item.results_dict = {}
 
-    checks.ItemChecker.thumbnail_check(item, credentials.THUMBNAIL_DIR)
+    thumbnail_dir = Path(__file__).parents[1] / 'thumbnails'
+
+    checks.ItemChecker.thumbnail_check(item, thumbnail_dir)
 
     assert item.results_dict == {
         'thumbnail_fix': 'N',
-        'thumbnail_path': f'Thumbnail not found: {Path(credentials.THUMBNAIL_DIR, "foo.png")}'
+        'thumbnail_path': f'Thumbnail not found: {thumbnail_dir / "foo.png"}'
     }
 
 
