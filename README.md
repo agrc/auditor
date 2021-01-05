@@ -38,11 +38,6 @@ Because a user's folder only holds items that they own, it effectively checks al
    * `git clone https://github.com/agrc/auditor.git`
 1. Create a `credentials.py` file in the auditor directory using `credentials_template.py`.
    * DO NOT check `credentials.py` into version control! The repo's `.gitignore` has been set to ignore `credentials.py`; verify this on your local repo.
-1. Install the supervisor prerequisite: (someday this may be pypi'd)
-   * `cd <my git directory>`
-   * `git clone https://github.com/agrc/supervisor.git`
-   * `cd <my git directory>\supervisor`
-   * `pip install .`
 1. Install auditor:
    * `cd <my git directory>\auditor`
    * `pip install .`
@@ -74,10 +69,6 @@ Example:
 * `auditor spot -vr`
 * `auditor spot -v -r aaaaaaaabbbbccccddddeeeeeeeeeeee`
 * `auditor scheduled`
-
-### Forklift (deprecated)
-
-`auditor` has a forklift pallet (`src/auditor/auditor_pallet.py`) that will run both the checks and fixes and save the reports in the report directory specified in the `credentials.py` file.
 
 ## Metatable format
 
