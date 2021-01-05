@@ -69,7 +69,9 @@ def cli():
                 org_auditor.fix_items(args['--save_report'])
             org_auditor.check_organization_wide()
 
-        elif args['scheduled']:
+            return
+
+        if args['scheduled']:
 
             #: Create a string stream for summary report
             summary_stream = StringIO()
@@ -101,8 +103,3 @@ def cli():
             summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
 
             auditor_supervisor.notify(summary_message)
-
-        else:
-            raise NotImplementedError(
-                'Command not recognized. Please run either "spot" or "scheduled" audit (see help)'
-            )
