@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='auditor',
-    version='2.0.0',
+    version='2.0.1',
     license='MIT',
     description=(
         'Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on '
