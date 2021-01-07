@@ -260,6 +260,13 @@ class Auditor:
         In case of multiple calls (ie, for retry()), all data are re-instantiated/initialized.
         """
 
+        #: temp_dir used by fixes.metadata_fix() to hold xml of sde metadata
+        temp_dir = Path(arcpy.env.scratchFolder, 'auditor')
+        if not temp_dir.exists():
+            if self.verbose:
+                print(f'Creating temp directory {temp_dir}...')
+            temp_dir.mkdir()
+
         self.log.info(f'Logging into {credentials.ORG} as {credentials.USERNAME}')
 
         self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
@@ -469,8 +476,8 @@ class Auditor:
                 self.log.info('No items fixed.')
 
             #: Wipe scratch environment unless verbose (to save metadata xmls for troubleshooting)
-            #: TODO: Change so this doesn't stomp other processes using arpcy.env.scratchFolder
+            #: TODO: Create subdir (used in fixes.metadata_fix()) based on date, rather than just "auditor"?
             if not self.verbose:
-                scratch_path = Path(arcpy.env.scratchFolder)
+                scratch_path = Path(arcpy.env.scratchFolder, 'auditor')
                 for child in scratch_path.iterdir():
                     child.unlink()

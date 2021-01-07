@@ -213,7 +213,7 @@ class ItemFixer:
 
         item_id = self.item.itemid
         i = 0
-        metadata_xml_path = Path(arcpy.env.scratchFolder, f'{item_id}_{i}.xml')
+        metadata_xml_path = Path(arcpy.env.scratchFolder, 'auditor', f'{item_id}_{i}.xml')
         #: Sometimes a network error leaves a phantom lock on the metadata xml file when retrying. If we can't unlink()
         #: the file, increment its counter and check if it exists again.
         while metadata_xml_path.exists():
@@ -221,7 +221,7 @@ class ItemFixer:
                 metadata_xml_path.unlink()
             except PermissionError:
                 i += 1
-                metadata_xml_path = Path(arcpy.env.scratchFolder, f'{item_id}_{i}.xml')
+                metadata_xml_path = Path(arcpy.env.scratchFolder, 'auditor', f'{item_id}_{i}.xml')
 
         arcpy_metadata.saveAsUsingCustomXSLT(str(metadata_xml_path), xml_template)
 
