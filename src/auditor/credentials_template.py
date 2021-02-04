@@ -11,6 +11,7 @@ DB = ''  #: Full path to sde connection file
 METATABLE = ''  #: Full path to SGID.META.AGOLItems metatable
 AGOL_TABLE = ''  #: URL for Feature Service REST endpoint for AGOL-hosted metatable
 REPORT_BASE_PATH = ''  #: File path for report CSVs of everything that was fixed; rotated on each run
+LOG_ROTATE_COUNT = 90  #: Number of logs to rotate through (the n+1 oldest log will be deleted at rotate)
 CACHE_MAX_AGE = None  #: Number of seconds for the Cache Control/cacheMaxAge property (int)
 EMAIL_SETTINGS = {  #: Settings for EmailHandler
     'smtpServer': '',
