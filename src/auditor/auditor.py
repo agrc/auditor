@@ -378,7 +378,7 @@ class Auditor:
 
         finally:
             if report:
-                log_report(self.report_dict, credentials.REPORT_BASE_PATH)
+                log_report(self.report_dict, credentials.REPORT_BASE_PATH, rotate_count=credentials.LOG_ROTATE_COUNT)
 
     def check_organization_wide(self):
 
@@ -465,7 +465,7 @@ class Auditor:
 
         finally:
             if report:
-                log_report(self.report_dict, credentials.REPORT_BASE_PATH)
+                log_report(self.report_dict, credentials.REPORT_BASE_PATH, rotate_count=credentials.LOG_ROTATE_COUNT)
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
