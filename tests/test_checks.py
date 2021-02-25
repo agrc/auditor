@@ -191,3 +191,27 @@ def test_old_title_retained(mocker):
     checks.ItemChecker.title_check(item_checker)
 
     assert item_checker.results_dict == {'title_fix': 'N', 'title_old': 'current', 'title_new': ''}
+
+
+def test_deprecated_not_added_to_new_title_if_already_in_title(mocker):
+    item_checker = mocker.Mock()
+    item_checker.authoritative = 'deprecated'
+    item_checker.title_from_metatable = 'new (Deprecated)'
+    item_checker.item.title = 'current'
+    item_checker.results_dict = {}
+
+    checks.ItemChecker.title_check(item_checker)
+
+    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'current', 'title_new': 'new (Deprecated)'}
+
+
+def test_deprecated_not_added_to_existing_title_if_already_in_title(mocker):
+    item_checker = mocker.Mock()
+    item_checker.authoritative = 'deprecated'
+    item_checker.title_from_metatable = 'current (Deprecated)'
+    item_checker.item.title = 'current (Deprecated)'
+    item_checker.results_dict = {}
+
+    checks.ItemChecker.title_check(item_checker)
+
+    assert item_checker.results_dict == {'title_fix': 'N', 'title_old': 'current (Deprecated)', 'title_new': ''}
