@@ -134,7 +134,7 @@ class ItemChecker:
 
         #: These maybe overwritten below if the item is in the SGID
         self.in_sgid = False
-        self.new_title = None
+        self.title_from_metatable = None
         self.new_group = None
         self.arcpy_metadata = None
         self.feature_class_path = None
@@ -152,7 +152,7 @@ class ItemChecker:
         #: Get title, group from metatable if it's in the table
         if self.item.itemid in self.metatable_dict:
             self.in_sgid = True
-            self.new_title = self.metatable_dict[self.item.itemid][1]
+            self.title_from_metatable = self.metatable_dict[self.item.itemid][1]
             self.new_group = get_group_from_table(self.metatable_dict[self.item.itemid])
             if self.metatable_dict[self.item.itemid][3]:
                 if self.metatable_dict[self.item.itemid][3].casefold() == 'y':
@@ -190,8 +190,8 @@ class ItemChecker:
         """
 
         #: Use existing title unless we have one from metatable
-        if self.new_title:
-            title = self.new_title
+        if self.title_from_metatable:
+            title = self.title_from_metatable
         else:
             title = self.item.title
 
@@ -298,10 +298,35 @@ class ItemChecker:
         #: Always include the old title for readability
         title_data = {'title_fix': 'N', 'title_old': self.item.title, 'title_new': ''}
 
-        if self.new_title and self.new_title != self.item.title:
-            title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': self.new_title}
+        new_title = None
 
+        #: If we have a new title from metatable, add and check for deprecated note
+        if self.title_from_metatable and self.title_from_metatable != self.item.title:
+            new_title = self.title_from_metatable
+            if self.authoritative == 'deprecated' and 'deprecated' not in new_title:
+                new_title += ' (Deprecated)'
+
+            title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
+            self.results_dict.update(title_data)
+
+            return
+
+        #: If we don't have a new title, check for deprecated note
+        if (
+            self.title_from_metatable == self.item.title and self.authoritative == 'deprecated' and
+            'deprecated' not in self.item.title.casefold()
+        ):
+            new_title = self.item.title + ' (Deprecated)'
+
+            title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
+            self.results_dict.update(title_data)
+
+            return
+
+        #: Otherwise, just return the no-changes info
         self.results_dict.update(title_data)
+
+        return
 
     def folder_check(self, itemid_and_folder):
         """

@@ -95,14 +95,14 @@ def test_max_age_ignores_non_sgid_item(mocker):
 def test_shelved_item_propercased_gets_shelved_thumbnail(mocker):
 
     item = mocker.Mock()
-    item.new_group = 'Shelved'
+    item.new_group = 'AGRC Shelf'
     item.results_dict = {}
 
     thumbnail_dir = Path(__file__).parents[1] / 'thumbnails'
 
     checks.ItemChecker.thumbnail_check(item, thumbnail_dir)
 
-    assert item.results_dict == {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_dir / 'shelved.png')}
+    assert item.results_dict == {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_dir / 'shelf.png')}
 
 
 def test_same_group_doesnt_update_thumbnail(mocker):
@@ -134,7 +134,7 @@ def test_report_invalid_thumbnail_path(mocker):
 
 def test_correct_thumbnails_dir(mocker):
     item = mocker.Mock()
-    item.new_group = 'Shelved'
+    item.new_group = 'AGRC Shelf'
     item.results_dict = {}
 
     repo_path = Path(__file__).parents[1]
@@ -142,4 +142,52 @@ def test_correct_thumbnails_dir(mocker):
 
     checks.ItemChecker.thumbnail_check(item, thumbnail_path)
 
-    assert item.results_dict == {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_path / 'shelved.png')}
+    assert item.results_dict == {'thumbnail_fix': 'Y', 'thumbnail_path': str(thumbnail_path / 'shelf.png')}
+
+
+def test_deprecated_added_to_existing_title(mocker):
+    item_checker = mocker.Mock()
+    item_checker.authoritative = 'deprecated'
+    item_checker.title_from_metatable = 'foo'
+    item_checker.item.title = 'foo'
+    item_checker.results_dict = {}
+
+    checks.ItemChecker.title_check(item_checker)
+
+    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'foo', 'title_new': 'foo (Deprecated)'}
+
+
+def test_deprecated_added_to_new_title(mocker):
+    item_checker = mocker.Mock()
+    item_checker.authoritative = 'deprecated'
+    item_checker.title_from_metatable = 'new'
+    item_checker.item.title = 'current'
+    item_checker.results_dict = {}
+
+    checks.ItemChecker.title_check(item_checker)
+
+    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'current', 'title_new': 'new (Deprecated)'}
+
+
+def test_title_updated(mocker):
+    item_checker = mocker.Mock()
+    # item_checker.authoritative = None
+    item_checker.title_from_metatable = 'new'
+    item_checker.item.title = 'current'
+    item_checker.results_dict = {}
+
+    checks.ItemChecker.title_check(item_checker)
+
+    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'current', 'title_new': 'new'}
+
+
+def test_old_title_retained(mocker):
+    item_checker = mocker.Mock()
+    # item_checker.authoritative = None
+    item_checker.title_from_metatable = 'current'
+    item_checker.item.title = 'current'
+    item_checker.results_dict = {}
+
+    checks.ItemChecker.title_check(item_checker)
+
+    assert item_checker.results_dict == {'title_fix': 'N', 'title_old': 'current', 'title_new': ''}
