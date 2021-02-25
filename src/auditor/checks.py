@@ -303,7 +303,7 @@ class ItemChecker:
         #: If we have a new title from metatable, add and check for deprecated note
         if self.title_from_metatable and self.title_from_metatable != self.item.title:
             new_title = self.title_from_metatable
-            if self.authoritative == 'deprecated' and 'deprecated' not in new_title:
+            if self.authoritative == 'deprecated' and 'deprecated' not in new_title.casefold():
                 new_title += ' (Deprecated)'
 
             title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
