@@ -221,6 +221,7 @@ class Auditor:
         self.report_dict = {}
 
         #: A list of feature service items to audit
+        #: Order based on CLI or by AGOL folder (and by last updated within each folder?)
         self.items_to_check = []
 
         #: A dictionary of items and their folder
