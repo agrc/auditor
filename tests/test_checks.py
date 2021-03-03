@@ -154,7 +154,7 @@ def test_deprecated_added_to_existing_title(mocker):
 
     checks.ItemChecker.title_check(item_checker)
 
-    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'foo', 'title_new': 'foo (Deprecated)'}
+    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'foo', 'title_new': '{Deprecated} foo'}
 
 
 def test_deprecated_added_to_new_title(mocker):
@@ -166,7 +166,7 @@ def test_deprecated_added_to_new_title(mocker):
 
     checks.ItemChecker.title_check(item_checker)
 
-    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'current', 'title_new': 'new (Deprecated)'}
+    assert item_checker.results_dict == {'title_fix': 'Y', 'title_old': 'current', 'title_new': '{Deprecated} new'}
 
 
 def test_title_updated(mocker):
