@@ -304,7 +304,7 @@ class ItemChecker:
         if self.title_from_metatable and self.title_from_metatable != self.item.title:
             new_title = self.title_from_metatable
             if self.authoritative == 'deprecated' and 'deprecated' not in new_title.casefold():
-                new_title += ' (Deprecated)'
+                new_title = '{Deprecated} ' + new_title
 
             title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
             self.results_dict.update(title_data)
@@ -316,7 +316,7 @@ class ItemChecker:
             self.title_from_metatable == self.item.title and self.authoritative == 'deprecated' and
             'deprecated' not in self.item.title.casefold()
         ):
-            new_title = self.item.title + ' (Deprecated)'
+            new_title = '{Deprecated} ' + self.item.title
 
             title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
             self.results_dict.update(title_data)
