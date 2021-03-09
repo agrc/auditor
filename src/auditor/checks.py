@@ -298,35 +298,27 @@ class ItemChecker:
         #: Always include the old title for readability
         title_data = {'title_fix': 'N', 'title_old': self.item.title, 'title_new': ''}
 
-        new_title = None
+        #: Will be updated from metatable and/or deprecated check.
+        new_title = self.item.title
 
-        #: If we have a new title from metatable, add and check for deprecated note
-        if self.title_from_metatable and self.title_from_metatable != self.item.title:
+        #: Existing title with {Deprecated} removed if necessary
+        existing_title = self.item.title
+        if self.item.title.startswith('{Deprecated} '):
+            existing_title = self.item.title.split(' ', 1)[-1]
+
+        #: Check to see if title needs updating from metatable, taking into account the metatable title
+        #: won't have {Deprecated} at the front
+        if self.title_from_metatable and self.title_from_metatable != existing_title:
             new_title = self.title_from_metatable
-            if self.authoritative == 'deprecated' and 'deprecated' not in new_title.casefold():
-                new_title = '{Deprecated} ' + new_title
-
             title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
-            self.results_dict.update(title_data)
 
-            return
-
-        #: If we don't have a new title, check for deprecated note
-        if (
-            self.title_from_metatable == self.item.title and self.authoritative == 'deprecated' and
-            'deprecated' not in self.item.title.casefold()
-        ):
-            new_title = '{Deprecated} ' + self.item.title
-
+        #: Add {Deprecated} if necessary
+        #: new_title will have been modified from previous step if necessary
+        if self.authoritative == 'deprecated' and 'deprecated' not in new_title.casefold():
+            new_title = '{Deprecated} ' + new_title
             title_data = {'title_fix': 'Y', 'title_old': self.item.title, 'title_new': new_title}
-            self.results_dict.update(title_data)
 
-            return
-
-        #: Otherwise, just return the no-changes info
         self.results_dict.update(title_data)
-
-        return
 
     def folder_check(self, itemid_and_folder):
         """
