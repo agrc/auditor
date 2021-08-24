@@ -27,7 +27,7 @@ from io import StringIO
 from docopt import docopt, DocoptExit
 
 from supervisor.models import MessageDetails, Supervisor
-from supervisor.message_handlers import EmailHandler
+from supervisor.message_handlers import SendGridHandler
 
 from .auditor import Auditor, credentials
 
@@ -77,17 +77,16 @@ def cli():
             summary_stream = StringIO()
             summary_handler = logging.StreamHandler(stream=summary_stream)
             stream_formatter = logging.Formatter(
-                fmt='<pre>%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s</pre>',
-                datefmt='%m-%d %H:%M:%S'
+                fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s', datefmt='%m-%d %H:%M:%S'
             )
             summary_handler.setFormatter(stream_formatter)
             summary_logger.addHandler(summary_handler)
 
             #: set up supervisor, add email handler
-            auditor_supervisor = Supervisor(
-                project_name='auditor', logger=summary_logger, log_path=credentials.REPORT_BASE_PATH
+            auditor_supervisor = Supervisor(logger=summary_logger, log_path=credentials.REPORT_BASE_PATH)
+            auditor_supervisor.add_message_handler(
+                SendGridHandler(credentials.SENDGRID_SETTINGS, project_name='auditor')
             )
-            auditor_supervisor.add_message_handler(EmailHandler(credentials.EMAIL_SETTINGS))
 
             #: Set up org, check & fix items
             org_auditor = Auditor(summary_logger)
@@ -98,7 +97,6 @@ def cli():
             #: Build and send summary message
             summary_message = MessageDetails()
             summary_message.message = summary_stream.getvalue()
-            summary_message.project_name = 'auditor'
             summary_message.attachments = [credentials.REPORT_BASE_PATH]
             summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
 
