@@ -38,7 +38,7 @@ setup(
     install_requires=[
         'docopt==0.6.*',
         'arcgis==1.8.*',
-        'agrc-supervisor',
+        'agrc-supervisor==2.*',
     ],
     extras_require={
         'tests': [

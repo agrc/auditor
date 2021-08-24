@@ -20,3 +20,9 @@ EMAIL_SETTINGS = {  #: Settings for EmailHandler
     'to_addresses': '',
     'prefix': f'Auditor on {socket.gethostname()}: ',
 }
+SENDGRID_SETTINGS = {  #: Settings for SendGridHandler
+    'api_key': '',
+    'from_address': '',
+    'to_addresses': '',
+    'prefix': f'Auditor on {socket.gethostname()}: ',
+}
