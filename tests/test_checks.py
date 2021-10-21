@@ -206,7 +206,7 @@ def test_max_age_ignores_non_sgid_item(mocker):
 def test_shelved_item_propercased_gets_shelved_thumbnail(mocker):
 
     item = mocker.Mock()
-    item.new_group = 'AGRC Shelf'
+    item.new_group = 'UGRC Shelf'
     item.results_dict = {}
 
     thumbnail_dir = Path(__file__).parents[1] / 'thumbnails'
@@ -245,7 +245,7 @@ def test_report_invalid_thumbnail_path(mocker):
 
 def test_correct_thumbnails_dir(mocker):
     item = mocker.Mock()
-    item.new_group = 'AGRC Shelf'
+    item.new_group = 'UGRC Shelf'
     item.results_dict = {}
 
     repo_path = Path(__file__).parents[1]
