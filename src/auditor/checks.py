@@ -54,7 +54,7 @@ def get_group_from_table(metatable_dict_entry):
     sgid_name, _, item_category, _ = metatable_dict_entry
 
     if item_category == 'shelved':
-        group = 'AGRC Shelf'
+        group = 'UGRC Shelf'
     else:
         table_category = sgid_name.split('.')[1].title()
         group = f'Utah SGID {table_category}'
@@ -176,13 +176,13 @@ class ItemChecker:
                 self.arcpy_metadata = arcpy.metadata.Metadata(str(self.feature_class_path))
 
         #: Get folder from SGID category if it's in the table
-        if self.new_group == 'AGRC Shelf':
-            self.new_folder = 'AGRC_Shelved'
+        if self.new_group == 'UGRC Shelf':
+            self.new_folder = 'UGRC_Shelved'
         elif self.new_group:
             self.new_folder = self.new_group.split('Utah SGID ')[-1]
 
         #: Set static/shelved flag
-        if self.new_group == 'AGRC Shelf':
+        if self.new_group == 'UGRC Shelf':
             self.static_shelved = 'shelved'
         elif self.in_sgid and self.metatable_dict[self.item.itemid][2] == 'static':
             self.static_shelved = 'static'
@@ -442,7 +442,7 @@ class ItemChecker:
             }
 
             # Update flag for description note for shelved/static data
-            if self.new_group == 'AGRC Shelf':
+            if self.new_group == 'UGRC Shelf':
                 metadata_data['metadata_note'] = 'shelved'
             elif self.metatable_dict[self.item.itemid][2] == 'static':
                 metadata_data['metadata_note'] = 'static'
