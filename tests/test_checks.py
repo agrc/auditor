@@ -82,7 +82,7 @@ class TestGroupFromTable:
 
         group = checks.get_group_from_table(metable_row)
 
-        assert group == 'AGRC Shelf'
+        assert group == 'UGRC Shelf'
 
     def test_get_group_from_table_sgid_item(self):
         metable_row = ('SGID.Foo.Bar', '', '', '')
@@ -96,7 +96,7 @@ class TestSetup:
 
     def test_setup_sets_shelved_folder(self, mocker):
         item_checker = mocker.Mock()
-        item_checker.new_group = 'AGRC Shelf'
+        item_checker.new_group = 'UGRC Shelf'
 
         #: Framework for setup to skip parts not testing
         item_checker.item.itemid = '0'
@@ -104,11 +104,11 @@ class TestSetup:
 
         checks.ItemChecker.setup(item_checker, 'foo')
 
-        assert item_checker.new_folder == 'AGRC_Shelved'
+        assert item_checker.new_folder == 'UGRC_Shelved'
 
     def test_setup_sets_shelved_flag(self, mocker):
         item_checker = mocker.Mock()
-        item_checker.new_group = 'AGRC Shelf'
+        item_checker.new_group = 'UGRC Shelf'
 
         #: Framework for setup to skip parts not testing
         item_checker.item.itemid = '0'
@@ -126,7 +126,7 @@ class TestMetadata:
         # item_checker.arcpy_metadata = True
         item_checker.arcpy_metadata.xml = 'foo'
         item_checker.item.metadata = 'bar'
-        item_checker.new_group = 'AGRC Shelf'
+        item_checker.new_group = 'UGRC Shelf'
         item_checker.feature_class_path = 'baz'
         item_checker.results_dict = {}
 
