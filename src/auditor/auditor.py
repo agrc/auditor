@@ -190,7 +190,6 @@ class Auditor:
         '002',
         'required: common-use word or phrase used to describe the subject of the data set.',
         'agrc',
-        'AGRC',
     ]
 
     #: Notes for static and shelved descriptions

@@ -280,7 +280,7 @@ class ItemChecker:
                 if 'Shelved' in self.new_tags:
                     self.new_tags.remove('Shelved')
 
-            #: Make sure it's got SGID, AGRC in it's tags
+            #: Make sure it's got SGID, UGRC in it's tags
             if 'SGID' not in self.new_tags:
                 self.new_tags.append('SGID')
             if 'UGRC' not in self.new_tags:
