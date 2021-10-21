@@ -75,6 +75,71 @@ class TestTagCheck:
         }
 
 
+class TestGroupFromTable:
+
+    def test_get_group_from_table_shelved_item(self):
+        metable_row = ('SGID.Foo.Bar', '', 'shelved', '')
+
+        group = checks.get_group_from_table(metable_row)
+
+        assert group == 'AGRC Shelf'
+
+    def test_get_group_from_table_sgid_item(self):
+        metable_row = ('SGID.Foo.Bar', '', '', '')
+
+        group = checks.get_group_from_table(metable_row)
+
+        assert group == 'Utah SGID Foo'
+
+
+class TestSetup:
+
+    def test_setup_sets_shelved_folder(self, mocker):
+        item_checker = mocker.Mock()
+        item_checker.new_group = 'AGRC Shelf'
+
+        #: Framework for setup to skip parts not testing
+        item_checker.item.itemid = '0'
+        item_checker.metatable_dict = {}
+
+        checks.ItemChecker.setup(item_checker, 'foo')
+
+        assert item_checker.new_folder == 'AGRC_Shelved'
+
+    def test_setup_sets_shelved_flag(self, mocker):
+        item_checker = mocker.Mock()
+        item_checker.new_group = 'AGRC Shelf'
+
+        #: Framework for setup to skip parts not testing
+        item_checker.item.itemid = '0'
+        item_checker.metatable_dict = {}
+
+        checks.ItemChecker.setup(item_checker, 'foo')
+
+        assert item_checker.static_shelved == 'shelved'
+
+
+class TestMetadata:
+
+    def test_metadata_check_sets_shelved_note(self, mocker):
+        item_checker = mocker.Mock()
+        # item_checker.arcpy_metadata = True
+        item_checker.arcpy_metadata.xml = 'foo'
+        item_checker.item.metadata = 'bar'
+        item_checker.new_group = 'AGRC Shelf'
+        item_checker.feature_class_path = 'baz'
+        item_checker.results_dict = {}
+
+        checks.ItemChecker.metadata_check(item_checker)
+
+        assert item_checker.results_dict == {
+            'metadata_fix': 'Y',
+            'metadata_old': 'item.metadata from AGOL not shown due to length',
+            'metadata_new': 'baz',
+            'metadata_note': 'shelved'
+        }
+
+
 def test_lowercase_abbreviation_to_uppercase():
     test_tag = 'udot'
     cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
