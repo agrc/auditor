@@ -29,6 +29,52 @@ from auditor.auditor import Auditor
 #     return fake_metatable
 
 
+class TestTagCheck:
+
+    def test_agrc_removed_from_tags(self, mocker):
+        item_checker = mocker.Mock()
+        item_checker.title_from_metatable = 'Utah Foo'
+        item_checker.item.tags = ['AGRC', 'Bar']
+        item_checker.new_tags = []
+        item_checker.results_dict = {}
+        item_checker.arcpy_metadata = False
+        item_checker.new_group = False
+
+        checks.ItemChecker.tags_check(item_checker, Auditor.tags_to_delete, Auditor.uppercased_tags, Auditor.articles)
+
+        assert item_checker.results_dict == {'tags_fix': 'Y', 'tags_old': ['AGRC', 'Bar'], 'tags_new': ['Bar']}
+
+    def test_ugrc_added_to_tags_for_sgid_group_item(self, mocker):
+        item_checker = mocker.Mock()
+        item_checker.title_from_metatable = 'Utah Foo'
+        item_checker.item.tags = []
+        item_checker.new_tags = []
+        item_checker.results_dict = {}
+        item_checker.arcpy_metadata = False
+        item_checker.new_group = 'Utah SGID Bar'
+
+        checks.ItemChecker.tags_check(item_checker, Auditor.tags_to_delete, Auditor.uppercased_tags, Auditor.articles)
+
+        assert item_checker.results_dict == {'tags_fix': 'Y', 'tags_old': [], 'tags_new': ['Bar', 'SGID', 'UGRC']}
+
+    def test_agrc_removed_ugrc_added_to_tags(self, mocker):
+        item_checker = mocker.Mock()
+        item_checker.title_from_metatable = 'Utah Foo'
+        item_checker.item.tags = ['AGRC', 'Bar']
+        item_checker.new_tags = []
+        item_checker.results_dict = {}
+        item_checker.arcpy_metadata = False
+        item_checker.new_group = 'Utah SGID Bar'
+
+        checks.ItemChecker.tags_check(item_checker, Auditor.tags_to_delete, Auditor.uppercased_tags, Auditor.articles)
+
+        assert item_checker.results_dict == {
+            'tags_fix': 'Y',
+            'tags_old': ['AGRC', 'Bar'],
+            'tags_new': ['Bar', 'SGID', 'UGRC']
+        }
+
+
 def test_lowercase_abbreviation_to_uppercase():
     test_tag = 'udot'
     cased = checks.tag_case(test_tag, Auditor.uppercased_tags, Auditor.articles)
