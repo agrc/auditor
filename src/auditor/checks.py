@@ -15,7 +15,7 @@ def tag_case(tag, uppercased, articles):
     Changes a tag to the correct title case while also removing any periods:
     'U.S. bureau Of Geoinformation' -> 'US Bureau of Geoinformation'. Should
     properly upper-case any words or single tags that are acronyms:
-    'agrc' -> 'AGRC', 'Plss Fabric' -> 'PLSS Fabric'. Any words separated by
+    'ugrc' -> 'UGRC', 'Plss Fabric' -> 'PLSS Fabric'. Any words separated by
     a hyphen will also be title-cased: 'water-related' -> 'Water-Related'.
 
     Note: No check is done for articles at the begining of a tag; all articles
@@ -67,8 +67,17 @@ def get_item_properties(item):
     Gets all the relevant info about item in successive calls; seems to speed up times by about .5 to 1 second per item.
     """
     ItemProperties = namedtuple(
-        'ItemProperties',
-        ['title', 'tags', 'shared_with', 'itemid', 'protected', 'description', 'metadata', 'content_status', 'layers']
+        'ItemProperties', [
+            'title',
+            'tags',
+            'shared_with',
+            'itemid',
+            'protected',
+            'description',
+            'metadata',
+            'content_status',
+            'layers',
+        ]
     )
 
     title = item.title
@@ -183,7 +192,7 @@ class ItemChecker:
         Create a list of new, cleaned tags:
             * Properly case tags using uppercased_tags and articles
             * Delete any tags in tags_to_delete
-            * Add SGID category tag and SGID, AGRC if it's an SGID item
+            * Add SGID category tag and SGID, UGRC if it's an SGID item
 
         Update results_dict with results for this item:
                 {'tags_fix':'', 'tags_old':'', 'tags_new':''}
@@ -274,8 +283,8 @@ class ItemChecker:
             #: Make sure it's got SGID, AGRC in it's tags
             if 'SGID' not in self.new_tags:
                 self.new_tags.append('SGID')
-            if 'AGRC' not in self.new_tags:
-                self.new_tags.append('AGRC')
+            if 'UGRC' not in self.new_tags:
+                self.new_tags.append('UGRC')
 
         #: Create tags data: tags_fix, tags_old, tags_new
         #: Report existing tags for troubleshooting why some items don't seem to be checked during weekly run.
