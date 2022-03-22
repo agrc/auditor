@@ -42,6 +42,9 @@ Because a user's folder only holds items that they own, it effectively checks al
    * `cd <my git directory>\auditor`
    * `pip install .`
    * Or, for development, `pip install -e .[tests]`
+1. (Optional) Create a scheduled task
+   * Use `scheduled_audit.bat` to run a full scheduled audit
+   * Currently set for 6:00 a.m. every day.
 
 ## Usage
 
