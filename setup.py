@@ -37,7 +37,7 @@ setup(
     keywords=['gis'],
     install_requires=[
         'docopt==0.6.*',
-        'arcgis==1.8.*',
+        'arcgis==2.*',
         'agrc-supervisor==2.*',
     ],
     extras_require={
