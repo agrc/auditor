@@ -1,6 +1,10 @@
 # This is our secrets file. Never add to version control!
 credentials.py
 
+# Production folders
+manual_runs/
+thumbnails/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
