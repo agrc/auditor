@@ -1,5 +1,5 @@
 """
-auditor.py
+models.py
 
 See cli.py for usage
 """
@@ -14,7 +14,7 @@ from time import sleep
 import arcgis
 import arcpy
 
-from . import checks, fixes, credentials, org_checker
+from auditor import checks, fixes, credentials, org_checker
 
 
 def retry(worker, verbose=True, tries=1):

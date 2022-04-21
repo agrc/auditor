@@ -3,7 +3,7 @@ import logging
 
 from collections import namedtuple
 
-from auditor.auditor import Auditor, retry, Metatable
+from auditor.models import Auditor, retry, Metatable
 
 
 def test_retry():
@@ -29,7 +29,7 @@ def test_read_sgid_metatable_to_dictionary(mocker):
 
     sgid_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_sgid_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_sgid_row)
 
     test_table = Metatable()
     test_table.read_metatable('something', sgid_fields)
@@ -47,7 +47,7 @@ def test_read_agol_metatable_to_dictionary(mocker):
 
     agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_agol_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_agol_row)
 
     test_table = Metatable()
     test_table.read_metatable('something', agol_fields)
@@ -64,7 +64,7 @@ def test_magic_string_itemid_not_added_to_dictionary(mocker):
 
     sgid_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_sgid_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_sgid_row)
 
     test_table = Metatable()
     test_table.read_metatable('something', sgid_fields)
@@ -82,7 +82,7 @@ def test_blank_itemid_not_added_to_dictionary(mocker):
 
     sgid_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_sgid_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_sgid_row)
 
     test_table = Metatable()
     test_table.read_metatable('something', sgid_fields)
@@ -101,7 +101,7 @@ def test_duplicate_itemids_in_same_table_reported_in_list(mocker):
 
     sgid_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_sgid_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_sgid_row)
 
     test_table = Metatable()
     test_table.read_metatable('something', sgid_fields)
@@ -128,12 +128,12 @@ def test_duplicate_itemids_from_different_tables_reported_in_list(mocker):
     sgid_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
     agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_sgid_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_sgid_row)
 
     test_table = Metatable()
     test_table.read_metatable('something', sgid_fields)
 
-    mocker.patch('auditor.auditor.Metatable._cursor_wrapper', return_agol_row)
+    mocker.patch('auditor.models.Metatable._cursor_wrapper', return_agol_row)
     test_table.read_metatable('agol something', agol_fields)
 
     #: Our duplicate id should be the only entry in .duplicate_keys and .metatable_dict should just have first item
@@ -150,7 +150,7 @@ def test_org_checker_completes_and_logs(mocker, caplog):
     agol_item = namedtuple('agol_item', ['title', 'itemid'])
     item_list = [agol_item('foo', 1), agol_item('foo', 2)]
 
-    mocker.patch('auditor.auditor.Auditor.setup')
+    mocker.patch('auditor.models.Auditor.setup')
 
     test_auditor = Auditor(cli_logger, verbose=True)
     test_auditor.items_to_check = item_list
@@ -168,7 +168,7 @@ def test_org_checker_reports_no_results(mocker, caplog):
     agol_item = namedtuple('agol_item', ['title', 'itemid'])
     item_list = [agol_item('foo', 1), agol_item('bar', 2)]
 
-    mocker.patch('auditor.auditor.Auditor.setup')
+    mocker.patch('auditor.models.Auditor.setup')
 
     test_auditor = Auditor(cli_logger, verbose=True)
     test_auditor.items_to_check = item_list

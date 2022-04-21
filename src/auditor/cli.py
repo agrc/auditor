@@ -29,7 +29,7 @@ from docopt import docopt, DocoptExit
 from supervisor.models import MessageDetails, Supervisor
 from supervisor.message_handlers import SendGridHandler
 
-from .auditor import Auditor, credentials
+from auditor.models import Auditor, credentials
 
 
 def cli():
