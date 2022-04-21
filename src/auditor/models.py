@@ -415,7 +415,7 @@ class Auditor:
 
                 counter += 1
 
-                item = self.gis.content.get(itemid)  # pylint: disable=no-member
+                item = retry(lambda: self.gis.content.get(itemid))  # pylint: disable=no-member,cell-var-from-loop
                 item_report = self.report_dict[itemid]
 
                 if self.verbose:
