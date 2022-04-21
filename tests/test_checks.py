@@ -7,7 +7,7 @@ from pathlib import Path
 
 from auditor import credentials
 from auditor import checks
-from auditor.auditor import Auditor
+from auditor.models import Auditor
 
 # @pytest.fixture
 # def agol_item():
