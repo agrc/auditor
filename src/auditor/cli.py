@@ -101,3 +101,7 @@ def cli():
             summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
 
             auditor_supervisor.notify(summary_message)
+
+
+if __name__ == '__main__':
+    cli()
