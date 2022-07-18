@@ -40,8 +40,8 @@ Because a user's folder only holds items that they own, it effectively checks al
    * DO NOT check `credentials.py` into version control! The repo's `.gitignore` has been set to ignore `credentials.py`; verify this on your local repo.
 1. Install auditor:
    * `cd <my git directory>\auditor`
-   * `pip install .`
-   * Or, for development, `pip install -e .[tests]`
+   * `pip install -e .`
+     * For some reason, you MUST use `-e`. See [https://github.com/agrc/auditor/issues/68](https://github.com/agrc/auditor/issues/68)
 1. (Optional) Create a scheduled task
    * Use `scheduled_audit.bat` to run a full scheduled audit
    * Currently set for 6:00 a.m. every day.
