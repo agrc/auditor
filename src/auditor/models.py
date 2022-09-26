@@ -171,12 +171,12 @@ class Auditor:
 
     #: Tags or words that should be uppercased, saved as lower to check against
     uppercased_tags = [
-        '2g', '3g', '4g', 'agol', 'aog', 'at&t', 'atv', 'blm', 'brat', 'caf', 'cdl', 'dabc', 'daq', 'dem', 'dfcm',
-        'dfirm', 'dnr', 'dogm', 'dot', 'dsl', 'dsm', 'dtm', 'dup', 'dwq', 'e911', 'ems', 'epa', 'fae', 'fcc', 'fema',
-        'gcdb', 'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'ngda', 'nox',
-        'npsbn', 'ntia', 'nwi', 'osa', 'pli', 'plss', 'pm10', 'ppm', 'psap', 'sao', 'sbdc', 'sbi', 'sgid', 'shpo',
-        'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugrc', 'ugs', 'uhp', 'uic', 'uipa', 'us', 'usao', 'usdw', 'usfs',
-        'usfws', 'usps', 'ustc', 'ut', 'uta', 'utsc', 'vcp', 'vista', 'voc', 'wbd', 'wre'
+        '2g', '3g', '4g', 'agol', 'aog', 'at&t', 'atv', 'blm', 'brat', 'caf', 'cdl', 'dabc', 'dabs', 'daq', 'dem',
+        'dfcm', 'dfirm', 'dnr', 'dogm', 'dot', 'dsl', 'dsm', 'dtm', 'dup', 'dwq', 'e911', 'ems', 'epa', 'fae', 'fcc',
+        'fema', 'gcdb', 'gis', 'gnis', 'hava', 'huc', 'lir', 'lrs', 'lte', 'luca', 'mrrc', 'nca', 'ng911', 'ngda',
+        'nox', 'npsbn', 'ntia', 'nwi', 'osa', 'pli', 'plss', 'pm10', 'ppm', 'psap', 'sao', 'sbdc', 'sbi', 'sgid',
+        'shpo', 'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugrc', 'ugs', 'uhp', 'uic', 'uipa', 'us', 'usao', 'usdw',
+        'usfs', 'usfws', 'usps', 'ustc', 'ut', 'uta', 'utsc', 'vcp', 'vista', 'voc', 'wbd', 'wre'
     ]
 
     #: Articles that should be left lowercase.
