@@ -3,7 +3,7 @@ credentials.py
 
 # Production folders
 manual_runs/
-thumbnails/
+# thumbnails/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
