@@ -20,6 +20,7 @@ Examples:
 
 import datetime
 import logging
+import pkg_resources
 import sys
 
 from io import StringIO
@@ -85,7 +86,8 @@ def cli():
             #: set up supervisor, add email handler
             auditor_supervisor = Supervisor(logger=summary_logger, log_path=credentials.REPORT_BASE_PATH)
             auditor_supervisor.add_message_handler(
-                SendGridHandler(credentials.SENDGRID_SETTINGS, project_name='auditor')
+                SendGridHandler(credentials.SENDGRID_SETTINGS, 'auditor',
+                                pkg_resources.require('auditor')[0].version)
             )
 
             #: Set up org, check & fix items

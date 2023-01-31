@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='auditor',
-    version='3.0.0',
+    version='3.0.1',
     license='MIT',
     description=(
         'Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on '
@@ -38,20 +38,20 @@ setup(
     install_requires=[
         'docopt==0.6.*',
         'arcgis==2.*',
-        'agrc-supervisor==2.*',
+        'agrc-supervisor==3.*',
     ],
     extras_require={
         'tests': [
             'pylint-quotes==0.2.*',
-            'pylint==2.5.*',
-            'pytest-cov==2.9.*',
+            'pylint==2.15.*',
+            'pytest-cov==4.0.*',
             'pytest-instafail==0.4.*',
-            'pytest-isort==1.0.*',
-            'pytest-pylint==0.14.*',
+            'pytest-isort==3.1.*',
+            'pytest-pylint==0.19.*',
             'pytest-watch==4.2.*',
-            'pytest==4.*',
-            'yapf==0.30.*',
-            'pytest-mock==3.2.*',
+            'pytest==7.*',
+            'yapf==0.32.*',
+            'pytest-mock==3.10.*',
         ]
     },
     setup_requires=[
