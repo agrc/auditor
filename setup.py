@@ -50,7 +50,7 @@ setup(
             'pytest-pylint==0.19.*',
             'pytest-watch==4.2.*',
             'pytest==7.*',
-            'yapf==0.32.*',
+            'yapf>=0.32,<0.41',
             'pytest-mock==3.10.*',
         ]
     },
