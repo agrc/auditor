@@ -44,7 +44,7 @@ setup(
         'tests': [
             'pylint-quotes==0.2.*',
             'pylint==2.15.*',
-            'pytest-cov==4.0.*',
+            'pytest-cov>=4.0,<4.2',
             'pytest-instafail==0.4.*',
             'pytest-isort==3.1.*',
             'pytest-pylint==0.19.*',
