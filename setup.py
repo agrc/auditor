@@ -51,7 +51,7 @@ setup(
             'pytest-watch==4.2.*',
             'pytest==7.*',
             'yapf>=0.32,<0.41',
-            'pytest-mock>=3.10,<3.12',
+            'pytest-mock>=3.10,<3.13',
         ]
     },
     setup_requires=[
