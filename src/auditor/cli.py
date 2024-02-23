@@ -20,15 +20,14 @@ Examples:
 
 import datetime
 import logging
-import pkg_resources
 import sys
-
 from io import StringIO
 
-from docopt import docopt, DocoptExit
 
-from supervisor.models import MessageDetails, Supervisor
+import pkg_resources
+from docopt import DocoptExit, docopt
 from supervisor.message_handlers import SendGridHandler
+from supervisor.models import MessageDetails, Supervisor
 
 from auditor.models import Auditor, credentials
 
@@ -38,9 +37,9 @@ def cli():
 
     #: try/except/else to print help if bad input received
     try:
-        args = docopt(__doc__, version='1.0')
+        args = docopt(__doc__, version="1.0")
     except DocoptExit:
-        print('\n*** Invalid input ***\n')
+        print("\n*** Invalid input ***\n")
         print(__doc__)
     else:
 
@@ -48,37 +47,37 @@ def cli():
         summary_logger = logging.getLogger(__name__)
         summary_logger.setLevel(logging.DEBUG)
 
-        if args['spot']:
+        if args["spot"]:
 
             #: Only dump summary info to the console if verbose
             #: Note: currently, org-wide checks (duplicate names) only reported if verbose
-            if args['--verbose']:
+            if args["--verbose"]:
                 cli_handler = logging.StreamHandler(stream=sys.stdout)
                 cli_handler.setLevel(logging.DEBUG)
                 cli_formatter = logging.Formatter(
-                    fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s', datefmt='%m-%d %H:%M:%S'
+                    fmt="%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s", datefmt="%m-%d %H:%M:%S"
                 )
                 cli_handler.setFormatter(cli_formatter)
                 summary_logger.addHandler(cli_handler)
 
             #: Set up org, check & fix items
-            org_auditor = Auditor(summary_logger, args['--verbose'], args['ITEM'])
-            if args['--dry']:
-                org_auditor.check_items(args['--save_report'])
+            org_auditor = Auditor(summary_logger, args["--verbose"], args["ITEM"])
+            if args["--dry"]:
+                org_auditor.check_items(args["--save_report"])
             else:
                 org_auditor.check_items(report=False)  #: only do the fix report on a full run.
-                org_auditor.fix_items(args['--save_report'])
+                org_auditor.fix_items(args["--save_report"])
             org_auditor.check_organization_wide()
 
             return
 
-        if args['scheduled']:
+        if args["scheduled"]:
 
             #: Create a string stream for summary report
             summary_stream = StringIO()
             summary_handler = logging.StreamHandler(stream=summary_stream)
             stream_formatter = logging.Formatter(
-                fmt='%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s', datefmt='%m-%d %H:%M:%S'
+                fmt="%(levelname)-7s %(asctime)s %(module)10s:%(lineno)5s %(message)s", datefmt="%m-%d %H:%M:%S"
             )
             summary_handler.setFormatter(stream_formatter)
             summary_logger.addHandler(summary_handler)
@@ -86,8 +85,7 @@ def cli():
             #: set up supervisor, add email handler
             auditor_supervisor = Supervisor(logger=summary_logger, log_path=credentials.REPORT_BASE_PATH)
             auditor_supervisor.add_message_handler(
-                SendGridHandler(credentials.SENDGRID_SETTINGS, 'auditor',
-                                pkg_resources.require('auditor')[0].version)
+                SendGridHandler(credentials.SENDGRID_SETTINGS, "auditor", pkg_resources.require("auditor")[0].version)
             )
 
             #: Set up org, check & fix items
@@ -100,10 +98,10 @@ def cli():
             summary_message = MessageDetails()
             summary_message.message = summary_stream.getvalue()
             summary_message.attachments = [credentials.REPORT_BASE_PATH]
-            summary_message.subject = f'Auditor Report {datetime.datetime.today()}'
+            summary_message.subject = f"Auditor Report {datetime.datetime.today()}"
 
             auditor_supervisor.notify(summary_message)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
