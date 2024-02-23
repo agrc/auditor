@@ -10,52 +10,51 @@ from os.path import basename, splitext
 from setuptools import find_packages, setup
 
 setup(
-    name='auditor',
-    version='3.0.1',
-    license='MIT',
+    name="auditor",
+    version="3.0.1",
+    license="MIT",
     description=(
-        'Audits all hosted feature service items in a user\'s AGOL folders for proper tags, sharing, etc based on '
-        'an external metatable'
+        "Audits all hosted feature service items in a user's AGOL folders for proper tags, sharing, etc based on "
+        "an external metatable"
     ),
-    author='Jake Adams',
-    author_email='jdadams@utah.gov',
-    url='https://github.com/agrc/auditor',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    author="Jake Adams",
+    author_email="jdadams@utah.gov",
+    url="https://github.com/agrc/auditor",
+    packages=find_packages("src"),
+    package_dir={"": "src"},
+    py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     include_package_data=True,
     zip_safe=True,
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: System Administrators',
-        'Topic :: Utilities',
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: System Administrators",
+        "Topic :: Utilities",
     ],
     project_urls={
-        'Issue Tracker': 'https://github.com/agrc/auditor/issues',
+        "Issue Tracker": "https://github.com/agrc/auditor/issues",
     },
-    keywords=['gis'],
+    keywords=["gis"],
     install_requires=[
-        'docopt==0.6.*',
-        'arcgis==2.*',
-        'agrc-supervisor==3.*',
+        "docopt==0.6.*",
+        "arcgis==2.*",
+        "agrc-supervisor==3.*",
     ],
     extras_require={
-        'tests': [
-            'pylint-quotes==0.2.*',
-            'pylint>=2.15,<3.1',
-            'pytest-cov>=4.0,<4.2',
-            'pytest-instafail>=0.4,<0.6',
-            'pytest-isort==3.1.*',
-            'pytest-pylint>=0.19,<0.22',
-            'pytest-watch==4.2.*',
-            'pytest==7.*',
-            'yapf>=0.32,<0.41',
-            'pytest-mock>=3.10,<3.13',
+        "tests": [
+            "pytest-cov>=3,<5",
+            "pytest-instafail==0.5.*",
+            "pytest-mock==3.*",
+            "pytest-ruff==0.*",
+            "pytest-watch==4.*",
+            "pytest>=6,<8",
+            "black>=23.3,<23.12",
+            "ruff==0.0.*",
+            "pytest-mock>=3.10,<3.13",
         ]
     },
     setup_requires=[
-        'pytest-runner',
+        "pytest-runner",
     ],
-    entry_points={'console_scripts': ['auditor = auditor.cli:cli']},
+    entry_points={"console_scripts": ["auditor = auditor.cli:cli"]},
 )
