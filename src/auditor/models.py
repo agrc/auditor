@@ -355,6 +355,10 @@ class Auditor:
                 if self.verbose:
                     print(f"Checking {item.title} ({counter} of {len(self.items_to_check)})...")
 
+                if not item.url.startswith("https://services"):
+                    print(f"Skipping {item.title} because it's not an AGOL feature service (url: {item.url})")
+                    continue
+
                 itemid = item.itemid
 
                 #: Initialize empty dictionary for this item
