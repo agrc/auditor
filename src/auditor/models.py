@@ -7,14 +7,13 @@ See cli.py for usage
 import datetime
 import logging
 import uuid
-
 from pathlib import Path
 from time import sleep
 
 import arcgis
 import arcpy
 
-from auditor import checks, fixes, credentials, org_checker
+from auditor import checks, credentials, fixes, org_checker
 
 
 def retry(worker, verbose=True, tries=1):
@@ -42,7 +41,7 @@ def retry(worker, verbose=True, tries=1):
 
 #: TODO: Modify structure so each check/fix method returns its values directly rather than putting them inside
 #: the dictionary, and then log results at the end of each for item in collection iteration.
-def log_report(report_dict, report_file, separator='|', rotate_count=18):
+def log_report(report_dict, report_file, separator="|", rotate_count=18):
     """
     Logs a nested dictionary to a rotating csv file via the logging module.
 
@@ -56,7 +55,7 @@ def log_report(report_dict, report_file, separator='|', rotate_count=18):
     """
     #: Set up a rotating file handler for the report log
     report_path = Path(report_file)
-    report_logger = logging.getLogger('audit_report')
+    report_logger = logging.getLogger("audit_report")
     report_handler = logging.handlers.RotatingFileHandler(report_path, backupCount=rotate_count)
     report_handler.doRollover()  #: Rotate the log on each run
     report_handler.setLevel(logging.DEBUG)
@@ -69,7 +68,7 @@ def log_report(report_dict, report_file, separator='|', rotate_count=18):
 
     #: Get the column values from the keys of nested dict of the first item and log as csv header
     columns = list(next(iter(report_dict.items()))[1].keys())
-    header = f'agol_id{separator}{separator.join(columns)}'
+    header = f"agol_id{separator}{separator.join(columns)}"
     report_logger.info(header)
 
     #: iterate through report_dict, using the columns generated above as keys of each nested dict to
@@ -110,12 +109,12 @@ class Metatable:
             #: If table is from SGID, get "authoritative" from table and set "category" to SGID. Otherwise,
             #: get "category" from table and set "authoritative" to 'n'.
             #: SGID's AGOLItems table has "Authoritative" field, shelved table does not.
-            if 'Authoritative' in fields:
+            if "Authoritative" in fields:
                 table_sgid_name, table_agol_itemid, table_agol_name, table_authoritative = row
-                table_category = 'SGID'
+                table_category = "SGID"
             else:
                 table_sgid_name, table_agol_itemid, table_agol_name, table_category = row
-                table_authoritative = 'n'
+                table_authoritative = "n"
 
             #: Item IDs are UUIDs. If we can't parse the item id listed in the table, it means the layer is not
             #: in AGOL and this row should be skipped (catches both magic words and empty entries)
@@ -126,7 +125,10 @@ class Metatable:
 
             if table_agol_itemid not in self.metatable_dict:
                 self.metatable_dict[table_agol_itemid] = [
-                    table_sgid_name, table_agol_name, table_category, table_authoritative
+                    table_sgid_name,
+                    table_agol_name,
+                    table_category,
+                    table_authoritative,
                 ]
             else:
                 self.duplicate_keys.append(table_agol_itemid)
@@ -170,6 +172,7 @@ class Auditor:
     """
 
     #: Tags or words that should be uppercased, saved as lower to check against
+    # fmt: off
     uppercased_tags = [
         '2g', '3g', '4g', 'agol', 'aog', 'at&t', 'atv', 'blm', 'brat', 'caf', 'cdl', 'dabc', 'dabs', 'daq', 'dem',
         'dfcm', 'dfirm', 'dnr', 'dogm', 'dot', 'dsl', 'dsm', 'dtm', 'dup', 'dwq', 'e911', 'ems', 'epa', 'fae', 'fcc',
@@ -178,30 +181,31 @@ class Auditor:
         'shpo', 'sitla', 'sligp', 'trax', 'uca', 'udot', 'ugrc', 'ugs', 'uhp', 'uic', 'uipa', 'us', 'usao', 'usdw',
         'usfs', 'usfws', 'usps', 'ustc', 'ut', 'uta', 'utsc', 'vcp', 'vista', 'voc', 'wbd', 'wre'
     ]
+    # fmt: on
 
     #: Articles that should be left lowercase.
-    articles = ['a', 'an', 'the', 'of', 'is', 'in']
+    articles = ["a", "an", "the", "of", "is", "in"]
 
     #: Tags that should be deleted, saved as lower to check against
     tags_to_delete = [
-        '.sd',
-        'service definition',
-        'required: common-use word or phrase used to describe the subject of the data set',
-        '002',
-        'required: common-use word or phrase used to describe the subject of the data set.',
-        'agrc',
+        ".sd",
+        "service definition",
+        "required: common-use word or phrase used to describe the subject of the data set",
+        "002",
+        "required: common-use word or phrase used to describe the subject of the data set.",
+        "agrc",
     ]
 
     #: Notes for static and shelved descriptions
     static_note = (
-        '<i><b>NOTE</b>: This dataset holds \'static\' data that we don\'t expect to change. We have removed it from '
-        'the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on '
-        'opendata.gis.utah.gov.</i>'
+        "<i><b>NOTE</b>: This dataset holds 'static' data that we don't expect to change. We have removed it from "
+        "the SDE database and placed it in ArcGIS Online, but it is still considered part of the SGID and shared on "
+        "opendata.gis.utah.gov.</i>"
     )
 
     shelved_note = (
-        '<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and \'shelved\' in ArcGIS '
-        'Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>'
+        "<i><b>NOTE</b>: This dataset is an older dataset that we have removed from the SGID and 'shelved' in ArcGIS "
+        "Online. There may (or may not) be a newer vintage of this dataset in the SGID.</i>"
     )
 
     def __init__(self, log, verbose=False, item_ids=None):
@@ -245,8 +249,8 @@ class Auditor:
         self.username = credentials.USERNAME
 
         repo_base_path = Path(__file__).parents[2]
-        self.metadata_xml_template = repo_base_path / 'exact copy of.xslt'
-        self.thumbnail_dir = repo_base_path / 'thumbnails'
+        self.metadata_xml_template = repo_base_path / "exact copy of.xslt"
+        self.thumbnail_dir = repo_base_path / "thumbnails"
 
         self.log = log
 
@@ -263,73 +267,73 @@ class Auditor:
         """
 
         #: temp_dir used by fixes.metadata_fix() to hold xml of sde metadata
-        temp_dir = Path(arcpy.env.scratchFolder, 'auditor')
+        temp_dir = Path(arcpy.env.scratchFolder, "auditor")
         if not temp_dir.exists():
             if self.verbose:
-                print(f'Creating temp directory {temp_dir}...')
+                print(f"Creating temp directory {temp_dir}...")
             temp_dir.mkdir()
 
-        self.log.info(f'Logging into {credentials.ORG} as {credentials.USERNAME}')
+        self.log.info(f"Logging into {credentials.ORG} as {credentials.USERNAME}")
 
         self.gis = arcgis.gis.GIS(credentials.ORG, credentials.USERNAME, credentials.PASSWORD)
 
         #: Make sure ArcGIS Pro is properly logged in
         arcpy.SignInToPortal(arcpy.GetActivePortalURL(), credentials.USERNAME, credentials.PASSWORD)
 
-        user_item = self.gis.users.me  # pylint: disable=no-member
+        user_item = self.gis.users.me
 
         #: Build dict of folders. 'None' gives us the root folder.
         if self.verbose:
-            print(f'Getting {self.username}\'s folders...')
+            print(f"Getting {self.username}'s folders...")
         folders = {None: None}
         for folder in user_item.folders:
-            folders[folder['id']] = folder['title']
+            folders[folder["id"]] = folder["title"]
 
         self.items_to_check = []  #: Clear this out again in case retry calls setup() multiple times.
 
         #: Get item object and it's correspond folder for each relevant item
         if self.verbose:
-            print('Getting item objects...')
+            print("Getting item objects...")
 
         #: User-provided list
         if self.item_ids:
             for item_id in self.item_ids:
-                item = self.gis.content.get(item_id)  # pylint: disable=no-member
+                item = self.gis.content.get(item_id)
                 if not item:
-                    raise ValueError(f'Item {item_id} not found')
+                    raise ValueError(f"Item {item_id} not found")
                 self.items_to_check.append(item)
                 try:
                     self.itemid_and_folder[item.itemid] = folders[item.ownerFolder]
                 except KeyError:
-                    raise ValueError(f'Folder id {item.ownerFolder} not found (wrong user?)')
+                    raise ValueError(f"Folder id {item.ownerFolder} not found (wrong user?)")
 
         #: No user-provided item ids, get all hosted feature services in every folder
         else:
             for _, name in folders.items():
                 for item in user_item.items(name, 1000):
-                    if item.type == 'Feature Service':
+                    if item.type == "Feature Service":
                         self.items_to_check.append(item)
                         self.itemid_and_folder[item.itemid] = name
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
         if self.verbose:
-            print('Getting metatable info...')
+            print("Getting metatable info...")
 
         self.metatable = Metatable()
 
-        sgid_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'Authoritative']
-        agol_fields = ['TABLENAME', 'AGOL_ITEM_ID', 'AGOL_PUBLISHED_NAME', 'CATEGORY']
+        sgid_fields = ["TABLENAME", "AGOL_ITEM_ID", "AGOL_PUBLISHED_NAME", "Authoritative"]
+        agol_fields = ["TABLENAME", "AGOL_ITEM_ID", "AGOL_PUBLISHED_NAME", "CATEGORY"]
         self.metatable.read_metatable(self.sgid_table, sgid_fields)
         self.metatable.read_metatable(self.agol_table, agol_fields)
 
         if self.metatable.duplicate_keys:
-            raise RuntimeError(f'Duplicate AGOL item IDs found in metatables: {self.metatable.duplicate_keys}')
+            raise RuntimeError(f"Duplicate AGOL item IDs found in metatables: {self.metatable.duplicate_keys}")
 
         #: Get the groups
         if self.verbose:
-            print('Getting groups...')
-        groups = self.gis.groups.search('title:*')  # pylint: disable=no-member
+            print("Getting groups...")
+        groups = self.gis.groups.search("title:*")  # pylint: disable=no-member
         self.groups_dict = {g.title: g.id for g in groups}
 
     def check_items(self, report=False):
@@ -340,7 +344,7 @@ class Auditor:
             report: Optional; If True, save self.report_dict to path specified in credentials.py
         """
 
-        self.log.info(f'Checking {len(self.items_to_check)} items')
+        self.log.info(f"Checking {len(self.items_to_check)} items")
 
         counter = 0
         try:
@@ -349,7 +353,7 @@ class Auditor:
                 counter += 1
 
                 if self.verbose:
-                    print(f'Checking {item.title} ({counter} of {len(self.items_to_check)})...')
+                    print(f"Checking {item.title} ({counter} of {len(self.items_to_check)})...")
 
                 itemid = item.itemid
 
@@ -362,14 +366,18 @@ class Auditor:
                 #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
 
                 #: Run the checks on this item
-                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))  # pylint: disable=cell-var-from-loop
+                retry(
+                    lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
+                )  # pylint: disable=cell-var-from-loop
                 retry(checker.title_check)
                 retry(lambda: checker.folder_check(self.itemid_and_folder))  # pylint: disable=cell-var-from-loop
                 retry(checker.groups_check)
                 retry(checker.downloads_check)
                 retry(checker.delete_protection_check)
                 retry(checker.metadata_check)
-                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
+                retry(
+                    lambda: checker.description_note_check(self.static_note, self.shelved_note)
+                )  # pylint: disable=cell-var-from-loop
                 checker.thumbnail_check(self.thumbnail_dir)
                 retry(checker.authoritative_check)
                 retry(checker.visibility_check)
@@ -384,7 +392,7 @@ class Auditor:
 
     def check_organization_wide(self):
 
-        self.log.info('Running organization-wide checks...')
+        self.log.info("Running organization-wide checks...")
 
         #: Run organization-wide checks
         organization_checker = org_checker.OrgChecker(self.items_to_check)
@@ -393,11 +401,11 @@ class Auditor:
         #: Log results to main logger
         for check, check_results_dict in org_results.items():
             if check_results_dict:
-                self.log.info(f'{check} results ({len(check_results_dict)}):')
+                self.log.info(f"{check} results ({len(check_results_dict)}):")
                 for key, value in check_results_dict.items():
-                    self.log.info(f'{key}: {value}')
+                    self.log.info(f"{key}: {value}")
             else:
-                self.log.info(f'{check} returned no results')
+                self.log.info(f"{check} returned no results")
 
     def fix_items(self, report=False):
         """
@@ -407,7 +415,7 @@ class Auditor:
         checks_yyyy-mm-dd.csv in 'report_path' (if specified).
         """
 
-        self.log.info(f'Evaluating report for fixes on {len(self.report_dict)} items')
+        self.log.info(f"Evaluating report for fixes on {len(self.report_dict)} items")
 
         counter = 0
         try:
@@ -419,7 +427,7 @@ class Auditor:
                 item_report = self.report_dict[itemid]
 
                 if self.verbose:
-                    print(f'Evaluating report for fixes on {item.title} ({counter} of {len(self.report_dict)})...')
+                    print(f"Evaluating report for fixes on {item.title} ({counter} of {len(self.report_dict)})...")
 
                 fixer = fixes.ItemFixer(item, item_report)
 
@@ -435,23 +443,34 @@ class Auditor:
                 retry(fixer.folder_fix)
                 retry(fixer.delete_protection_fix)
                 retry(fixer.downloads_fix)
-                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
+                retry(
+                    lambda: fixer.description_note_fix(self.static_note, self.shelved_note)
+                )  # pylint: disable=cell-var-from-loop
                 retry(fixer.thumbnail_fix)
                 retry(fixer.authoritative_fix)
                 retry(fixer.visibility_fix)
                 retry(fixer.cache_age_fix)
 
                 update_status_keys = [
-                    'metadata_result', 'tags_result', 'title_result', 'groups_result', 'folder_result',
-                    'delete_protection_result', 'downloads_result', 'description_note_result', 'thumbnail_result',
-                    'authoritative_result', 'visibility_result', 'cache_age_result'
+                    "metadata_result",
+                    "tags_result",
+                    "title_result",
+                    "groups_result",
+                    "folder_result",
+                    "delete_protection_result",
+                    "downloads_result",
+                    "description_note_result",
+                    "thumbnail_result",
+                    "authoritative_result",
+                    "visibility_result",
+                    "cache_age_result",
                 ]
 
                 #: Update summary statistics, print results if verbose
                 for status in update_status_keys:
 
                     #: Skip statuses not updated
-                    if 'No update needed for' in item_report[status]:
+                    if "No update needed for" in item_report[status]:
                         continue
 
                     #: Increment fixed item summary statistic
@@ -459,10 +478,10 @@ class Auditor:
                     self.fix_counts[status] += 1
                     #: Log actual fixes
                     if self.verbose:
-                        print(f'\t{item_report[status]}')
+                        print(f"\t{item_report[status]}")
 
         except KeyboardInterrupt:
-            print('Interrupted by Ctrl-c')
+            print("Interrupted by Ctrl-c")
             raise
 
         finally:
@@ -471,15 +490,15 @@ class Auditor:
 
             if self.fix_counts:
                 for fix_type in self.fix_counts:
-                    fix = fix_type.rpartition('_')[0]
-                    if fix not in ['thumbnail']:
-                        self.log.info(f'{self.fix_counts[fix_type]} items updated for {fix_type}')
+                    fix = fix_type.rpartition("_")[0]
+                    if fix not in ["thumbnail"]:
+                        self.log.info(f"{self.fix_counts[fix_type]} items updated for {fix_type}")
             else:
-                self.log.info('No items fixed.')
+                self.log.info("No items fixed.")
 
             #: Wipe scratch environment unless verbose (to save metadata xmls for troubleshooting)
             #: TODO: Create subdir (used in fixes.metadata_fix()) based on date, rather than just "auditor"?
             if not self.verbose:
-                scratch_path = Path(arcpy.env.scratchFolder, 'auditor')
+                scratch_path = Path(arcpy.env.scratchFolder, "auditor")
                 for child in scratch_path.iterdir():
                     child.unlink()
