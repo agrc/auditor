@@ -94,22 +94,29 @@ class ItemFixer:
 
         #: Share to everyone and groups
         group_name = self.item_report["group_new"]
-        try:
-            gid = groups_dict[group_name]
-            share_results = self.item.share(everyone=True, groups=[gid])
-            result_dict = share_results["results"][0]
-
-            #: Report if we couldn't share it with group
-            if gid in result_dict["notSharedWith"]:
-                self.item_report["groups_result"] = f"Failed to share with everyone and '{group_name}' group"
-                return
 
         #: Groups should always be found, but in case they're not, report
-        except KeyError:
+        try:
+            gid = groups_dict[group_name]
+            group_object = self.item._gis.groups.search(gid)[0]
+        except (KeyError, IndexError):
             self.item_report["groups_result"] = f"Cannot find group '{group_name}' in organization"
             return
 
-        self.item_report["groups_result"] = f"Shared with everyone and '{group_name}' group"
+        everyone_result = False
+        self.item.sharing.sharing_level = self.item.sharing.sharing_level.EVERYONE
+        if self.item.sharing.sharing_level == self.item.sharing.sharing_level.EVERYONE:
+            everyone_result = True
+
+        group_result = self.item.sharing.groups.add(group_object)
+
+        results = {"everyone": "Shared with everyone", "group": f"Shared with group '{group_name}'"}
+        if not everyone_result:
+            results["everyone"] = "Failed to share with everyone"
+        if not group_result:
+            results["group"] = f"Failed to share with group '{group_name}'"
+
+        self.item_report["groups_result"] = f"{results['everyone']}, {results['group']}"
 
     def folder_fix(self):
         """
