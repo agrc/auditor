@@ -84,7 +84,7 @@ def get_item_properties(item):
     title = item.title
     tags = item.tags
     try:
-        shared_with = item.shared_with
+        shared_with = item.sharing.shared_with
     except Exception as ex:
         shared_with = ex
     itemid = item.itemid
