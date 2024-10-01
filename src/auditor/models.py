@@ -378,7 +378,7 @@ class Auditor:
                 retry(checker.groups_check)
                 retry(checker.downloads_check)
                 retry(checker.delete_protection_check)
-                retry(checker.metadata_check)
+                # retry(checker.metadata_check)
                 retry(
                     lambda: checker.description_note_check(self.static_note, self.shelved_note)
                 )  # pylint: disable=cell-var-from-loop
@@ -440,7 +440,7 @@ class Auditor:
                 #: Do the metadata fix first so that the tags, title, and
                 #: description fixes later on aren't overwritten by the metadata
                 #: upload.
-                retry(lambda: fixer.metadata_fix(self.metadata_xml_template))  # pylint: disable=cell-var-from-loop
+                # retry(lambda: fixer.metadata_fix(self.metadata_xml_template))  # pylint: disable=cell-var-from-loop
                 retry(fixer.tags_fix)
                 retry(fixer.title_fix)
                 retry(lambda: fixer.group_fix(self.groups_dict))  # pylint: disable=cell-var-from-loop
@@ -456,7 +456,7 @@ class Auditor:
                 retry(fixer.cache_age_fix)
 
                 update_status_keys = [
-                    "metadata_result",
+                    # "metadata_result",
                     "tags_result",
                     "title_result",
                     "groups_result",
