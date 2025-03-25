@@ -1,7 +1,9 @@
 import re
 from collections.abc import MutableSequence
 from dataclasses import dataclass
+from pathlib import Path
 
+from github.ContentFile import ContentFile
 from markdown_it import MarkdownIt
 
 #: Normal values should be stored as markdown text and have a .as_html() method for returning HTML rendered version.
@@ -250,3 +252,85 @@ class SGIDLayerMetadata:
                 out_string += f"{var}:\n\t{getattr(self, var)}\n"
         return out_string
 
+class MetadataRepoContents:
+    """Holds content of the metadata repo grouped by SGID category as MetadataFiles, which expose the raw markdown text of each file."""
+
+    def __init__(self, repo):
+        #: Setup instance variables
+        self.repo = repo
+        self._all_metadata_content = []
+        self._initial_categories = {}
+        self.categories = {}
+
+        #: Load metadata files from github, group by SGID category, and extract content from each file
+        self._load_metadata_content_files()
+        self._categorize_content_files()
+        self._extract_metadata_info()
+
+    def _load_metadata_content_files(self):
+        """Load all metadata files from the repo."""
+        contents = self.repo.get_contents("metadata")
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(self.repo.get_contents(file_content.path))
+            else:
+                self._all_metadata_content.append(file_content)
+
+    def _categorize_content_files(self):
+        """Categorize the metadata files by their directory structure."""
+        for file_content in self._all_metadata_content:
+            if file_content.path.startswith("metadata/") and file_content.path.endswith(".md"):
+                category = file_content.path.split("/")[1].lower()
+                if category in ["_category", "schema"]:
+                    continue
+                if category not in self._initial_categories:
+                    self._initial_categories[category] = []
+                self._initial_categories[category].append(file_content)
+
+    def _extract_metadata_info(self):
+        """Create dictionary of MetadataFile objects for each category."""
+        for category in self._initial_categories:
+            if category not in self.categories:
+                self.categories[category] = []
+            for content_file in self._initial_categories[category]:
+                if content_file.path.endswith("_schema.md"):
+                    continue
+                metadata_file = MetadataFile(content_file, self._initial_categories[category])
+                self.categories[category].append(metadata_file)
+
+
+class MetadataFile:
+    """Contains a single layer's metadata ContentFile and associated schema file if present, exposing the raw markdown text of each via the content and schema properties."""
+    def __init__(self, content_file: ContentFile, group_contents: list[ContentFile]):
+        self.group = content_file.path.split("/")[1].lower()  #: element[0] is "metadata"
+        self.name = content_file.path.split("/")[2].lower()
+        self._content_file = content_file
+        self._group_contents = [Path(content.path) for content in group_contents]  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
+        self.schema_file = None
+        self._get_schema_file()
+
+    def _get_schema_file(self):
+        content_file_parent = Path(self._content_file.path).parent
+        schema_file_path = content_file_parent / (self._content_file.name.replace(".md", "_schema.md"))
+
+        if schema_file_path in self._group_contents:
+            self.schema_file = str(schema_file_path)
+
+    @property
+    def content(self):
+        """Return the decoded content of the metadata file."""
+        return self.content_file.decoded_content.decode("utf-8")
+
+    @property
+    def schema(self):
+        """Return the decoded content of the schema file if it exists."""
+        if self.schema_file:
+            return self.schema_file.decoded_content.decode("utf-8")
+        return None
+
+    def __repr__(self):
+        output = f"content={self._content_file.path}"
+        if self.schema_file:
+            output += f"\n\tschema_file={self.schema_file}"
+        return output
