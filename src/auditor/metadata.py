@@ -359,7 +359,14 @@ class MetadataFile:
                 section = re.match(r"^(?:#+)\s+(.*)", line)[1]  #: gets the header's content/name
                 continue
             if not line.startswith("#"):
-                section_content.append(line)
+                cleaned_content = self._remove_comments_from_markdown(line)
+                if cleaned_content:
+                    section_content.append(line)
+
+    @staticmethod
+    def _remove_comments_from_markdown(markdown) -> str:
+        """Removes comments from the markdown content."""
+        return re.sub(r"<!--.*?-->", "", markdown, flags=re.DOTALL)
 
 
     def parse_markdown_into_sgid_metadata(self) -> None:
