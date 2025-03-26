@@ -3,6 +3,7 @@ from collections.abc import MutableSequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from github import Auth, Github
 from github.ContentFile import ContentFile
 from markdown_it import MarkdownIt
 
@@ -102,6 +103,9 @@ class MarkdownList(MutableSequence, MarkdownData):
             raise ValueError("value must be a string")
         if value.strip() == "":
             self._values = []
+            return
+        if r"\n" not in value:
+            self._values = [value.strip()]
             return
         values = re.findall(r"- (.+)", value)
         if not values:
@@ -307,8 +311,12 @@ class MetadataFile:
         self.name = content_file.path.split("/")[2].lower()
         self._content_file = content_file
         self._group_contents = [Path(content.path) for content in group_contents]  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
+        self._split_content = {}
+
         self.schema_file = None
         self._get_schema_file()
+
+        self.metadata = None
 
     def _get_schema_file(self):
         content_file_parent = Path(self._content_file.path).parent
@@ -320,7 +328,7 @@ class MetadataFile:
     @property
     def content(self):
         """Return the decoded content of the metadata file."""
-        return self.content_file.decoded_content.decode("utf-8")
+        return self._content_file.decoded_content.decode("utf-8")
 
     @property
     def schema(self):
@@ -334,3 +342,80 @@ class MetadataFile:
         if self.schema_file:
             output += f"\n\tschema_file={self.schema_file}"
         return output
+
+    def split_markdown_to_sections(self) -> None:
+        """Splits the raw markdown content from github into a dictionary of section names and associated markdown text.
+        """
+        lines = [line for line in self.content.split("\n") if line]
+        lines.append("# End")  #: add something at the end so that it doesn't fall off the end without saving the last section
+        section_content = []
+        section = ""
+        for line in lines:
+            if line.startswith("#"):
+                #: kind of a look-behind thing- if the current line is a new section, save the previous section's content
+                if section:
+                    self._split_content[section] = "\n".join(section_content)
+                    section_content = []
+                section = re.match(r"^(?:#+)\s+(.*)", line)[1]  #: gets the header's content/name
+                continue
+            if not line.startswith("#"):
+                section_content.append(line)
+
+
+    def parse_markdown_into_sgid_metadata(self) -> None:
+        """Creates an SGIDLayerMetadata object from the split markdown content."""
+        self.metadata = SGIDLayerMetadata(
+            title=MarkdownData(self._split_content["Title"]),
+            category=MarkdownData(self.group),
+            secondary_category=MarkdownData(self._split_content["Secondary Category"]),
+            sgid_id=MarkdownData(self._split_content["ID"]),
+            brief_summary=MarkdownData(self._split_content["Brief Summary"]),
+            summary=MarkdownData(self._split_content["Summary"]),
+            description=MetadataDescription(
+                what=MarkdownData(self._split_content["What is the dataset?"]),
+                purpose=MarkdownData(self._split_content["What is the purpose of the dataset?"]),
+                represents=MarkdownData(self._split_content["What does the dataset represent?"]),
+                created_maintained=MarkdownData(self._split_content["How was the dataset created?"]),
+                reliability=MarkdownData(self._split_content["How reliable and accurate is the dataset?"])
+            ),
+            credits_=MetadataCredits(
+                data_source=MarkdownList(self._split_content["Data Source"]),
+                host=MarkdownData(self._split_content["Host"])
+            ),
+            restrictions=MarkdownData(self._split_content["Restrictions"]),
+            license_=MarkdownData(self._split_content["License"]),
+            tags=MarkdownList(self._split_content["Tags"]),
+            data_page_link=MarkdownData(self._split_content["Data Page Link"]),
+            update=MetadataUpdates(
+                schedule=MarkdownData(self._split_content["Update Schedule"]),
+                history=MarkdownList(self._split_content["Previous Updates"])
+            )
+        )
+
+def example_repo_pull():
+    #: The Github API doesn't support uname/pwd authentication against github.com accounts, so we have to use a personal access token. Generate it on github, save to file. Use a fine-grained PAT and select either the appropriate repo for read-only access or just do all public repo read-only access.
+    #: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+    token_file_path = ""
+    with open(token_file_path) as f:
+        access_token = f.read()
+    auth = Auth.Token(access_token)
+
+    g = Github(seconds_between_requests=1.1, auth=auth)  #: Ensures we don't run into any rate limiting for too many requests/too much server load per minute
+    repo = g.get_repo("agrc/metadata-asset-tracking-tool")
+
+    #: Create the repo object, which loads all the metadata files as MetadataFile objects
+    metadata_repo = MetadataRepoContents(repo)
+
+    parsed = {}
+    error_layers = []
+
+
+    for category in metadata_repo.categories:
+        for metadata_file in metadata_repo.categories[category]:
+            try:
+                metadata_file.split_markdown_to_sections()
+                metadata_file.parse_markdown_into_sgid_metadata()
+                parsed[metadata_file.metadata.sgid_id.value] = metadata_file.metadata
+            except KeyError as e:  #: if there are any sections missing/misnamed
+                error_layers.append(f"{metadata_file.name}: {e}")
+                continue
