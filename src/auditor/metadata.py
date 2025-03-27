@@ -243,6 +243,7 @@ class SGIDLayerMetadata:
     tags: MarkdownList
     data_page_link: MarkdownData
     update: MetadataUpdates
+    schema: dict[str, MarkdownData]
 
     #: TODO: repr needs some work.
 
@@ -312,6 +313,7 @@ class MetadataFile:
         self._content_file = content_file
         self._group_contents = [Path(content.path) for content in group_contents]  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
         self._split_content = {}
+        self._split_schema = {}
 
         self.schema_file = None
         self._get_schema_file()
@@ -343,10 +345,12 @@ class MetadataFile:
             output += f"\n\tschema_file={self.schema_file}"
         return output
 
-    def split_markdown_to_sections(self) -> None:
+    @staticmethod
+    def _split_markdown_to_sections(content) -> dict[str, str]:
         """Splits the raw markdown content from github into a dictionary of section names and associated markdown text.
         """
-        lines = [line for line in self.content.split("\n") if line]
+        split_content = {}
+        lines = [line for line in MetadataFile._remove_comments_from_markdown(content).split("\n") if line]
         lines.append("# End")  #: add something at the end so that it doesn't fall off the end without saving the last section
         section_content = []
         section = ""
@@ -354,14 +358,21 @@ class MetadataFile:
             if line.startswith("#"):
                 #: kind of a look-behind thing- if the current line is a new section, save the previous section's content
                 if section:
-                    self._split_content[section] = "\n".join(section_content)
+                    split_content[section] = "\n".join(section_content)
                     section_content = []
                 section = re.match(r"^(?:#+)\s+(.*)", line)[1]  #: gets the header's content/name
                 continue
-            if not line.startswith("#"):
-                cleaned_content = self._remove_comments_from_markdown(line)
-                if cleaned_content:
-                    section_content.append(line)
+
+            if line.strip():
+                section_content.append(line)
+
+        return split_content
+
+    def split_content_and_schema_to_sections(self) -> None:
+        """Splits the raw markdown content and schema content into dictionaries of section names and associated markdown text."""
+        self._split_content = self._split_markdown_to_sections(self.content)
+        if self.schema:
+            self._split_schema = self._split_markdown_to_sections(self.schema)
 
     @staticmethod
     def _remove_comments_from_markdown(markdown) -> str:
@@ -420,8 +431,8 @@ def example_repo_pull():
     for category in metadata_repo.categories:
         for metadata_file in metadata_repo.categories[category]:
             try:
-                metadata_file.split_markdown_to_sections()
-                metadata_file.parse_markdown_into_sgid_metadata()
+                split_content = metadata_file.split_markdown_to_sections()
+                metadata_file.parse_markdown_into_sgid_metadata(split_content)
                 parsed[metadata_file.metadata.sgid_id.value] = metadata_file.metadata
             except KeyError as e:  #: if there are any sections missing/misnamed
                 error_layers.append(f"{metadata_file.name}: {e}")

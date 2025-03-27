@@ -25,12 +25,15 @@ class TestMetadataFileSplitting:
 
         }
 
-        metadata_file_mock = mocker.patch("auditor.metadata.MetadataFile")
-        metadata_file_mock.content = test_string
-        metadata_file_mock._split_content = {}
-        MetadataFile.split_markdown_to_sections(metadata_file_mock)
+        mock_content = mocker.Mock()
+        mock_content.path = "/path/to/file.md"
+        group_content = [mock_content]
+        mocker.patch("auditor.metadata.MetadataFile._get_schema_file", return_value="/foo/bar/schema.md")
 
-        assert metadata_file_mock._split_content == expected
+        fake_metadata_file = MetadataFile(mock_content, group_content)
+        output = fake_metadata_file._split_markdown_to_sections(test_string)
+
+        assert output == expected
 
 class TestCommentRemoval:
 
