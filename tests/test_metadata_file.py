@@ -72,3 +72,39 @@ class TestCommentRemoval:
         output = MetadataFile._remove_comments_from_markdown(test_string)
 
         assert output == expected
+
+class TestSchemaParsing:
+
+    def test_parse_markdown_into_schema_removes_title_and_id(self, mocker):
+        mocker.patch("auditor.metadata.MetadataFile._get_schema_file", return_value="/path/to/schema.md")
+
+        mock_content = mocker.Mock()
+        mock_content.path = "/path/to/file.md"
+        group_content = [mock_content]
+
+        fake_metadata_file = MetadataFile(mock_content, group_content)
+        fake_metadata_file.metadata = mocker.Mock()
+        fake_metadata_file._split_schema = {"Title": "foo", "ID": "bar", "field1": "value1", "field2": "value2"}
+
+        fake_metadata_file._parse_markdown_into_schema()
+
+        assert fake_metadata_file.metadata.schema == {"field1": "value1", "field2": "value2"}
+
+class TestInit:
+
+    def test_init_gets_schema_content_file(self, mocker):
+        file1_mock = mocker.Mock()
+        file1_mock.path = "/metadata/category/layer1.md"
+        file1_mock.name = "layer1.md"
+
+        file2_mock = mocker.Mock()
+        file2_mock.path = "/metadata/category/layer1_schema.md"
+        file2_mock.name = "layer1_schema.md"
+
+        file3_mock = mocker.Mock()
+        file3_mock.path = "/metadata/category/layer2.md"
+        file3_mock.name = "layer2.md"
+
+        metadata_file = MetadataFile(file1_mock, [file1_mock, file2_mock, file3_mock])
+
+        assert metadata_file.schema_file == file2_mock

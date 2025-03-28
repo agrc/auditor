@@ -1,6 +1,6 @@
 import re
 from collections.abc import MutableSequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from github import Auth, Github
@@ -199,6 +199,14 @@ class MetadataUpdates:
         return out_string
 
 @dataclass
+class MetadataSchema:
+
+    fields: dict[str, MarkdownData] = field(default_factory=dict)
+
+    def as_html(self) -> str:
+        return "".join([f"<h3>{field}</h3>{definition.as_html()}" for field, definition in self.fields.items()])
+
+@dataclass
 class SGIDLayerMetadata:
     """All the metadata about a layer in the SGID or entry in the SGID index. Text should be in markdown format with
         newlines (`\n`) as needed.
@@ -243,7 +251,7 @@ class SGIDLayerMetadata:
     tags: MarkdownList
     data_page_link: MarkdownData
     update: MetadataUpdates
-    schema: dict[str, MarkdownData]
+    schema: MetadataSchema = field(default_factory=MetadataSchema)
 
     #: TODO: repr needs some work.
 
@@ -311,7 +319,7 @@ class MetadataFile:
         self.group = content_file.path.split("/")[1].lower()  #: element[0] is "metadata"
         self.name = content_file.path.split("/")[2].lower()
         self._content_file = content_file
-        self._group_contents = [Path(content.path) for content in group_contents]  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
+        self._group_contents = {Path(content.path): content for content in group_contents}  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
         self._split_content = {}
         self._split_schema = {}
 
@@ -325,7 +333,7 @@ class MetadataFile:
         schema_file_path = content_file_parent / (self._content_file.name.replace(".md", "_schema.md"))
 
         if schema_file_path in self._group_contents:
-            self.schema_file = str(schema_file_path)
+            self.schema_file = self._group_contents[schema_file_path]
 
     @property
     def content(self):
@@ -409,6 +417,12 @@ class MetadataFile:
                 history=MarkdownList(self._split_content["Previous Updates"])
             )
         )
+        if self.schema_file:
+            self._parse_markdown_into_schema()
+
+    def _parse_markdown_into_schema(self) -> None:
+        """Creates a schema dictionary from the split schema content."""
+        self.metadata.schema = MetadataSchema({header: MarkdownData(content) for header, content in self._split_schema.items() if header not in ["Title", "ID"]})
 
 def example_repo_pull():
     #: The Github API doesn't support uname/pwd authentication against github.com accounts, so we have to use a personal access token. Generate it on github, save to file. Use a fine-grained PAT and select either the appropriate repo for read-only access or just do all public repo read-only access.
@@ -431,9 +445,16 @@ def example_repo_pull():
     for category in metadata_repo.categories:
         for metadata_file in metadata_repo.categories[category]:
             try:
-                split_content = metadata_file.split_markdown_to_sections()
-                metadata_file.parse_markdown_into_sgid_metadata(split_content)
+                metadata_file.split_content_and_schema_to_sections()
+                metadata_file.parse_markdown_into_sgid_metadata()
                 parsed[metadata_file.metadata.sgid_id.value] = metadata_file.metadata
             except KeyError as e:  #: if there are any sections missing/misnamed
                 error_layers.append(f"{metadata_file.name}: {e}")
                 continue
+
+    print(g.rate_limiting)  #: Check rate limiting on github
+    pass
+
+if __name__ == "__main__":
+    example_repo_pull()
+    pass
