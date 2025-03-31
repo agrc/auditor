@@ -1,0 +1,36 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      // "program": "auditor",
+      "console": "integratedTerminal",
+      "justMyCode": false
+      // "args": [
+      //     "spot",
+      //     "-rv",
+      //     "855c45da6d2e4386b06cfa27229f9685"
+      // ]
+    },
+    {
+      "name": "Python: Auditor (spot)",
+      "type": "python",
+      "request": "launch",
+      // "program": "${file}",
+      "program": "c:\\gis\\git\\auditor\\src\\auditor\\cli.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": [
+        "spot",
+        "-rv",
+        "12589f59e3464d9a8061d48b7e3028f9" // census 2010 edges
+      ]
+    }
+  ]
+}
