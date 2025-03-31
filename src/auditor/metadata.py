@@ -10,8 +10,9 @@ from markdown_it import MarkdownIt
 #: Normal values should be stored as markdown text and have a .as_html() method for returning HTML rendered version.
 #: List values should be stored as individual elements to allow for easy inserts/deletes. Their default return should be as markdown text and have a .as_html() method for returning HTML rendered version.
 
+
 class MarkdownData:
-    """"Basic unit of metadata stored as a single string of markdown text.
+    """ "Basic unit of metadata stored as a single string of markdown text.
 
     Properties:
         value: The markdown text as a single string. Can hold simple single line data or more complex multi-line data with markdown formatting.
@@ -43,7 +44,6 @@ class MarkdownData:
         return md.render(self.value.replace("\n\n", "\n"))  #: We seem to be getting double newlines for some reason?
 
 
-
 class MarkdownList(MutableSequence, MarkdownData):
     """A markdown unordered list (`-`) stored as individual markdown strings.
 
@@ -54,7 +54,6 @@ class MarkdownList(MutableSequence, MarkdownData):
         List methods: Supports most list methods for access and manipulation of the individual list items, including indexing.
     """
 
-
     def __init__(self, value: str):
         self.value = value
 
@@ -63,10 +62,12 @@ class MarkdownList(MutableSequence, MarkdownData):
 
     def __getitem__(self, index: int) -> str:
         return self._values[index]
+
     def __setitem__(self, index: int, value: str) -> None:
         if not isinstance(value, str):
             raise ValueError("value must be a string")
         self._values[index] = value
+
     def __delitem__(self, index: int) -> None:
         del self._values[index]
 
@@ -74,17 +75,21 @@ class MarkdownList(MutableSequence, MarkdownData):
         if not isinstance(value, str):
             raise ValueError("value must be a string")
         self._values.insert(index, value)
+
     def append(self, value: str) -> None:
         if not isinstance(value, str):
             raise ValueError("value must be a string")
         self._values.append(value)
+
     def clear(self) -> None:
         self._values.clear()
+
     def remove(self, value: str) -> None:
         self._values.remove(value)
 
     def __contains__(self, value):
         return self.values.__contains__(value)
+
     def __iter__(self):
         return iter(self._values)
 
@@ -98,7 +103,7 @@ class MarkdownList(MutableSequence, MarkdownData):
 
     #: parse a markdown unordered list into a list of strings
     @value.setter
-    def value(self, value:str) -> None:
+    def value(self, value: str) -> None:
         if not isinstance(value, str):
             raise ValueError("value must be a string")
         if value.strip() == "":
@@ -112,12 +117,12 @@ class MarkdownList(MutableSequence, MarkdownData):
             raise ValueError("value must be a markdown unordered list using '- ' as the item prefix")
         self._values = [v.strip() for v in values]
 
-
     def as_html(self) -> str:
         """Convert the list of strings to an HTML unordered list."""
 
         items = "".join([f"<li>{v}</li>" for v in self._values])
         return f"<ul>{items}</ul>"
+
 
 @dataclass
 class MetadataDescription:
@@ -141,7 +146,6 @@ class MetadataDescription:
     reliability: MarkdownData
 
     def __repr__(self):
-
         out_string = ""
         for var in vars(self):
             if type(getattr(self, var)) in ([MarkdownData, MarkdownList]):
@@ -152,6 +156,7 @@ class MetadataDescription:
 
     def as_html(self) -> str:
         return "".join([getattr(self, var).as_html() for var in vars(self)])
+
 
 @dataclass
 class MetadataCredits:
@@ -167,7 +172,6 @@ class MetadataCredits:
     host: MarkdownData
 
     def __repr__(self):
-
         out_string = ""
         for var in vars(self):
             if type(getattr(self, var)) in ([MarkdownData, MarkdownList]):
@@ -175,6 +179,7 @@ class MetadataCredits:
             else:
                 out_string += f"{var}:\n\t{getattr(self, var)}\n"
         return out_string
+
 
 @dataclass
 class MetadataUpdates:
@@ -189,7 +194,6 @@ class MetadataUpdates:
     history: MarkdownList
 
     def __repr__(self):
-
         out_string = ""
         for var in vars(self):
             if type(getattr(self, var)) in ([MarkdownData, MarkdownList]):
@@ -198,13 +202,14 @@ class MetadataUpdates:
                 out_string += f"{var}:\n\t{getattr(self, var)}\n"
         return out_string
 
+
 @dataclass
 class MetadataSchema:
-
     fields: dict[str, MarkdownData] = field(default_factory=dict)
 
     def as_html(self) -> str:
         return "".join([f"<h3>{field}</h3>{definition.as_html()}" for field, definition in self.fields.items()])
+
 
 @dataclass
 class SGIDLayerMetadata:
@@ -238,6 +243,14 @@ class SGIDLayerMetadata:
             and a list of previous updates, matching the updateHistory from the data page (update.history).
     """
 
+    default_license = "CC BY 4.0"
+    default_restrictions = """
+        The data, including but not limited to geographic data, tabular data, and analytical data, are provided “as is” and “as available”, with no guarantees relating to the availability, completeness, or accuracy of data, and without any express or implied warranties.
+
+        These data are provided as a public service for informational purposes only. You are solely responsible for obtaining the proper evaluation of a location and associated data by a qualified professional. UGRC reserves the right to change, revise, suspend or discontinue published data and services without notice at any time.
+
+        Neither UGRC nor the State of Utah are responsible for any misuse or misrepresentation of the data. UGRC and the State of Utah are not obligated to provide you with any maintenance or support. The user assumes the entire risk as to the quality and performance of the data. You agree to hold the State of Utah harmless for any claims, liability, costs, and damages relating to your use of the data. You agree that your sole remedy for any dissatisfaction or claims is to discontinue use of the data."""
+
     title: MarkdownData
     category: MarkdownData
     secondary_category: MarkdownData
@@ -246,8 +259,8 @@ class SGIDLayerMetadata:
     summary: MarkdownData
     description: MetadataDescription
     credits_: MetadataCredits  #: `credits` is a reserved word
-    restrictions: MarkdownData
-    license_: MarkdownData  #: so is `license`
+    restrictions: MarkdownData = field(default=default_restrictions)
+    license_: MarkdownData = field(default=default_license)  #: so is `license`
     tags: MarkdownList
     data_page_link: MarkdownData
     update: MetadataUpdates
@@ -256,7 +269,6 @@ class SGIDLayerMetadata:
     #: TODO: repr needs some work.
 
     def __repr__(self):
-
         out_string = ""
         for var in vars(self):
             if type(getattr(self, var)) in ([MarkdownData, MarkdownList]):
@@ -264,6 +276,7 @@ class SGIDLayerMetadata:
             else:
                 out_string += f"{var}:\n\t{getattr(self, var)}\n"
         return out_string
+
 
 class MetadataRepoContents:
     """Holds content of the metadata repo grouped by SGID category as MetadataFiles, which expose the raw markdown text of each file."""
@@ -315,11 +328,14 @@ class MetadataRepoContents:
 
 class MetadataFile:
     """Contains a single layer's metadata ContentFile and associated schema file if present, exposing the raw markdown text of each via the content and schema properties."""
+
     def __init__(self, content_file: ContentFile, group_contents: list[ContentFile]):
         self.group = content_file.path.split("/")[1].lower()  #: element[0] is "metadata"
         self.name = content_file.path.split("/")[2].lower()
         self._content_file = content_file
-        self._group_contents = {Path(content.path): content for content in group_contents}  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
+        self._group_contents = {
+            Path(content.path): content for content in group_contents
+        }  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
         self._split_content = {}
         self._split_schema = {}
 
@@ -355,11 +371,12 @@ class MetadataFile:
 
     @staticmethod
     def _split_markdown_to_sections(content) -> dict[str, str]:
-        """Splits the raw markdown content from github into a dictionary of section names and associated markdown text.
-        """
+        """Splits the raw markdown content from github into a dictionary of section names and associated markdown text."""
         split_content = {}
         lines = [line for line in MetadataFile._remove_comments_from_markdown(content).split("\n") if line]
-        lines.append("# End")  #: add something at the end so that it doesn't fall off the end without saving the last section
+        lines.append(
+            "# End"
+        )  #: add something at the end so that it doesn't fall off the end without saving the last section
         section_content = []
         section = ""
         for line in lines:
@@ -387,7 +404,6 @@ class MetadataFile:
         """Removes comments from the markdown content."""
         return re.sub(r"<!--.*?-->", "", markdown, flags=re.DOTALL)
 
-
     def parse_markdown_into_sgid_metadata(self) -> None:
         """Creates an SGIDLayerMetadata object from the split markdown content."""
         self.metadata = SGIDLayerMetadata(
@@ -402,27 +418,40 @@ class MetadataFile:
                 purpose=MarkdownData(self._split_content["What is the purpose of the dataset?"]),
                 represents=MarkdownData(self._split_content["What does the dataset represent?"]),
                 created_maintained=MarkdownData(self._split_content["How was the dataset created?"]),
-                reliability=MarkdownData(self._split_content["How reliable and accurate is the dataset?"])
+                reliability=MarkdownData(self._split_content["How reliable and accurate is the dataset?"]),
             ),
             credits_=MetadataCredits(
                 data_source=MarkdownList(self._split_content["Data Source"]),
-                host=MarkdownData(self._split_content["Host"])
+                host=MarkdownData(self._split_content["Host"]),
             ),
-            restrictions=MarkdownData(self._split_content["Restrictions"]),
-            license_=MarkdownData(self._split_content["License"]),
             tags=MarkdownList(self._split_content["Tags"]),
             data_page_link=MarkdownData(self._split_content["Data Page Link"]),
             update=MetadataUpdates(
                 schedule=MarkdownData(self._split_content["Update Schedule"]),
-                history=MarkdownList(self._split_content["Previous Updates"])
-            )
+                history=MarkdownList(self._split_content["Previous Updates"]),
+            ),
         )
         if self.schema_file:
             self._parse_markdown_into_schema()
 
+        self._set_restrictions_and_license()
+
     def _parse_markdown_into_schema(self) -> None:
         """Creates a schema dictionary from the split schema content."""
-        self.metadata.schema = MetadataSchema({header: MarkdownData(content) for header, content in self._split_schema.items() if header not in ["Title", "ID"]})
+        self.metadata.schema = MetadataSchema(
+            {
+                header: MarkdownData(content)
+                for header, content in self._split_schema.items()
+                if header not in ["Title", "ID"]
+            }
+        )
+
+    def _set_restrictions_and_license(self) -> None:
+        if self._split_content["Restrictions"]:
+            self.metadata.restrictions = (MarkdownData(self._split_content["Restrictions"]),)
+        if self._split_content["License"]:
+            self.metadata.license_ = MarkdownData(self._split_content["License"])
+
 
 def example_repo_pull():
     #: The Github API doesn't support uname/pwd authentication against github.com accounts, so we have to use a personal access token. Generate it on github, save to file. Use a fine-grained PAT and select either the appropriate repo for read-only access or just do all public repo read-only access.
@@ -432,7 +461,9 @@ def example_repo_pull():
         access_token = f.read()
     auth = Auth.Token(access_token)
 
-    g = Github(seconds_between_requests=1.1, auth=auth)  #: Ensures we don't run into any rate limiting for too many requests/too much server load per minute
+    g = Github(
+        seconds_between_requests=1.1, auth=auth
+    )  #: Ensures we don't run into any rate limiting for too many requests/too much server load per minute
     repo = g.get_repo("agrc/metadata-asset-tracking-tool")
 
     #: Create the repo object, which loads all the metadata files as MetadataFile objects
@@ -440,7 +471,6 @@ def example_repo_pull():
 
     parsed = {}
     error_layers = []
-
 
     for category in metadata_repo.categories:
         for metadata_file in metadata_repo.categories[category]:
@@ -454,6 +484,7 @@ def example_repo_pull():
 
     print(g.rate_limiting)  #: Check rate limiting on github
     pass
+
 
 if __name__ == "__main__":
     example_repo_pull()

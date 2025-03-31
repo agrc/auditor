@@ -4,6 +4,7 @@
 setup.py
 A module that installs auditor as a module
 """
+
 from glob import glob
 from os.path import basename, splitext
 
@@ -45,7 +46,6 @@ setup(
             "pytest-cov>=3,<7",
             "pytest-instafail==0.5.*",
             "pytest-mock==3.*",
-            "pytest-ruff==0.*",
             "pytest-watch==4.*",
             "pytest>=6,<9",
             "ruff==0.*",
