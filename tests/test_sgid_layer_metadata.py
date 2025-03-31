@@ -1,6 +1,6 @@
 import pytest
 
-from auditor.metadata import MetadataSchema, SGIDLayerMetadata
+from auditor.metadata import MarkdownData, MetadataSchema, SGIDLayerMetadata
 
 
 class TestMetadataSchema:
@@ -18,11 +18,25 @@ class TestMetadataSchema:
 
 
 class TestDefaults:
-    def test_restrictions_default(self):
-        test_md = SGIDLayerMetadata()
+    def test_restrictions_and_license_defaults(self, mocker):
+        test_md = SGIDLayerMetadata(
+            mocker.Mock("title"),
+            mocker.Mock("category"),
+            mocker.Mock("secondary"),
+            mocker.Mock("sgid_id"),
+            mocker.Mock("brief_summary"),
+            mocker.Mock("summary"),
+            mocker.Mock("description"),
+            mocker.Mock("credits"),
+            MarkdownData(""),
+            MarkdownData(""),
+            mocker.Mock("tags"),
+            mocker.Mock("link"),
+            mocker.Mock("update"),
+        )
 
         assert (
-            test_md.restrictions
+            test_md.restrictions.value
             == """
         The data, including but not limited to geographic data, tabular data, and analytical data, are provided “as is” and “as available”, with no guarantees relating to the availability, completeness, or accuracy of data, and without any express or implied warranties.
 
@@ -30,8 +44,24 @@ class TestDefaults:
 
         Neither UGRC nor the State of Utah are responsible for any misuse or misrepresentation of the data. UGRC and the State of Utah are not obligated to provide you with any maintenance or support. The user assumes the entire risk as to the quality and performance of the data. You agree to hold the State of Utah harmless for any claims, liability, costs, and damages relating to your use of the data. You agree that your sole remedy for any dissatisfaction or claims is to discontinue use of the data."""
         )
+        assert test_md.license_.value == "CC BY 4.0"
 
-    def test_license_default(self):
-        test_md = SGIDLayerMetadata()
+    def test_restrictions_and_license_uses_supplied_text(self, mocker):
+        test_md = SGIDLayerMetadata(
+            mocker.Mock("title"),
+            mocker.Mock("category"),
+            mocker.Mock("secondary"),
+            mocker.Mock("sgid_id"),
+            mocker.Mock("brief_summary"),
+            mocker.Mock("summary"),
+            mocker.Mock("description"),
+            mocker.Mock("credits"),
+            MarkdownData("restrictions"),
+            MarkdownData("license"),
+            mocker.Mock("tags"),
+            mocker.Mock("link"),
+            mocker.Mock("update"),
+        )
 
-        assert test_md.license_ == "CC BY 4.0"
+        assert test_md.restrictions.value == "restrictions"
+        assert test_md.license_.value == "license"
