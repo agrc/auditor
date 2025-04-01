@@ -83,13 +83,14 @@ class TestSchemaParsing:
         group_content = [mock_content]
 
         fake_metadata_file = MetadataFile(mock_content, group_content)
-        fake_metadata_file.metadata = mocker.Mock()
         fake_metadata_file._split_schema = {"Title": "foo", "ID": "bar", "field1": "value1", "field2": "value2"}
 
         output_schema = fake_metadata_file._parse_markdown_into_schema()
 
-        #: TODO: figure out the proper test for this
-        assert output_schema.fields == {"field1": "value1", "field2": "value2"}
+        assert output_schema.fields["field1"].value == "value1"
+        assert output_schema.fields["field2"].value == "value2"
+        assert "Title" not in output_schema.fields
+        assert "ID" not in output_schema.fields
 
 
 class TestInit:

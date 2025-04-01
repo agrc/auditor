@@ -7,8 +7,19 @@ from github import Auth, Github
 from github.ContentFile import ContentFile
 from markdown_it import MarkdownIt
 
-#: Normal values should be stored as markdown text and have a .as_html() method for returning HTML rendered version.
-#: List values should be stored as individual elements to allow for easy inserts/deletes. Their default return should be as markdown text and have a .as_html() method for returning HTML rendered version.
+#: The SGIDLayerMetadata class contains the metadata for a single SGID layer. It is composed of other classes that store the metadata in a structure matching the headings and subheadings in the MATT files.
+
+#: The basic units are the MarkdownData class, which exposes the raw markdown string via the value property, and MarkdownList class, which provides a list-like interface for accessing individual elements of a markdown unordered list. Both classes have an as_html() method which uses markdown-it-py to render the markdown as html.
+
+#: There are classes for the description, credits, updates, and schema sections of the metadata that hold their respective sub-headings/elements as individual MarkdownData/List objects or collections thereof as appropriate. These also have as_html() methods to render the markdown as html (they generally call the as_html() method of their constituent MarkdownData/List objects).
+
+#: The MetadataRepoContents and MetadataFile classes interface with the MATT repository in github to extract the metadata files in a structured way. MetadataRepoContents traverses the repository and structures the files by their category as MetadataFile objects.
+
+#: The MetadataFile class provide access to a single layer's content as pygithub ContentFile objects, associating a schema file if present in the same group. The content and schema properties return the raw markdown text of the file(s). The object's data can be converted to a SGIDLayerMetadata object using the parse_markdown_into_sgid_metadata() method.
+
+#: TODO: The classes currently cannot combine the general and county-specific parcel and parcel LIR files into a single coherent representation for each county. This probably lives best in the MetadataFile class following the pattern of also storing the schema in this class. This may suggest a renaming of the class since it's not just a single file but can be composed of multiple files (a single layer, a layer with schema, or a parcel layer combined from multiple files with a schema).
+
+#: See https://github.com/agrc/auditor/issues/92
 
 
 class MarkdownData:
@@ -449,10 +460,10 @@ class MetadataFile:
         if self.schema_file:
             metadata.schema = self._parse_markdown_into_schema()
 
-        self._set_restrictions_and_license()
+        return metadata
 
     def _parse_markdown_into_schema(self) -> None:
-        """Creates a schema dictionary from the split schema content."""
+        """Creates a MetadataSchema from the split schema content."""
         schema = MetadataSchema(
             {
                 header: MarkdownData(content)
@@ -485,8 +496,8 @@ def example_repo_pull():
     for category in metadata_repo.categories:
         for metadata_file in metadata_repo.categories[category]:
             try:
-                metadata_file.parse_markdown_into_sgid_metadata()
-                parsed[metadata_file.metadata.sgid_id.value] = metadata_file.metadata
+                metadata = metadata_file.parse_markdown_into_sgid_metadata()
+                parsed[metadata.sgid_id.value] = metadata
             except KeyError as e:  #: if there are any sections missing/misnamed
                 error_layers.append(f"{metadata_file.name}: {e}")
                 continue
