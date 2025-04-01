@@ -234,8 +234,9 @@ class SGIDLayerMetadata:
             hosting the actual data content (feature service, downloadable zip file, etc- credits_.host). Note that
             `credits` is a reserved word in Python, so we use `credits_` instead.
         restrictions: Any usage limitations or constraints on where or how the dataset can be used, including
-            disclaimers and attribution rules
-        license_: The license the data are released under. Will usually be CC BY 4.0, but could be different.
+            disclaimers and attribution rules. If the MarkdownData value is empty, adds our default disclaimer.
+        license_: The license the data are released under. Will usually be CC BY 4.0, but could be different. If the
+            MarkdownData value is empty, adds "CC BY 4.0".
         tags: Each data set's tags should include the stewarding agency (UGRC, DWR, etc), "SGID," and the
             layer's category. Add any other relevant tags, but don't include any words in the layer's title.
         data_page_link: Link to the layer's data page on gis.utah.gov
@@ -267,6 +268,10 @@ class SGIDLayerMetadata:
         Neither UGRC nor the State of Utah are responsible for any misuse or misrepresentation of the data. UGRC and the State of Utah are not obligated to provide you with any maintenance or support. The user assumes the entire risk as to the quality and performance of the data. You agree to hold the State of Utah harmless for any claims, liability, costs, and damages relating to your use of the data. You agree that your sole remedy for any dissatisfaction or claims is to discontinue use of the data."""
 
     def __post_init__(self):
+        """Set defaults for the restrictions and license_ attributes if their values are empty."""
+
+        #: Every layer in github should have "Restriction" and "License" sections, but they can be empty ("").
+        #: If they are empty, set them to the default values.
         if not self.restrictions.value:
             self.restrictions = MarkdownData(self.default_restrictions)
         if not self.license_.value:
@@ -285,7 +290,7 @@ class SGIDLayerMetadata:
 
 
 class MetadataRepoContents:
-    """Holds content of the metadata repo grouped by SGID category as MetadataFiles, which expose the raw markdown text of each file."""
+    """Loads content of the metadata repo grouped by SGID category as MetadataFiles, which expose the pygithub ContentFile representations of each file."""
 
     def __init__(self, repo):
         #: Setup instance variables
@@ -300,7 +305,7 @@ class MetadataRepoContents:
         self._extract_metadata_info()
 
     def _load_metadata_content_files(self):
-        """Load all metadata files from the repo."""
+        """Load all metadata files from the repo as pygithub ContentFiles."""
         contents = self.repo.get_contents("metadata")
         while contents:
             file_content = contents.pop(0)
@@ -310,7 +315,7 @@ class MetadataRepoContents:
                 self._all_metadata_content.append(file_content)
 
     def _categorize_content_files(self):
-        """Categorize the metadata files by their directory structure."""
+        """Categorize the pygithub ContentFiles by their directory structure."""
         for file_content in self._all_metadata_content:
             if file_content.path.startswith("metadata/") and file_content.path.endswith(".md"):
                 category = file_content.path.split("/")[1].lower()
@@ -333,7 +338,7 @@ class MetadataRepoContents:
 
 
 class MetadataFile:
-    """Contains a single layer's metadata ContentFile and associated schema file if present, exposing the raw markdown text of each via the content and schema properties."""
+    """Contains a single layer's metadata ContentFile and associated schema ContentFile if present, exposing the raw markdown text of each via the content and schema properties. Provides a method for parsing the data into a SGIDLayerMetadata object."""
 
     def __init__(self, content_file: ContentFile, group_contents: list[ContentFile]):
         self.group = content_file.path.split("/")[1].lower()  #: element[0] is "metadata"
@@ -342,11 +347,13 @@ class MetadataFile:
         self._group_contents = {
             Path(content.path): content for content in group_contents
         }  #: There's probably a more efficient way to do this than calculating this list for every item, but :shrug:
-        self._split_content = {}
-        self._split_schema = {}
 
         self.schema_file = None
         self._get_schema_file()
+
+        self._split_content = {}
+        self._split_schema = {}
+        self._split_content_and_schema_to_sections()
 
         self.metadata = None
 
@@ -399,7 +406,7 @@ class MetadataFile:
 
         return split_content
 
-    def split_content_and_schema_to_sections(self) -> None:
+    def _split_content_and_schema_to_sections(self) -> None:
         """Splits the raw markdown content and schema content into dictionaries of section names and associated markdown text."""
         self._split_content = self._split_markdown_to_sections(self.content)
         if self.schema:
@@ -410,9 +417,9 @@ class MetadataFile:
         """Removes comments from the markdown content."""
         return re.sub(r"<!--.*?-->", "", markdown, flags=re.DOTALL)
 
-    def parse_markdown_into_sgid_metadata(self) -> None:
+    def parse_markdown_into_sgid_metadata(self) -> SGIDLayerMetadata:
         """Creates an SGIDLayerMetadata object from the split markdown content."""
-        self.metadata = SGIDLayerMetadata(
+        metadata = SGIDLayerMetadata(
             title=MarkdownData(self._split_content["Title"]),
             category=MarkdownData(self.group),
             secondary_category=MarkdownData(self._split_content["Secondary Category"]),
@@ -430,6 +437,8 @@ class MetadataFile:
                 data_source=MarkdownList(self._split_content["Data Source"]),
                 host=MarkdownData(self._split_content["Host"]),
             ),
+            restrictions=MarkdownData(self._split_content["Restrictions"]),
+            license_=MarkdownData(self._split_content["License"]),
             tags=MarkdownList(self._split_content["Tags"]),
             data_page_link=MarkdownData(self._split_content["Data Page Link"]),
             update=MetadataUpdates(
@@ -438,25 +447,20 @@ class MetadataFile:
             ),
         )
         if self.schema_file:
-            self._parse_markdown_into_schema()
+            metadata.schema = self._parse_markdown_into_schema()
 
         self._set_restrictions_and_license()
 
     def _parse_markdown_into_schema(self) -> None:
         """Creates a schema dictionary from the split schema content."""
-        self.metadata.schema = MetadataSchema(
+        schema = MetadataSchema(
             {
                 header: MarkdownData(content)
                 for header, content in self._split_schema.items()
                 if header not in ["Title", "ID"]
             }
         )
-
-    def _set_restrictions_and_license(self) -> None:
-        if self._split_content["Restrictions"]:
-            self.metadata.restrictions = (MarkdownData(self._split_content["Restrictions"]),)
-        if self._split_content["License"]:
-            self.metadata.license_ = MarkdownData(self._split_content["License"])
+        return schema
 
 
 def example_repo_pull():
@@ -481,7 +485,6 @@ def example_repo_pull():
     for category in metadata_repo.categories:
         for metadata_file in metadata_repo.categories[category]:
             try:
-                metadata_file.split_content_and_schema_to_sections()
                 metadata_file.parse_markdown_into_sgid_metadata()
                 parsed[metadata_file.metadata.sgid_id.value] = metadata_file.metadata
             except KeyError as e:  #: if there are any sections missing/misnamed
