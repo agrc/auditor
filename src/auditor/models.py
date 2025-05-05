@@ -6,6 +6,7 @@ See cli.py for usage
 
 import datetime
 import logging
+from logging.handlers import RotatingFileHandler
 import uuid
 from pathlib import Path
 from time import sleep
@@ -56,7 +57,7 @@ def log_report(report_dict, report_file, separator="|", rotate_count=18):
     #: Set up a rotating file handler for the report log
     report_path = Path(report_file)
     report_logger = logging.getLogger("audit_report")
-    report_handler = logging.handlers.RotatingFileHandler(report_path, backupCount=rotate_count)
+    report_handler = RotatingFileHandler(report_path, backupCount=rotate_count)
     report_handler.doRollover()  #: Rotate the log on each run
     report_handler.setLevel(logging.DEBUG)
     report_logger.addHandler(report_handler)
