@@ -49,7 +49,7 @@ setup(
             "pytest-watch==4.*",
             "pytest>=6,<9",
             "ruff==0.0.*",
-            "pytest-mock>=3.10,<3.15",
+            "pytest-mock>=3.10,<3.16",
         ]
     },
     setup_requires=[
