@@ -89,3 +89,7 @@ The AGOL metatable is hosted on AGOL and is also read with `arcpy`. It does not 
 ## Thumbnails
 
 The repo's `thumbnails` directory hold thumbnails named `group_name.png`, where `group_name` is the SGID group (in lowercase).
+
+## Attribution
+
+This project was developed with the assistance of [GitHub Copilot](https://github.com/features/copilot).
