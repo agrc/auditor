@@ -282,44 +282,36 @@ class Auditor:
 
         user_item = self.gis.users.me
 
-        #: Use the Folders API (arcgis 2.3+) to get Folder objects for all subfolders.
-        #: Root folder items are retrieved separately by passing folder=None to user_item.items().
         if self.verbose:
             print(f"Getting {self.username}'s folders...")
-        all_folders = self.gis.content.folders.list(owner=user_item)
-        #: Dict of folder id -> Folder object for resolving item.ownerFolder in specific-item-IDs branch
-        folder_by_id = {f.id: f for f in all_folders}
 
-        self.items_to_check = []  #: Clear this out again in case retry calls setup() multiple times.
+        #: Lookup up proper Folder reference based on item's itemid
+        folder_and_item_by_item_id = self.map_item_ids_to_items_and_folders(user_item)
 
-        #: Get item object and it's correspond folder for each relevant item
+        #: This list of items to check gets passed to the checkers
+        #: Clear it out in case retry calls setup() multiple times.
+        self.items_to_check = []
+
+        #: Get item object and its corresponding folder for each relevant item
         if self.verbose:
             print("Getting item objects...")
 
-        #: User-provided list
+        #: If item ids are provided, add them to items_to_check and add their Folder reference to itemid_and_folder
         if self.item_ids:
             for item_id in self.item_ids:
-                item = self.gis.content.get(item_id)
-                if not item:
-                    raise ValueError(f"Item {item_id} not found")
+                item, folder = folder_and_item_by_item_id.get(item_id)
                 self.items_to_check.append(item)
-                if item.ownerFolder is None:
-                    self.itemid_and_folder[item.itemid] = None
-                else:
-                    folder = folder_by_id.get(item.ownerFolder)
-                    if folder is None:
-                        raise ValueError(f"Folder id {item.ownerFolder} not found (wrong user?)")
-                    self.itemid_and_folder[item.itemid] = folder.title
+                try:
+                    self.itemid_and_folder[item.itemid] = folder
+                except KeyError:
+                    raise ValueError(f"Item {item_id} not found in user's folders (wrong user?)")
 
-        #: No user-provided item ids, get all hosted feature services in every folder
+        #: If no user-provided item ids, get all hosted feature services in every folder
         else:
-            #: Iterate root (None) then each subfolder
-            for folder in [None] + all_folders:
-                folder_title = None if folder is None else folder.title
-                for item in user_item.items(folder=folder_title, max_items=1000):
-                    if item.type == "Feature Service":
-                        self.items_to_check.append(item)
-                        self.itemid_and_folder[item.itemid] = folder_title
+            for item_id, (item, folder) in folder_and_item_by_item_id.items():
+                if item.type == "Feature Service":
+                    self.items_to_check.append(item)
+                    self.itemid_and_folder[item_id] = folder
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
@@ -341,6 +333,24 @@ class Auditor:
             print("Getting groups...")
         groups = self.gis.groups.search("title:*")  # pylint: disable=no-member
         self.groups_dict = {g.title: g.id for g in groups}
+
+    def map_item_ids_to_items_and_folders(self, user) -> dict[str, tuple[arcgis.gis.Item, arcgis.gis.Folder]]:
+        """Create a lookup of Item and Folder objects by AGOL item's item_id
+
+        Args:
+            user (arcgis.gis.User): User object used to enumerate folders
+
+        Returns:
+            dict[str, tuple[arcgis.gis.Item, arcgis.gis.Folder]]: item_id:(Item, Folder)
+        """
+
+        folders_by_item_id = {}
+        for folder in user.folders:
+            print(f"Mapping items in folder {folder.name}...")
+            for item in folder.list(item_type="Feature Service"):
+                folders_by_item_id[item.itemid] = (item, folder)
+
+        return folders_by_item_id
 
     def check_items(self, report=False):
         """Runs the checks on all the items and saves results in self.report_dict for use by a fixer

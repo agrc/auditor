@@ -214,7 +214,6 @@ class ItemChecker:
 
         #: Evaluate existing tags
         for orig_tag in orig_tags:
-
             #: Check if the tag is in the title (checking orig_tag instead
             #: of cleaned_tag to avoid weird false positives in multi-word
             #: tags catching the middle of a title- ie, 'Cycle Net' would
@@ -344,8 +343,8 @@ class ItemChecker:
         #: Create folder data: folder_fix, folder_old, folder_new
         folder_data = {"folder_fix": "N", "folder_old": "", "folder_new": ""}
 
-        if self.new_folder and self.new_folder != current_folder:
-            folder_data = {"folder_fix": "Y", "folder_old": current_folder, "folder_new": self.new_folder}
+        if self.new_folder and self.new_folder != current_folder.name:
+            folder_data = {"folder_fix": "Y", "folder_old": current_folder.name, "folder_new": self.new_folder}
 
         self.results_dict.update(folder_data)
 
@@ -528,7 +527,6 @@ class ItemChecker:
         fix_visibility = {"visibility_fix": "N"}
 
         for layer in self.item.layers:
-
             #: Check if default vis is true; wrap in try/except for robustness
             properties = None
             try:
