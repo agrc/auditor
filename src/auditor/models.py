@@ -6,8 +6,8 @@ See cli.py for usage
 
 import datetime
 import logging
-from logging.handlers import RotatingFileHandler
 import uuid
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from time import sleep
 
@@ -106,7 +106,6 @@ class Metatable:
         """
 
         for row in self._cursor_wrapper(table, fields):
-
             #: If table is from SGID, get "authoritative" from table and set "category" to SGID. Otherwise,
             #: get "category" from table and set "authoritative" to 'n'.
             #: SGID's AGOLItems table has "Authoritative" field, shelved table does not.
@@ -283,12 +282,13 @@ class Auditor:
 
         user_item = self.gis.users.me
 
-        #: Build dict of folders. 'None' gives us the root folder.
+        #: Use the Folders API (arcgis 2.3+) to get Folder objects for all subfolders.
+        #: Root folder items are retrieved separately by passing folder=None to user_item.items().
         if self.verbose:
             print(f"Getting {self.username}'s folders...")
-        folders = {None: None}
-        for folder in user_item.folders:
-            folders[folder["id"]] = folder["title"]
+        all_folders = self.gis.content.folders.list(owner=user_item)
+        #: Dict of folder id -> Folder object for resolving item.ownerFolder in specific-item-IDs branch
+        folder_by_id = {f.id: f for f in all_folders}
 
         self.items_to_check = []  #: Clear this out again in case retry calls setup() multiple times.
 
@@ -303,18 +303,23 @@ class Auditor:
                 if not item:
                     raise ValueError(f"Item {item_id} not found")
                 self.items_to_check.append(item)
-                try:
-                    self.itemid_and_folder[item.itemid] = folders[item.ownerFolder]
-                except KeyError:
-                    raise ValueError(f"Folder id {item.ownerFolder} not found (wrong user?)")
+                if item.ownerFolder is None:
+                    self.itemid_and_folder[item.itemid] = None
+                else:
+                    folder = folder_by_id.get(item.ownerFolder)
+                    if folder is None:
+                        raise ValueError(f"Folder id {item.ownerFolder} not found (wrong user?)")
+                    self.itemid_and_folder[item.itemid] = folder.title
 
         #: No user-provided item ids, get all hosted feature services in every folder
         else:
-            for _, name in folders.items():
-                for item in user_item.items(name, 1000):
+            #: Iterate root (None) then each subfolder
+            for folder in [None] + all_folders:
+                folder_title = None if folder is None else folder.title
+                for item in user_item.items(folder=folder_title, max_items=1000):
                     if item.type == "Feature Service":
                         self.items_to_check.append(item)
-                        self.itemid_and_folder[item.itemid] = name
+                        self.itemid_and_folder[item.itemid] = folder_title
 
         #: Read the metatable into memory as a dictionary based on itemid.
         #: Getting this once so we don't have to re-read every iteration
@@ -350,7 +355,6 @@ class Auditor:
         counter = 0
         try:
             for item in self.items_to_check:
-
                 counter += 1
 
                 if self.verbose:
@@ -371,18 +375,14 @@ class Auditor:
                 #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
 
                 #: Run the checks on this item
-                retry(
-                    lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles)
-                )  # pylint: disable=cell-var-from-loop
+                retry(lambda: checker.tags_check(self.tags_to_delete, self.uppercased_tags, self.articles))  # pylint: disable=cell-var-from-loop
                 retry(checker.title_check)
                 retry(lambda: checker.folder_check(self.itemid_and_folder))  # pylint: disable=cell-var-from-loop
                 retry(checker.groups_check)
                 retry(checker.downloads_check)
                 retry(checker.delete_protection_check)
                 # retry(checker.metadata_check)
-                retry(
-                    lambda: checker.description_note_check(self.static_note, self.shelved_note)
-                )  # pylint: disable=cell-var-from-loop
+                retry(lambda: checker.description_note_check(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
                 checker.thumbnail_check(self.thumbnail_dir)
                 retry(checker.authoritative_check)
                 retry(checker.visibility_check)
@@ -425,7 +425,6 @@ class Auditor:
         counter = 0
         try:
             for itemid in self.report_dict:
-
                 counter += 1
 
                 item = retry(lambda: self.gis.content.get(itemid))  # pylint: disable=no-member,cell-var-from-loop
@@ -434,7 +433,7 @@ class Auditor:
                 if self.verbose:
                     print(f"Evaluating report for fixes on {item.title} ({counter} of {len(self.report_dict)})...")
 
-                fixer = fixes.ItemFixer(item, item_report)
+                fixer = fixes.ItemFixer(item, item_report, self.gis)
 
                 #: TODO: add each method and it's args to a list, then iterate through the list (DRY)
 
@@ -448,9 +447,7 @@ class Auditor:
                 retry(fixer.folder_fix)
                 retry(fixer.delete_protection_fix)
                 retry(fixer.downloads_fix)
-                retry(
-                    lambda: fixer.description_note_fix(self.static_note, self.shelved_note)
-                )  # pylint: disable=cell-var-from-loop
+                retry(lambda: fixer.description_note_fix(self.static_note, self.shelved_note))  # pylint: disable=cell-var-from-loop
                 retry(fixer.thumbnail_fix)
                 retry(fixer.authoritative_fix)
                 retry(fixer.visibility_fix)
@@ -473,7 +470,6 @@ class Auditor:
 
                 #: Update summary statistics, print results if verbose
                 for status in update_status_keys:
-
                     #: Skip statuses not updated
                     if "No update needed for" in item_report[status]:
                         continue

@@ -24,10 +24,12 @@ class ItemFixer:
     {<topic>_result: result}
     """
 
-    def __init__(self, item, item_report):
+    def __init__(self, item, item_report, gis=None):
 
         self.item = item
         self.item_report = item_report
+        #: GIS object for folder lookups; falls back to item._gis if not supplied
+        self.gis = gis if gis is not None else item._gis
 
     def tags_fix(self):
         """
@@ -120,7 +122,10 @@ class ItemFixer:
 
     def folder_fix(self):
         """
-        Use item.move() to move item to folder.
+        Use item.move() to move item to folder via the Folders API (arcgis 2.3+).
+
+        Uses gis.content.folders.get() to resolve the target folder name to a
+        Folder object, then passes that object to item.move() (arcgis 2.4.1+).
 
         Updates item_report with results for this fix:
         {folder_result: result}
@@ -131,22 +136,25 @@ class ItemFixer:
             self.item_report["folder_result"] = "No update needed for folder"
             return
 
-        #: Try the move
-        folder = self.item_report["folder_new"]
-        move_result = self.item.move(folder)
+        folder_name = self.item_report["folder_new"]
 
-        #: .move(folder) returns None if folder not found
-        if not move_result:
-            self.item_report["folder_result"] = f"'{folder}' folder not found"
+        #: Resolve folder name to a Folder object using the Folders API
+        folder_obj = self.gis.content.folders.get(folder_name)
+
+        #: .folders.get() returns None if the folder is not found
+        if folder_obj is None:
+            self.item_report["folder_result"] = f"'{folder_name}' folder not found"
             return
 
+        move_result = self.item.move(folder_obj)
+
         #: Catching any other abnormal result
-        if not move_result["success"]:
-            self.item_report["folder_result"] = f"Failed to move item to '{folder}' folder"
+        if not move_result or not move_result.get("success"):
+            self.item_report["folder_result"] = f"Failed to move item to '{folder_name}' folder"
             return
 
         #: If all the checks have passed, return good result.
-        self.item_report["folder_result"] = f"Item moved to '{folder}' folder"
+        self.item_report["folder_result"] = f"Item moved to '{folder_name}' folder"
 
     def delete_protection_fix(self):
         """

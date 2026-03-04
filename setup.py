@@ -39,17 +39,16 @@ setup(
     install_requires=[
         "docopt==0.6.*",
         "arcgis==2.*",
-        "agrc-supervisor==3.0.*",
+        "ugrc-supervisor==3.*",
     ],
     extras_require={
         "tests": [
             "pytest-cov>=3,<8",
             "pytest-instafail==0.5.*",
-            "pytest-mock==3.*",
+            "pytest-mock>=3.10,<3.16",
             "pytest-watch==4.*",
             "pytest>=6,<10",
             "ruff==0.*",
-            "pytest-mock>=3.10,<3.16",
         ]
     },
     setup_requires=[
