@@ -21,10 +21,10 @@ Examples:
 import datetime
 import logging
 import sys
+from importlib.metadata import version
 from io import StringIO
 
 
-import pkg_resources
 from docopt import DocoptExit, docopt
 from supervisor.message_handlers import SendGridHandler
 from supervisor.models import MessageDetails, Supervisor
@@ -85,7 +85,7 @@ def cli():
             #: set up supervisor, add email handler
             auditor_supervisor = Supervisor(logger=summary_logger, log_path=credentials.REPORT_BASE_PATH)
             auditor_supervisor.add_message_handler(
-                SendGridHandler(credentials.SENDGRID_SETTINGS, "auditor", pkg_resources.require("auditor")[0].version)
+                SendGridHandler(credentials.SENDGRID_SETTINGS, "auditor", version("auditor"))
             )
 
             #: Set up org, check & fix items
