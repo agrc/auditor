@@ -30,7 +30,7 @@ Because a user's folder only holds items that they own, it effectively checks al
 
 ## Installation
 
-1. Clone the ArcGIS Pro conda environment and activate:
+1. Use ArcGIS Pro 3.6 or later (Python 3.13), then clone its conda environment and activate:
    * `conda create -n auditor --clone arcgispro-py3`
    * `activate auditor`
 1. Clone the repository

@@ -288,7 +288,9 @@ class Auditor:
             print(f"Getting {self.username}'s folders...")
         folders = {None: None}
         for folder in user_item.folders:
-            folders[folder["id"]] = folder["title"]
+            folder_properties = folder.properties
+            if folder_properties["id"] != "Root Folder":
+                folders[folder_properties["id"]] = folder_properties["title"]
 
         self.items_to_check = []  #: Clear this out again in case retry calls setup() multiple times.
 

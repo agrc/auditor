@@ -8,6 +8,7 @@ version = "3.0.4"
 description = "Audits all hosted feature service items in a user's AGOL folders for proper tags, sharing, etc based on an external metatable"
 license = { text = "MIT" }
 authors = [{ name = "Jake Adams", email = "jdadams@utah.gov" }]
+requires-python = ">=3.13"
 keywords = ["gis"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -16,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "docopt==0.6.*",
-    "arcgis==2.*",
+    "arcgis>=2.4.2,<3",
     "agrc-supervisor==3.0.*",
 ]
 
