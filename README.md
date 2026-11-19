@@ -42,6 +42,10 @@ Because a user's folder only holds items that they own, it effectively checks al
    * `cd <my git directory>\auditor`
    * `pip install -e .`
      * For some reason, you MUST use `-e`. See [https://github.com/agrc/auditor/issues/68](https://github.com/agrc/auditor/issues/68)
+   * For development and testing, install `pip install -e ".[dev]"` instead.
+   * If installation fails with `AttributeError: module 'pathspec' has no attribute 'GitIgnoreSpec'`, upgrade the
+     cloned environment's pathspec first: `pip install -U "pathspec>=0.10.1"`. Then retry the install. ArcGIS Pro's
+     Python path can expose an older installed pathspec to Hatchling's isolated build environment.
 1. (Optional) Create a scheduled task
    * Use `scheduled_audit.bat` to run a full scheduled audit
    * Currently set for 6:00 a.m. every day.
