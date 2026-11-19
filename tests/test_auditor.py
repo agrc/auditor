@@ -1,9 +1,10 @@
-import pytest
 import logging
-
 from collections import namedtuple
+from types import SimpleNamespace
 
-from auditor.models import Auditor, retry, Metatable
+import pytest
+
+from auditor.models import Auditor, Metatable, retry
 
 
 def test_retry():
@@ -53,6 +54,39 @@ def test_read_agol_metatable_to_dictionary(mocker):
     test_table.read_metatable('something', agol_fields)
 
     assert test_table.metatable_dict['dd7fa2d78d2547759a50d6f827f8df3a'] == ['table name', 'agol title', 'shelved', 'n']
+
+
+def test_setup_accepts_arcgis_folder_objects(mocker, tmp_path):
+    item = mocker.Mock(type="Feature Service", itemid="item-id")
+    user = mocker.Mock()
+    user.folders = [
+        SimpleNamespace(properties={"id": "Root Folder", "name": "Root Folder"}),
+        SimpleNamespace(properties={"id": "folder-id", "title": "Folder Title"}),
+    ]
+    user.items.side_effect = lambda name, limit: [item] if name == "Folder Title" else []
+
+    gis = mocker.Mock()
+    gis.users.me = user
+    gis.groups.search.return_value = []
+
+    mocker.patch("auditor.models.arcgis.gis.GIS", return_value=gis)
+    mocker.patch("auditor.models.arcpy.env", SimpleNamespace(scratchFolder=str(tmp_path)))
+    mocker.patch("auditor.models.arcpy.SignInToPortal")
+    mocker.patch("auditor.models.arcpy.GetActivePortalURL", return_value="portal")
+    mocker.patch("auditor.models.Metatable.read_metatable")
+
+    auditor = Auditor.__new__(Auditor)
+    auditor.sgid_table = "sgid"
+    auditor.agol_table = "agol"
+    auditor.itemid_and_folder = {}
+    auditor.verbose = False
+    auditor.username = "user"
+    auditor.log = logging.getLogger("test")
+    auditor.item_ids = None
+
+    auditor.setup()
+
+    assert auditor.itemid_and_folder == {"item-id": "Folder Title"}
 
 
 def test_magic_string_itemid_not_added_to_dictionary(mocker):
