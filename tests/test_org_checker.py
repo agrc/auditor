@@ -13,6 +13,16 @@ def test_duplicate_item_titles_added_to_dict(mocker):
     assert dupes == {'foo': [1, 3]}
 
 
+def test_repeated_item_id_does_not_count_as_duplicate_title(mocker):
+    agol_item = namedtuple('agol_item', ['title', 'itemid'])
+    item_list = [agol_item('foo', 1), agol_item('foo', 1)]
+
+    dupe_checker = OrgChecker(item_list)
+    dupes = dupe_checker.check_for_duplicate_titles()
+
+    assert dupes == {}
+
+
 def test_duplicate_checker_called_once(mocker):
 
     mocker.patch('auditor.org_checker.OrgChecker.check_for_duplicate_titles')
