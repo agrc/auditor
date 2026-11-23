@@ -34,13 +34,10 @@ class OrgChecker:
         seen_titles = {}
         duplicates = {}
         for item in self.item_list:
-            if item.title in seen_titles:
-                seen_titles[item.title].append(item.itemid)
-            else:
-                seen_titles[item.title] = [item.itemid]
+            seen_titles.setdefault(item.title, {})[item.itemid] = None
 
-        for title in seen_titles:
-            if len(seen_titles[title]) > 1:
-                duplicates[title] = seen_titles[title]
+        for title, item_ids in seen_titles.items():
+            if len(item_ids) > 1:
+                duplicates[title] = list(item_ids)
 
         return duplicates
